@@ -1,0 +1,71 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+    pull_request:
+        branches:
+            - main
+            - develop
+
+permissions:
+    contents: read
+    pull-requests: read
+
+jobs:
+    commit-lint:
+        name: Validar Convención de Commits
+        runs-on: ubuntu-latest
+        steps:
+            - name: Clonar repositorio con historial completo
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Validar commits con Conventional Commits
+              uses: wagoid/commitlint-github-action@v6
+              with:
+                  configFile: .commitlintrc.json
+
+    code-quality:
+        name: Calidad y Sintaxis de Código
+        runs-on: ubuntu-latest
+        steps:
+            - name: Clonar repositorio
+              uses: actions/checkout@v4
+
+            - name: Detectar directorio del proyecto
+              id: project-dir
+              run: |
+                  if [ -f "./app/package.json" ]; then
+                    echo "path=app" >> "$GITHUB_OUTPUT"
+                  elif [ -f "./Ratetify/package.json" ]; then
+                    echo "path=Ratetify" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "path=." >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Configurar Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: "npm"
+                  cache-dependency-path: ${{ steps.project-dir.outputs.path }}/package-lock.json
+
+            - name: Instalar dependencias
+              working-directory: ${{ steps.project-dir.outputs.path }}
+              run: npm ci
+
+            - name: Validar sintaxis de código (TypeScript)
+              working-directory: ${{ steps.project-dir.outputs.path }}
+              run: npm run typecheck
+
+            - name: Ejecutar linter (ESLint)
+              working-directory: ${{ steps.project-dir.outputs.path }}
+              run: npm run lint
+
+            - name: Ejecutar pruebas unitarias (Jest)
+              working-directory: ${{ steps.project-dir.outputs.path }}
+              run: npm test -- --passWithNoTests
