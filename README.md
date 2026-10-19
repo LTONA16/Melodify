@@ -1,97 +1,134 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Melodify
 
-# Getting Started
+> **Red social móvil para el descubrimiento, la calificación y la reseña de música.**  
+> *(Identificador del proyecto: `Ratetify`)*
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Melodify reúne en una sola plataforma la experiencia de registrar lo que escuchas, calificar álbumes y canciones, escribir reseñas e interactuar con una comunidad apasionada por la música, inspirándose en modelos como Letterboxd o Goodreads.
 
-## Step 1: Start Metro
+---
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 📑 Documentación del Proyecto
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+Toda la especificación técnica y funcional se encuentra detallada en la carpeta [`docs/`](docs/):
 
-```sh
-# Using npm
+| Módulo | Documento | Descripción |
+| :---: | :--- | :--- |
+| **01** | [Objetivo de la App](docs/01-objetivo.md) | Visión, enfoque social/reseñas vs. streaming y principios de privacidad. |
+| **02** | [Features Principales](docs/02-features.md) | Detalle de las 5 funciones clave (perfiles, catálogo, reseñas, feed e historial). |
+| **03** | [IA, Agentes y MCP](docs/03-ia-agentes-mcp.md) | Resúmenes narrativos con IA, arquitectura de agentes, herramientas MCP y salvaguardas. |
+| **04** | [Arquitectura Básica](docs/04-arquitectura.md) | Diagramas de arquitectura, componentes móviles, backend API, servicios externos y flujos. |
+
+---
+
+## Stack Tecnológico
+
+- **Frontend Móvil**: [React Native](https://reactnative.dev) `0.87.1` con React `19.2.3`
+- **Lenguaje**: [TypeScript](https://www.typescriptlang.org/) `6.x`
+- **Metadatos Musicales**: [Spotify Web API](https://developer.spotify.com/documentation/web-api)
+- **Calidad y Estilo**: [ESLint](https://eslint.org/), [Prettier](https://prettier.io/) y [Jest](https://jestjs.io/)
+- **Convención de Commits**: [Conventional Commits](https://www.conventionalcommits.org/) validado con [commitlint](.commitlintrc.json)
+- **Integración Continua (CI)**: [GitHub Actions Workflow](.github/workflows/ci.yml)
+- **Plantilla de PR**: [Pull Request Template](.github/pull_request_template.md)
+
+---
+
+## 📋 Requisitos Previos
+
+Asegúrate de contar con el entorno de desarrollo para React Native configurado:
+- **Node.js**: `>= 22.11.0` y **npm**
+- **JDK**: Java Development Kit (versión recomendada 17)
+- **Android Studio** (con SDK de Android y emulador configurado)
+- **Xcode** y **CocoaPods** *(únicamente si desarrollas para macOS / iOS)*
+- Para más detalles, consulta la [Guía oficial de configuración de React Native](https://reactnative.dev/docs/set-up-your-environment).
+
+---
+
+## Inicio Rápido
+
+El código fuente de la aplicación móvil se encuentra ubicado en la carpeta [`app/`](app/).
+
+### 1. Clonar el repositorio y acceder a la aplicación
+
+```bash
+git clone https://github.com/tu-usuario/Melodify.git
+cd Melodify/app
+```
+
+### 2. Configurar variables de entorno
+
+Copia el archivo de ejemplo y completa las credenciales requeridas (por ejemplo, las llaves de Spotify):
+
+```bash
+cp .env.example .env
+```
+
+> [!TIP]
+> Puedes revisar las variables documentadas en [app/.env.example](app/.env.example).
+
+### 3. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 4. Iniciar el servidor Metro
+
+Inicia el empaquetador de JavaScript de React Native:
+
+```bash
 npm start
-
-# OR using Yarn
-yarn start
 ```
 
-## Step 2: Build and run your app
+### 5. Compilar y ejecutar la aplicación
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+En una nueva terminal (dentro de la carpeta `app/`):
 
-### Android
-
-```sh
-# Using npm
+#### Para Android:
+```bash
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
+#### Para iOS (solo macOS):
+La primera vez o tras actualizar dependencias nativas, instala los pods:
+```bash
 bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
 bundle exec pod install
 ```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+Luego ejecuta la aplicación:
+```bash
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## 🧪 Calidad de Código y Pruebas
 
-## Step 3: Modify your app
+Para asegurar la calidad antes de abrir un Pull Request, ejecuta los scripts de validación:
 
-Now that you have successfully run the app, let's make changes!
+```bash
+# Validar sintaxis y tipos con TypeScript
+npm run typecheck
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+# Validar reglas de estilo con ESLint
+npm run lint
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+# Ejecutar pruebas unitarias con Jest
+npm test
+```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+Estas comprobaciones se ejecutan de manera automática en el pipeline de CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) en cada push o pull request hacia las ramas `main` y `develop`.
 
-## Congratulations! :tada:
+---
 
-You've successfully run and modified your React Native App. :partying_face:
+## Flujo de Contribución
 
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+1. Crea una rama descriptiva a partir de `develop`:
+   ```bash
+   git checkout -b feat/mi-nueva-funcionalidad
+   ```
+2. Realiza tus commits respetando el formato de [Conventional Commits](https://www.conventionalcommits.org/):
+   - `feat: descripción de nueva característica`
+   - `fix: corrección de error`
+   - `docs: cambios en la documentación`
+3. Verifica que las pruebas y el linter pasen localmente (`npm run typecheck && npm run lint && npm test`).
+4. Abre tu Pull Request completando la [plantilla oficial de PR](.github/pull_request_template.md).
