@@ -1,0 +1,153 @@
+{
+  "stage": "domain-design",
+  "upstream_ids": [
+    "US1.1",
+    "US1.2",
+    "US1.3",
+    "US2.1",
+    "US2.2",
+    "US2.3",
+    "US3.1",
+    "US3.2",
+    "US4.1",
+    "US4.2",
+    "US4.3",
+    "US5.1",
+    "US5.2",
+    "US5.3",
+    "US6.1",
+    "US7.1",
+    "US7.2",
+    "US7.3",
+    "US8.1",
+    "US9.1",
+    "US10.1",
+    "US10.2",
+    "US11.1",
+    "US11.2"
+  ],
+  "coverage": [
+    {
+      "id": "US1.1",
+      "status": "OK",
+      "target": "AppSession"
+    },
+    {
+      "id": "US1.2",
+      "status": "OK",
+      "target": "AppSession"
+    },
+    {
+      "id": "US1.3",
+      "status": "OK",
+      "target": "AppSession"
+    },
+    {
+      "id": "US2.1",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US2.2",
+      "status": "OK",
+      "target": "Catalog"
+    },
+    {
+      "id": "US2.3",
+      "status": "OK",
+      "target": "AppShell"
+    },
+    {
+      "id": "US3.1",
+      "status": "OK",
+      "target": "SpotifyCatalog"
+    },
+    {
+      "id": "US3.2",
+      "status": "OK",
+      "target": "Catalog"
+    },
+    {
+      "id": "US4.1",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US4.2",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US4.3",
+      "status": "OK",
+      "target": "Catalog"
+    },
+    {
+      "id": "US5.1",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US5.2",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US5.3",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US6.1",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US7.1",
+      "status": "OK",
+      "target": "ContentStore",
+      "note": "AC7.1.3 corregido el 2026-11-09 (ADR-006): dar me gusta no genera evento de actividad."
+    },
+    {
+      "id": "US7.2",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US7.3",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US8.1",
+      "status": "OK",
+      "target": "ActivityFeed"
+    },
+    {
+      "id": "US9.1",
+      "status": "OK",
+      "target": "ContentStore"
+    },
+    {
+      "id": "US10.1",
+      "status": "OK",
+      "target": "SpotifyAuth"
+    },
+    {
+      "id": "US10.2",
+      "status": "OK",
+      "target": "SpotifyAuth"
+    },
+    {
+      "id": "US11.1",
+      "status": "OK",
+      "target": "AppShell"
+    },
+    {
+      "id": "US11.2",
+      "status": "OK",
+      "target": "AppShell"
+    }
+  ],
+  "reverse": []
+}
