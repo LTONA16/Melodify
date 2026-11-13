@@ -141,7 +141,7 @@ Nada de esto se persiste: al cerrar la app se pierde y el arranque vuelve a semb
 | `useViewerId.ts` | Lee el `authorId` de `appSession.getSession()` y lo refresca con `subscribeSession`; devuelve `null` mientras no llega. Lo usan las cuatro pantallas: los dos detalles también lo necesitan porque `listOpinions`, `getOpinion` y `subscribeContent` responden `422` sin `viewerId`. |
 | `useContent.ts` | `useContent(viewerId)`; se suscribe a `contentStore.subscribeContent(viewerId)` y devuelve `{ status, opinions, revision, retry }`; `loading` hasta la primera emisión, `error` si la suscripción falla o el `viewerId` no llega. |
 | `useNetwork.ts` | Se suscribe a `shellServices.network` y devuelve `online`. |
-| `useCatalog.ts` | Se suscribe a `catalog.subscribe` y devuelve el catálogo y un contador que incrementa en cada emisión, para repintar portadas. |
+| `useCatalog.ts` | Se suscribe a `catalog.subscribe` y devuelve **un contador de cambios** —la primera emisión no cuenta— para repintar portadas; el catálogo se lee de la instancia estable y no se copia al estado (§ NFR8.5 de `performance-requirements.md`, precisión de NFR Design). |
 | `opinionCardModel.ts` | `toOpinionCardModel({ opinion, cover })`: el único mapeo de `OpinionView` a `OpinionCardModel`; pone `coverUrl` solo si la decisión es `url` (BR7.10). |
 
 ### `app/src/components/`

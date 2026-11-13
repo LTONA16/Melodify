@@ -112,7 +112,7 @@ Se cumple con el logger que entregó U1 (NFR9.1–NFR9.3): un solo módulo, sin 
 | Situación | Se muestra a la persona | Se registra |
 |---|---|---|
 | Suscripción al contenido fallida (F7, paso 6) | Sí, `ErrorState` con «Reintentar» | Sí, con `error`, porque es un fallo del sistema y no un estado esperado; código `CONTENT_SUBSCRIBE_FAILED`. La condición es acotada: **solo** se registra si `subscribeContent` lanza al establecerse —un defecto interno del almacén—, porque C4 no publica ningún fallo de suscripción; el `422` sin `viewerId` no llega aquí, que el hook no se suscribe hasta tenerlo |
-| Lectura de la obra o de la opinión fallida (F9, F8) | Sí, con «Reintentar» | Sí, con `error`, sin el texto de la opinión; código `CONTENT_READ_FAILED` |
+| Lectura de la obra o de la opinión fallida (F9, F8) | Sí, con «Reintentar» | Sí, con `error`, sin el texto de la opinión; código `CONTENT_READ_FAILED`. **Precisión de NFR Design (2026-11-12)**: solo se registra si la lectura **lanza** —un defecto interno del paquete—, porque C4 y C5 no publican un resultado de fallo para esas lecturas; el `404` de `getWork` es la degradación de BR5.2 (título y artista de la opinión más bloque de inicial) y el de `getOpinion` es un estado previsto del contrato (la opinión ya no está), así que ninguno de los dos se registra aunque la pantalla muestre su `ErrorState` |
 | Módulo de red no disponible o lectura fallida (BR6.3) | No: se arranca en línea y no se pinta el aviso | Sí, con `warn`; código `NETWORK_STATE_UNAVAILABLE` |
 | Resolución de portadas fallida (BR7.5) | Sí, banner con «Reintentar» | No se duplica el aviso; `getCoverFailure` ya lo expone a la interfaz |
 | Sin conexión (BR7.6) | Sí, es un estado, no un fallo | No |

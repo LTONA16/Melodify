@@ -12,18 +12,21 @@ graph LR
         Hooks --> Store["ContentStore (C4)<br/>memoria"]
         Hooks --> Catalog["Catalog (C5)<br/>memoria"]
         Hooks --> Session["appSession (C3)"]
-        Catalog --> Net["Connectivity (C6)"]
+        Hooks -->|lee online| Net["Connectivity (C6)"]
+        Catalog --> Net
         Net --> NetAdapter["expo-network-adapter.ts<br/>(único import de expo-network)"]
         NetAdapter --> OS["Sistema operativo<br/>isConnected / isInternetReachable"]
-        Catalog -.->|solo tipos, import type| Ports["ports.ts (C5)"]
-        Hooks --> Logger["logger (LC-5)"]
-        Session -.->|inyecta SessionLogger| Logger
-        Spotify["@melodify/spotify (U4)<br/>no existe todavía"]:::future -.->|implementará los puertos| Ports
+        Bootstrap["App (bootstrap)"] --> Hooks
+        Bootstrap -.->|import type de los tres puertos| PortTypes["@melodify/catalog/src/ports.ts"]
+        Bootstrap -.->|inyecta SessionLogger| Session
+        Session --> Logger["logger (LC-5)"]
+        Hooks --> Logger
+        Spotify["@melodify/spotify (U4)<br/>no existe todavía"]:::future -.->|implementará los tipos de los puertos| PortTypes
     end
     classDef future stroke-dasharray: 4 4;
 ```
 
-**Respaldo en texto**: la interfaz no habla con el sistema operativo: los hooks leen de `ContentStore`, `Catalog`, `appSession` y de la conectividad inyectada en la cáscara. `Connectivity` es el único camino hacia `expo-network`, y lo recorre por un solo adaptador. `Catalog` no conoce a `@melodify/spotify`: solo comparte con él los tipos de los tres puertos, y esa flecha es discontinua porque en U2 no existe el paquete. El logger es la única salida hacia fuera del código y no tiene red.
+**Respaldo en texto**: la interfaz no habla con el sistema operativo: los hooks leen de `ContentStore`, `Catalog`, `appSession` y de la conectividad inyectada en la cáscara. `Connectivity` es el único camino hacia `expo-network`, y lo recorre por un solo adaptador. `Catalog` no conoce a `@melodify/spotify`: los tipos de los tres puertos viven en `@melodify/catalog/src/ports.ts` y es la app quien los importa con `import type`, sin arista de ejecución. La flecha hacia el paquete de Spotify es discontinua porque en U2 no existe. El logger lo inyecta la app en la sesión —no al revés— y es la única salida hacia fuera del código: no tiene red.
 
 Hay exactamente **dos** entradas de dato que no escribe la app:
 
@@ -50,12 +53,22 @@ La verificación de NFR3.6 **no** es «no toca el almacenamiento»: el paquete n
 // Ilustrativo, no implementación. packages/content-store/src/__tests__/store.test.ts
 const a = createContentStore({ now: FIXED_NOW });
 const b = createContentStore({ now: FIXED_NOW });
-expect(a.listOpinions({ viewerId: "demo" })).toHaveLength(10);
-expect(b.listOpinions({ viewerId: "demo" })).toHaveLength(10);
-// Publicar en `a` no cambia `b`: no hay estado fuera del proceso ni módulo compartido
+const before = b.listOpinions({ viewerId: "demo" }).length;          // 10 (siembra)
+
+// Se escribe DE VERDAD en `a`: `4LRPiXqCikLlN15c3yImP7` («As It Was») es la obra
+// de la siembra que no tiene ninguna opinión.
+a.createOpinion({
+  authorId: "lucia", workId: "4LRPiXqCikLlN15c3yImP7", workTitle: "As It Was",
+  workArtist: "Harry Styles", text: "Texto de prueba", rating: 4,
+});
+
+expect(a.listOpinions({ viewerId: "demo" })).toHaveLength(before + 1);
+expect(b.listOpinions({ viewerId: "demo" })).toHaveLength(before);   // `b` no cambió
+expect(b.listOpinions({ viewerId: "demo" })
+  .some((o) => o.workId === "4LRPiXqCikLlN15c3yImP7" && o.authorId === "lucia")).toBe(false);
 ```
 
-Si alguien metiera una caché de módulo (o un singleton de paquete, que TS-18 prohíbe), la segunda aserción fallaría. Es una prueba que puede fallar por la razón correcta.
+Las tres aserciones son las que fallan si el estado se comparte. Si alguien metiera una caché de módulo (o un singleton de paquete, que TS-18 prohíbe), `a` y `b` serían el mismo almacén: la segunda y la tercera aserción caerían porque `b` vería la opinión publicada en `a`. Una prueba que solo compara longitudes iniciales pasaría con estado compartido y no demuestra nada; esta escribe primero y comprueba después, así que puede fallar por la razón correcta.
 
 ## NFR3.7 — La identidad no la elige el cliente
 
@@ -114,17 +127,14 @@ useEffect(() => {
 
 ```text
 // Ilustrativo, no implementación. app/src/bootstrap/ports.ts
-import type { SpotifyResolvePort, SpotifySearchPort, SpotifySessionPort } from "@melodify/catalog";
-export const spotifyPorts: {
-  session: SpotifySessionPort | null;
-  search: SpotifySearchPort | null;
-  resolve: SpotifyResolvePort | null;
-} = { session: null, search: null, resolve: null };
+import type { CatalogPorts } from "@melodify/catalog";
+export const catalogPorts: CatalogPorts = { session: null, search: null, resolve: null };
 ```
 
-- **Los tipos viven donde vive el consumidor**: `@melodify/catalog/src/ports.ts` declara `SpotifySessionPort`, `SpotifySearchPort` y `SpotifyResolvePort`; `app/src/bootstrap/ports.ts` deja de declararlos por su cuenta y los importa con `import type` (TS-21). Dos declaraciones del mismo tipo acabarían discrepando.
+- **Los tipos viven donde vive el consumidor**: `@melodify/catalog/src/ports.ts` declara `SpotifySessionPort`, `SpotifySearchPort`, `SpotifyResolvePort` y el agregado `CatalogPorts`; `app/src/bootstrap/ports.ts` deja de declararlos por su cuenta y los importa con `import type` (TS-21). Dos declaraciones del mismo tipo acabarían discrepando.
+- **La superficie pública del archivo no cambia**: conserva los nombres que U1 ya publica —`CatalogPorts` y `catalogPorts`, los tres en `null`—, así que `app/src/bootstrap/__tests__/ports.test.ts` sigue comprobando lo mismo sin tocarse y U4 registra las implementaciones en el mismo símbolo.
 - **`import type` lo borra el compilador**, así que no hay arista de ejecución: aunque `@melodify/spotify` estuviera instalado, nada de U2 lo carga.
-- **La compuerta es una regla de lint con tipos, no una convención.** `no-restricted-imports` no distingue `import type` de un import de valor; por eso el diseño usa **`@typescript-eslint/no-restricted-imports` con `allowTypeImports: true`**, aplicada a los archivos de `packages/catalog/src/**` y de `packages/spotify/src/**` (cuando U4 lo cree): prohíbe `@melodify/spotify` en el catálogo y `@melodify/catalog` en Spotify **salvo** como tipo. El plugin ya lo aporta `eslint-config-expo`, y la regla entra en el `eslint.config.js` que el CI ejecuta.
+- **La compuerta es una regla de lint con tipos, no una convención.** `no-restricted-imports` no distingue `import type` de un import de valor, así que el diseño usa **`@typescript-eslint/no-restricted-imports`** en `eslint.config.js` con **dos ajustes distintos, uno por dirección**: sobre `packages/catalog/src/**`, prohíbe `@melodify/spotify` **sin `allowTypeImports`**, porque TS-21 y NFR3.11 dicen que el catálogo no importa Spotify «en ninguna forma» y no le hace falta —los tipos de los puertos los declara él mismo—; sobre `packages/spotify/src/**` (cuando U4 lo cree), prohíbe `@melodify/catalog` **con `allowTypeImports: true`**, porque implementar `SpotifySearchPort` exige nombrar el tipo. La compuerta no es más laxa que la regla en la dirección que importa: el catálogo queda cerrado también a los tipos. El plugin ya lo aporta `eslint-config-expo`, y la regla entra en el `eslint.config.js` que el CI ejecuta.
 - **La mitad ejecutable se prueba**: un catálogo construido sin puertos responde `{ status: "offline", works: [] }`, `retryCovers` no hace nada y `getCoverFailure` es falso.
 
 ## NFR4.4 — Inventario de lo que queda escrito en el teléfono
@@ -180,7 +190,7 @@ const adapter: NetworkAdapter = {
 | Código | Nivel | Cuándo | Qué ve la persona |
 |---|---|---|---|
 | `CONTENT_SUBSCRIBE_FAILED` | `error` | `subscribeContent` lanza al establecerse (defecto interno del almacén; C4 no publica fallo de suscripción) | `ErrorState` + «Reintentar» |
-| `CONTENT_READ_FAILED` | `error` | `getWork`, `getOpinion`, `getAuthor`, `listFollowing`, `countOpinions` o `listOpinions` del detalle fallan | `ErrorState` + «Reintentar» |
+| `CONTENT_READ_FAILED` | `error` | Alguna lectura de C4/C5 (`getWork`, `getOpinion`, `getAuthor`, `listFollowing`, `countOpinions`, `listOpinions` del detalle) **lanza**. C4 y C5 no declaran respuesta de fallo para esas lecturas —solo `200`, el `404` previsto de `getWork` y el `422` sin `viewerId`—, así que un lanzamiento es un defecto interno del paquete, no un estado del contrato | `ErrorState` + «Reintentar» |
 | `NETWORK_STATE_UNAVAILABLE` | `warn` | El módulo de red falta o la lectura falla (BR6.3) | Nada: se arranca en línea |
 
 **Dónde viven esos códigos.** El logger del proyecto está tipado `SessionLogger`, cuya unión `SessionLogCode` es cerrada y de C3. U2 **no amplía C3**: declara en el mismo archivo de bootstrap el tipo de la app, asignable al de la sesión.
@@ -201,8 +211,9 @@ export interface AppLogger {
 export const logger: AppLogger = { /* implementación actual, sin cambios */ };
 ```
 
-- **`AppLogger` es asignable a `SessionLogger`**: acepta un superconjunto del código y la misma pareja `(code, message)`, así que `createAppSession({ logger })` y `appSession` siguen recibiendo el mismo objeto y C3 no cambia (C3 § Revisión 13). Una línea de prueba lo fija: `const asSession: SessionLogger = logger;`.
+- **`AppLogger` es asignable a `SessionLogger`**: acepta un superconjunto del código y la misma pareja `(code, message)`, así que `createAppSession({ logger })` y `appSession` siguen recibiendo el mismo objeto y C3 no cambia (`contract-summary.md` § Revisión 13, fila «C3 y C4 no cambian»). Una línea de prueba lo fija: `const asSession: SessionLogger = logger;`.
 - **El vocabulario crece por unidad, no por paquete ajeno.** U3 y U5 amplían `AppLogCode` en ese archivo cuando necesiten sus códigos; nadie reabre `SessionLogCode`.
+- **`CONTENT_READ_FAILED` exige un lanzamiento, y solo eso.** C4 y C5 no publican un resultado de fallo para `getWork`, `getOpinion`, `getAuthor`, `listFollowing`, `countOpinions` ni `listOpinions`: sus respuestas son `200` y los `404`/`422` que el contrato sí declara. Por tanto **no se emite por un `404`** —ni el de `getWork` (degradación de BR5.2: título y artista de la opinión más bloque de inicial) ni el de `getOpinion` (la opinión ya no está: F8 pinta «No pudimos cargar esta opinión.» con «Reintentar», pero es un estado esperado del contrato, no un defecto, y «no se duplica el aviso» lo deja sin registro)— **ni por un `422`** (sin `viewerId` no se llama), y sí por un lanzamiento síncrono o una promesa rechazada, que es un defecto interno del paquete —la misma condición que justifica `CONTENT_SUBSCRIBE_FAILED`—. La prueba de este código usa un almacén doble que lanza; las de una obra y una opinión inexistentes comprueban que **no** se registra nada.
 - **No se duplica el aviso.** Si la persona lo ve, el logger no lo repite, salvo que sea un fallo del sistema (el `ErrorState` va acompañado de `CONTENT_*` porque es un defecto, no un estado esperado). El banner de portadas no se registra: `getCoverFailure` ya lo expone a la interfaz. Sin conexión no se registra: es un estado, no un fallo. La portada caída a bloque tampoco: es la degradación prevista.
 
 ## NFR9.1 / NFR9.5 — Sin superficie nueva ni telemetría
@@ -225,7 +236,7 @@ Queda anotado para U5: si la Actividad necesitara medir algo, se decide allí y 
 | NFR3.8 | Revisión de la tabla de § Semilla contra la lista de autores ficticios y obras públicas; pruebas de pantalla sin credenciales |
 | NFR3.9 | Revisión de que no hay `WebView` ni marcado; prueba de render con un texto que contiene `<script>` y se pinta literal; prueba de `404` que cae al título de la opinión |
 | NFR3.10 / NFR3.1 | Búsqueda de `EXPO_PUBLIC_` sin resultados; revisión de `ports.ts` con los tres en `null`; `.env.example` sin valor |
-| NFR3.11 | Regla `@typescript-eslint/no-restricted-imports` con `allowTypeImports: true` en verde; búsqueda de `from "@melodify/spotify"` que solo devuelve `import type`; prueba de `searchWorks` sin puertos → `offline` |
+| NFR3.11 | Regla `@typescript-eslint/no-restricted-imports` en verde en las dos direcciones: **sin** `allowTypeImports` en el catálogo y **con** `allowTypeImports` en Spotify; búsqueda de `from "@melodify/spotify"` en `packages/catalog/` que no devuelve nada —ni valores ni tipos—; prueba de `searchWorks` sin puertos → `offline` |
 | NFR4.4 | Revisión del inventario; ninguna dependencia de almacenamiento en los paquetes nuevos |
 | NFR4.5 | Prueba del adaptador con `expo-network` doblado por `jest.mock`: traduce solo los dos campos y devuelve un booleano; revisión de que no lee SSID, IP ni tipo |
 | NFR4.6 | Tres pruebas de logger, una por código, con un logger espía: el mensaje es el literal y ningún dato de contenido entra |
@@ -257,5 +268,5 @@ Queda anotado para U5: si la Actividad necesitara medir algo, se decide allí y 
 - `tech-stack-decisions` — `construction/u2-content-core/nfr-requirements/tech-stack-decisions.md` (TS-16, TS-17, TS-18, TS-21).
 - `functional-spec` — `construction/u2-content-core/functional-design/functional-spec.md` (F7–F12, § Semilla, § Assumptions).
 - `rules` — `construction/u2-content-core/functional-design/rules.md` (BR4.6, BR4.9, BR5.1–BR5.5, BR6.1–BR6.5, BR7.5, BR8.4).
-- `contract-summary` — `inception/contract-design/contract-summary.md` (C2 1.2.0, C3 § Revisión 13, C4 con `x-identity` y `x-read-errors`, C5 1.1.0, C6 1.0.0 con `x-construction`).
+- `contract-summary` — `inception/contract-design/contract-summary.md` (C2 1.2.0, § Revisión 13 con la fila «C3 y C4 no cambian», C4 con `x-identity` y `x-read-errors`, C5 1.1.0, C6 1.0.0 con `x-construction`).
 - `project.md` — `aidlc/spaces/default/memory/project.md` (§Forbidden y §Mandated sobre el client secret, el backend y el contenido local).

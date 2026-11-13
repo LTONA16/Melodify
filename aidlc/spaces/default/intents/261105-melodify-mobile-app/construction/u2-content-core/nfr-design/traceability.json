@@ -34,7 +34,12 @@
     "NFR4.6",
     "NFR9.1",
     "NFR9.3",
-    "NFR9.5"
+    "NFR9.5",
+    "NFR5.5",
+    "NFR5.6",
+    "NFR5.7",
+    "NFR7.4",
+    "NFR7.5"
   ],
   "coverage": [
     {
@@ -170,7 +175,7 @@
     {
       "id": "NFR3.11",
       "status": "OK",
-      "target": "security-design.md § NFR3.11 — El catálogo y Spotify solo comparten tipos (import type + regla con allowTypeImports)"
+      "target": "security-design.md § NFR3.11 — El catálogo y Spotify solo comparten tipos (prohibición sin `allowTypeImports` en el catálogo; `import type` permitido en Spotify)"
     },
     {
       "id": "NFR4.4",
@@ -201,6 +206,31 @@
       "id": "NFR9.5",
       "status": "OK",
       "target": "security-design.md § NFR9.1 / NFR9.5 y logical-components.md § Inventario (LC-5 única superficie de diagnóstico)"
+    },
+    {
+      "id": "NFR5.5",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad de los paquetes nuevos (NFR5.5: `src/index.ts`, pruebas y referencia de proyecto de cada paquete; TS-17)"
+    },
+    {
+      "id": "NFR5.6",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad de los paquetes nuevos (NFR5.6: tres entradas nuevas en `coverageThreshold`, 80 % por árbol)"
+    },
+    {
+      "id": "NFR5.7",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad de los paquetes nuevos (NFR5.7: reloj inyectado, TS-20) y performance-design.md § NFR8.1 (siembra construida sin E/S)"
+    },
+    {
+      "id": "NFR7.4",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad de los paquetes nuevos (NFR7.4) y security-design.md § NFR4.5 (adaptador único, sin permiso nuevo)"
+    },
+    {
+      "id": "NFR7.5",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad de los paquetes nuevos (NFR7.5: inventario cerrado, `expo-network` la única dependencia nueva)"
     }
   ]
 }

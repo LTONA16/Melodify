@@ -12,6 +12,9 @@ module.exports = {
     "^@melodify/design-system$": "<rootDir>/packages/design-system/src",
     "^@melodify/app-session$": "<rootDir>/packages/app-session/src",
     "^@melodify/app-shell$": "<rootDir>/packages/app-shell/src",
+    "^@melodify/content-store$": "<rootDir>/packages/content-store/src",
+    "^@melodify/catalog$": "<rootDir>/packages/catalog/src",
+    "^@melodify/connectivity$": "<rootDir>/packages/connectivity/src",
   },
   testMatch: [
     "<rootDir>/app/src/**/*.test.{ts,tsx}",
@@ -32,5 +35,8 @@ module.exports = {
     "./packages/design-system/src/**": { lines: 80 },
     "./packages/app-shell/src/**": { lines: 80 },
     "./packages/app-session/src/**": { lines: 80 },
+    "./packages/content-store/src/**": { lines: 80 },
+    "./packages/catalog/src/**": { lines: 80 },
+    "./packages/connectivity/src/**": { lines: 80 },
   },
 };

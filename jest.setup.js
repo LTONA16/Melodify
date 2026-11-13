@@ -56,3 +56,18 @@ jest.mock("expo-secure-store", () => ({
   deleteItemAsync: jest.fn(async () => undefined),
   isAvailableAsync: jest.fn(async () => true),
 }));
+
+/**
+ * `expo-network` es el único módulo nativo que lee la red del sistema operativo
+ * (C6). En Jest no existe: el doble responde «en línea» para que la app arranque
+ * entera y las pruebas del adaptador lo sustituyan por su propia fábrica cuando
+ * necesiten simular un cambio o un fallo (NFR4.5).
+ */
+jest.mock("expo-network", () => ({
+  getNetworkStateAsync: jest.fn(async () => ({
+    isConnected: true,
+    isInternetReachable: true,
+    type: "WIFI",
+  })),
+  addNetworkStateListener: jest.fn(() => ({ remove: jest.fn() })),
+}));

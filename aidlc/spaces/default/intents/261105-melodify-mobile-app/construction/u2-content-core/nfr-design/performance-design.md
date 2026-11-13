@@ -82,15 +82,18 @@ export function useCatalog(): number {
 // Ilustrativo, no implementación. app/src/screens/inicio/InicioScreen.tsx
 const revision = useContent().revision;
 const catalogVersion = useCatalog();
+const online = useNetwork();
 const cards = useMemo(
   () => opinions.map((o) => toOpinionCardModel({ opinion: o, cover: catalog.coverFor(o.workId) })),
-  [opinions, revision, catalogVersion],
+  [opinions, revision, catalogVersion, online],
 );
 ```
 
-- **La primera emisión no incrementa el contador.** La instantánea que `catalog.subscribe` entrega al suscribirse es exactamente el catálogo con el que el hook ya arranca; contarla haría mapear dos veces al montar sin que nada haya cambiado, y la comprobación de NFR8.5 («diez llamadas al construir el feed, ninguna más al repintar») dejaría de ser cierta. El contador cuenta **cambios**, que es lo que C5 no publica; es una precisión del requisito, no una excepción.
+- **La primera emisión no incrementa el contador.** La instantánea que `catalog.subscribe` entrega al suscribirse es exactamente el catálogo con el que el hook ya arranca; contarla haría mapear dos veces al montar sin que nada haya cambiado, y la comprobación de NFR8.5 («diez llamadas al construir el feed y ninguna más al repintar sin cambio de revisión de contenido, de contador de versiones ni de conexión») dejaría de ser cierta. El contador cuenta **cambios**, que es lo que C5 no publica; es una precisión del requisito, no una excepción.
 - **Una consulta por opinión y ninguna desde la tarjeta.** El mapeo es de la pantalla: `toOpinionCardModel` llama a `coverFor(workId)` una vez por opinión (F12 paso 1) y la tarjeta recibe el modelo resuelto. `OpinionCard` no importa `Catalog` ni recibe la instancia, así que no hay forma de que pregunte por su cuenta.
-- **La clave de invalidación es `(opinions, revision, catalogVersion)`.** `opinions` solo cambia cuando cambia `revision`; `catalogVersion` cambia cuando C5 avisa de una portada o de un metadato. Volver a pintar por otra razón —un cambio de red, una tecla, un estado local— no recalcula nada.
+- **El hook no copia el catálogo a su estado, y por eso devuelve solo el número.** Guardar la instantánea emitida dejaría dos referencias al mismo catálogo —la del estado y la de la instancia— y cualquiera de las dos podría quedar vieja; `coverFor` se llama sobre la instancia, que es la fuente única (NFR1.8). El estado de React guarda lo único que la instancia no publica: cuántas veces ha cambiado, que es la señal de repintado. Es una precisión sobre `performance-requirements.md` § NFR8.5 y `frontend-components.md` § `app/src/state/` («devuelve el catálogo y un contador»), registrada en los dos: el hook devuelve el contador y lee la instancia estable.
+- **La clave de invalidación es `(opinions, revision, catalogVersion, online)`.** `opinions` solo cambia cuando cambia `revision`; `catalogVersion` cambia cuando C5 avisa de una portada o de un metadato; `online` entra porque la decisión de portada depende de la conectividad (C5 consulta C6, BR6.2) y sin él un cambio de red dejaría las portadas como estaban hasta que C5 emitiera por su cuenta, que C5 no promete (su `subscribe` avisa de cambios de catálogo o de resultado de portada, no de conectividad). Volver a pintar por otra razón —una tecla, un estado local, un cambio de tema— no recalcula nada.
+- **El detalle de obra usa la misma clave con la obra abierta**: `(workId, revision, catalogVersion, online)`; su portada se resuelve una vez por cada una de esas cuatro entradas y no por tarjeta (F9 paso 3).
 - **El detalle de obra no mapea tarjetas**: lee la obra, sus opiniones y el recuento **una vez por obra abierta**, no por tarjeta (F9 paso 3). Su hook solo vuelve a leer cuando cambia la revisión del contenido o cuando cambia la obra; la portada se resuelve una vez por `(workId, catalogVersion, online)`.
 - **Sin `useSyncExternalStore`.** Esa API pide un `getSnapshot` síncrono que devuelva el valor vigente con la misma referencia, y ni C4 ni C5 lo publican (TS-19). La suscripción que emite al establecerse cubre el mismo hueco sin inventar un snapshot: la emisión entre render y suscripción **no existe** en C4, C5 ni C6 porque la propia suscripción la entrega.
 
@@ -99,12 +102,12 @@ const cards = useMemo(
 | Escenario | Suscripciones | `coverFor` | `listOpinions` |
 |---|---|---|---|
 | Montar Inicio con 10 opiniones | 1 a C4 + 1 a C5 + 1 a C6 | 10 | 1 (la del feed) |
-| Repintar tras un cambio de red | 0 | 0 | 0 |
+| Repintar tras un cambio de red | 0 | 10 (solo si la red cambia la decisión de portada) | 0 |
 | Repintar tras una emisión de catálogo | 0 | 10 (las tarjetas se reconstruyen) | 0 |
 | Abrir y cerrar un detalle de obra | 1 a C4 (la del detalle) | 1 (la de la cabecera) | 1 (la de la obra) |
 | Cambiar de pestaña y volver | 0 (la raíz sigue montada, NFR1.7) | 0 | 0 |
 
-`coverFor` no toca la red en U2: sin `SpotifyResolvePort` la decisión es local (bloque de inicial o la `coverUrl` sembrada). En U4 la decisión sí consultará a Spotify, y el número de consultas por repintado seguirá siendo cero porque la invalidación no cambia: la resolución la sigue disparando el aviso de C5.
+`coverFor` no toca la red en U2: sin `SpotifyResolvePort` la decisión es local (bloque de inicial o la `coverUrl` sembrada). En U4 la decisión sí consultará a Spotify, y el repintado por cualquier razón que no sea un cambio de contenido, de catálogo o de red seguirá costando cero; el cambio de red es justo el momento en que interesa volver a decidir, así que sus diez consultas son deseables y C5 solo pide a Spotify las portadas que aún no tiene.
 
 ## NFR8.6 — El resto del recorrido sigue sin número
 
@@ -139,7 +142,7 @@ Abrir un detalle, volver y cambiar de pestaña se juzgan como NFR8 está aprobad
 | Reintentar las portadas | «Reintentar» en el banner de metadatos, bajo la cabecera de Inicio | 1 |
 | Cerrar sesión | Perfil → «Cerrar sesión» | 2 |
 
-**Lo que hace posible el «1 toque»**: la tarjeta entera es pulsable (`Pressable` que envuelve a `OpinionCard`, no un botón diminuto dentro); el error no navega a otra pantalla; y el detalle de obra no gana una entrada provisional que luego haya que quitar.
+**Lo que hace posible el «1 toque»**: la tarjeta entera responde porque `OpinionCard` recibe `onPress` y es su propio `Pressable` raíz —con `accessibilityRole` de botón— el que lo captura; no se envuelve la tarjeta en un segundo `Pressable`, que añadiría un toque anidado sin rol, ni se pone un botón diminuto dentro. El error no navega a otra pantalla, y el detalle de obra no gana una entrada provisional que luego haya que quitar.
 
 ## NFR2.5 — El error que se pinta y el que no
 
@@ -151,10 +154,11 @@ La regla es la de U1, aplicada a cuatro pantallas: **se pinta solo lo que la per
 | Lectura de la obra, la opinión o el autor falla | Sí | `ErrorState` + «Reintentar» | `error`, `CONTENT_READ_FAILED` |
 | Obra no encontrada (`404`) | No es un error de pantalla | Cabecera con el título y artista de la opinión + bloque de inicial | Nada: es la degradación prevista |
 | Portadas sin resolver | Sí | Banner «No pudimos actualizar las portadas.» + «Reintentar» | No se duplica: `getCoverFailure` ya lo expone |
-| Sin conexión | Sí, pero no es un error | `OfflineBanner` informativo, **sin acción** | Nada |
+| Sin conexión | Sí, y no es un error | `OfflineBanner` con «Reintentar» → `retryCovers` | Nada |
 | Módulo de red no disponible | No | Se arranca en línea, sin aviso | `warn`, `NETWORK_STATE_UNAVAILABLE` |
 
-- **El `ErrorState` es el único portador de «Reintentar»** en un fallo de lectura; el banner de portadas tiene el suyo porque su acción es otra (`retryCovers`, no volver a leer el feed). Dos acciones distintas no comparten botón.
+- **«Reintentar» tiene dos significados, y cada uno vive en su sitio.** El «Reintentar» de un `ErrorState` **repite la lectura de esa pantalla**: vuelve a pedir el feed, la obra o la opinión. El de un banner —el de metadatos y el de sin conexión— **llama a `retryCovers`**. No hay un botón ambiguo: un `ErrorState` nunca cablea `retryCovers` y un banner nunca vuelve a leer el contenido, porque un error de lectura y una portada sin resolver son dos fallos distintos con dos arreglos distintos; lo único que comparten los dos banners es la acción, no el texto.
+- **La decisión sobre el aviso de sin conexión la toma el Functional Design.** `functional-spec.md` § F7 paso 8 y su tabla de interacciones, § F11 paso 4 y § Textos dan al aviso «Reintentar» con `retryCovers`; el diseño sigue esa regla y no la sustituye, y `performance-requirements.md` § NFR2.5 se corrige en el mismo paso para que no diga «sin acción propia» (NFR2.5 pasa a: el aviso no es un error y su botón no arregla la conexión, solo reintenta portadas). Lo que la persona arregla —volver a tener red— no está en la pantalla, pero un reintento de portadas sí es útil en cuanto la red vuelve y C5 aún no ha emitido.
 - **Ningún mensaje lleva un código técnico**: el texto es llano y en español («No pudimos cargar las opiniones.»), y el código viaja al logger, no a la pantalla.
 - **Un fallo de portada nunca es un error de pantalla**: deja la tarjeta completa con el bloque de inicial (NFR1.5) y, como mucho, enciende el banner de metadatos.
 
@@ -175,12 +179,14 @@ Ningún estado de esta unidad se comunica solo con un color o un icono mudo; la 
 
 Cada pantalla tiene **un solo valor de estado**, no dos banderas: `loading | ready | error`, con `empty` como variante de `ready` (una lista vacía con su `EmptyState`). Con dos banderas existe el estado imposible «cargando y con datos», y es el que produce una pantalla en blanco.
 
+Las frases de la columna `empty` son **literales** de `functional-spec.md` § Textos: no se reescriben aquí ni en Code Generation, porque dos copias de la misma frase acaban discrepando. Si un texto debe cambiar, se cambia en esa tabla y de ahí baja.
+
 | Pantalla | `ready` | `empty` | `error` |
 |---|---|---|---|
-| Inicio | Feed con tarjetas | `EmptyState` + «Crear opinión» | `ErrorState` + «Reintentar» |
-| Detalle de obra | Cabecera + tarjeta propia + «Otras opiniones» | «Nadie ha opinado todavía.» + «Opinar sobre esta obra» | `ErrorState` + «Reintentar» |
+| Inicio | Feed con tarjetas | «Aún no hay opiniones.» + «Sé el primero.» + «Crear opinión» | `ErrorState` + «Reintentar» |
+| Detalle de obra | Cabecera + tarjeta propia + «Otras opiniones» | «Todavía nadie ha opinado sobre esta obra.» + «Opinar sobre esta obra»; con opinión propia y ninguna ajena, «Nadie más ha opinado todavía.» | `ErrorState` + «Reintentar» |
 | Detalle de opinión | Cabecera + tarjeta `detail` | No aplica (una opinión siempre tiene contenido) | `ErrorState` + «Reintentar» |
-| Perfil | Identidad + contadores + «Mis opiniones» | «Todavía no has escrito ninguna opinión.» + acción | `ErrorState` + «Reintentar» |
+| Perfil | Identidad + contadores + «Mis opiniones» | «Todavía no has publicado opiniones.» + «Crear opinión» | `ErrorState` + «Reintentar» |
 
 Dos casos límite que el diseño resuelve explícitamente:
 
@@ -195,12 +201,13 @@ La decisión de portada se toma **una vez por opinión, en el mapeo**, y el comp
 |---|---|---|
 | `url` con valor | Imagen de la portada | Nada más |
 | `initialBlock` (sin sesión, sin red o sin `coverUrl`) | Bloque de color con la inicial de la obra | Ningún icono de advertencia |
-| Imagen que falla al cargar | Bloque con la inicial (`onError` del componente de portada) | Ningún hueco ni borde roto |
+
+- **La imagen que falla al cargar todavía no existe en esta unidad.** `functional-spec.md` § Semilla deja `coverUrl` en `null` en las ocho obras, así que en U2 ninguna portada llega como `url` y `CoverArt` (C1 1.2.0) solo tiene el caso del bloque: no recibe `onError` ni lo necesita. La imagen con URL real llega con U4, y con ella su fallo de carga; esa unidad decide si C1 gana un `onError` en una versión posterior o si la pantalla resuelve antes de pintar. Aquí se deja anotado, sin atribuir a C1 1.2.0 una capacidad que no declara (`contract-summary.md` § Revisión 12).
 
 ## NFR1.6 — Sin conexión se conserva lo cargado
 
-- **Nada se vacía.** El hook guarda la última emisión; perder la red no emite contenido vacío, así que el feed y el detalle siguen pintando lo que había. Las portadas caen a bloque porque la decisión de C5 consulta C6, y eso se recalcula con la misma clave de invalidación de NFR8.5.
-- **El aviso lo pinta cada pantalla bajo su propia cabecera**, con `OfflineBanner` (un `Banner` con el texto único, sin acción). La cáscara **no** lo pinta (C2 1.2.0, § Revisión 13): las raíces de pestaña llevan su `AppHeader` dentro de la pantalla, y un banner de la cáscara quedaría por encima de la cabecera o duplicado. Cuatro pantallas leen `useNetwork`, pero solo la visible pinta el suyo.
+- **Nada se vacía.** El hook guarda la última emisión; perder la red no emite contenido vacío, así que el feed y el detalle siguen pintando lo que había. Las portadas caen a bloque porque la decisión de C5 consulta C6, y eso se recalcula con la misma clave de invalidación de NFR8.5 —que incluye `online`—; por eso el cambio de red se nota en las portadas sin que nadie pulse nada.
+- **El aviso lo pinta cada pantalla bajo su propia cabecera**, con `OfflineBanner` (un `Banner` con el texto único y «Reintentar» → `retryCovers`). La cáscara **no** lo pinta (C2 1.2.0, § Revisión 13): las raíces de pestaña llevan su `AppHeader` dentro de la pantalla, y un banner de la cáscara quedaría por encima de la cabecera o duplicado. Cuatro pantallas leen `useNetwork`, pero solo la visible pinta el suyo.
 - **Al recuperar la red** el aviso desaparece y las portadas vuelven si la decisión lo permite; no hay que reintentar a mano. El estado de red no se guarda: se vuelve a leer.
 - **El estado inicial es «en línea»** (BR6.3): mientras la primera lectura no resuelve, no se pinta un aviso que todavía no se sabe si es cierto.
 

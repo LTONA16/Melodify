@@ -44,16 +44,17 @@ graph TD
     State --> Store
     State --> Catalog
     State --> Session
+    State -->|lee el estado de red: online| Conn
     Catalog --> Store
     Catalog --> Conn
     Shell --> DS
-    Catalog -.->|import type| Ports["ports.ts (C5)"]
-    Log["LC-5 diagnóstico"] -.->|implementa SessionLogger y AppLogger| Session
+    App -.->|import type de los tres puertos| Ports["@melodify/catalog/src/ports.ts"]
+    Log["LC-5 diagnóstico"] -.->|se inyecta en la sesión (implementa SessionLogger y AppLogger)| Session
     State -.->|registra fallos por el puerto| Log
     Conn --> ExpoNet["expo-network"]
 ```
 
-**Respaldo en texto**: la app conoce a todos y es el único punto que los conecta. La cáscara depende del sistema de diseño y nada más. El catálogo depende del contenido (para el recuento de opiniones) y de la conectividad (para decidir la portada); **no depende de la sesión de Spotify**, solo de sus tipos. La capa de estado depende de las cuatro fuentes y del logger, siempre por inyección o por el puerto de registro. La conectividad es el único camino a `expo-network`. Ninguna flecha del grafo va de un paquete a la app.
+**Respaldo en texto**: la app conoce a todos y es el único punto que los conecta. La cáscara depende del sistema de diseño y nada más. El catálogo depende del contenido (para el recuento de opiniones) y de la conectividad (para decidir la portada); **no depende de la sesión de Spotify**, solo de sus tipos. La capa de estado depende de las cuatro fuentes y del logger, siempre por inyección o por el puerto de registro. La conectividad es el único camino a `expo-network`. **Ninguna flecha del grafo va de un paquete a la app**: los tipos de los tres puertos viven en `@melodify/catalog/src/ports.ts` y es la app quien los importa con `import type` (TS-21); el logger lo inyecta la app en la sesión, no al revés.
 
 ### Por qué el catálogo depende del contenido y no al revés
 
@@ -67,12 +68,26 @@ C5 necesita `countOpinions` para el «N opiniones» y para la media del detalle,
 | Nadie importa `expo-secure-store` salvo el adaptador de LC-3 | **ESLint** (`no-restricted-imports`) | Es una dependencia externa: cualquiera puede importarla y compilar |
 | Nadie importa `@react-native-async-storage/async-storage` | **ESLint** (`no-restricted-imports`) | Lo que ADR-011 decidió no añadir no puede reaparecer como atajo |
 | Solo `packages/connectivity/src/expo-network-adapter.ts` importa `expo-network` | **ESLint** (`no-restricted-imports`, regla nueva de U2) | Sin ella, una pantalla podría leer el sistema operativo por su cuenta y multiplicar lecturas (TS-16) |
-| `@melodify/catalog` no importa `@melodify/spotify` y viceversa **salvo con `import type`** | **ESLint** con `@typescript-eslint/no-restricted-imports` y `allowTypeImports: true` | `no-restricted-imports` no distingue tipos de valores; esta sí, y es lo que hace comprobable NFR3.11 |
+| `@melodify/catalog` no importa `@melodify/spotify` **en ninguna forma** y `@melodify/spotify` no importa `@melodify/catalog` salvo con `import type` | **ESLint** con `@typescript-eslint/no-restricted-imports`: en el catálogo **sin** `allowTypeImports`, en Spotify **con** `allowTypeImports: true` | `no-restricted-imports` no distingue tipos de valores; la variante con tipos sí, y usarla solo en la dirección de Spotify es lo que hace comprobable NFR3.11 sin abrir el catálogo a los tipos de un paquete que maneja el token |
 | Los tres paquetes nuevos no declaran dependencias de almacenamiento, red ni React (salvo `connectivity` con `expo-network`) | Revisión del PR y de los `package.json` | Es lo que sostiene NFR3.6 y NFR3.7: una dependencia declarada es una puerta abierta |
 | Solo `app/src/bootstrap/` construye instancias | Revisión del PR y el propio diseño | Una segunda instancia daría dos verdades (TS-18, R-01) |
 | `app/src/state/` no usa `createContext` | Revisión del PR | Un contexto de contenido sería una segunda fuente (NFR1.8, ADR-005 se refería al estado propio de la interfaz) |
 
 **Cada regla tiene una compuerta real, y no todas son la misma.** El type-check cierra las aristas entre paquetes internos porque las referencias de proyecto no compilan si aparecen. No cierra las dependencias externas ni las rutas relativas hacia `app/`: para eso están las reglas de lint que el CI ya ejecuta con `npm run lint`. La regla de tipos de TS-21 se añade en U2 porque es la única que distingue `import type` de un import de ejecución.
+
+## Superficie, cobertura y compatibilidad de los paquetes nuevos
+
+`tech-stack-decisions.md` § Requisitos derivados de esta unidad declara cinco requisitos que nacen de las decisiones de pila, no de `requirements.md`: NFR5.5–5.7 y NFR7.4–7.5. Se diseñan aquí, porque son propiedades de la estructura de paquetes de esta unidad y no de ninguna pantalla.
+
+| Requisito | Qué exige | Cómo lo cumple el diseño | Compuerta que lo demuestra |
+|---|---|---|---|
+| **NFR5.5** | Cada paquete nuevo publica su superficie en `src/index.ts`, trae sus pruebas y su referencia de proyecto de TypeScript | LC-6, LC-7 y LC-8 exponen **solo** lo que su `packages/<paquete>/src/index.ts` nombra; el resto de sus archivos es interno. Sus pruebas viven bajo `packages/<paquete>/src/**/*.test.ts`, que es lo que ya recoge el `testMatch` de la raíz, y cada paquete declara su `references` en `tsconfig` para que la app lo consuma sin `dist` construido (TS-17) | `npm test` (los tres árboles entran en la cobertura y en el mapeo de módulos), `npm run typecheck` (las referencias de proyecto fallan si la superficie no compila) y revisión del PR |
+| **NFR5.6** | Cobertura por árbol: 80 % de líneas en `app/src/**` **y** en cada `packages/*/src/**` | Code Generation añade tres entradas a `coverageThreshold` en `jest.config.js` —`./packages/content-store/src/**`, `./packages/catalog/src/**` y `./packages/connectivity/src/**`—, con el mismo 80 % que ya tienen `design-system`, `app-shell` y `app-session`. Ningún paquete nuevo queda fuera del umbral ni se compensa con el total del monorepo | `npm test -- --coverage`: Jest falla si cualquiera de los árboles baja del umbral |
+| **NFR5.7** | Fechas deterministas en pruebas: nada depende del reloj de la máquina | `createContentStore({ now })` recibe el reloj (TS-20) y la siembra lo usa para `createdAt` y `updatedAt`; las pruebas inyectan un `now` fijo y `formatCalendarDate` (C1) formatea ese valor, no el del sistema. Ninguna prueba de U2 llama a `new Date()` sin argumento ni usa `Date.now()` | Revisión del PR (ninguna lectura del reloj fuera del valor inyectado) y las pruebas de la siembra, que fijan la fecha esperada |
+| **NFR7.4** | `expo-network` corre en Expo Go sin `prebuild` ni permiso declarado por la app | Un solo import, en `packages/connectivity/src/expo-network-adapter.ts` (LC-8, TS-16); no se edita ningún manifiesto porque no hay proyecto nativo, y Expo Go ya declara `ACCESS_NETWORK_STATE` (`security-design.md` § NFR4.5). Si el módulo faltara, BR6.3 arranca en línea | Recorrido en Expo Go sobre el teléfono Android: la app abre y el aviso de sin conexión responde al modo avión |
+| **NFR7.5** | Ninguna dependencia nueva fuera de las APIs de Expo y React Native | Inventario cerrado: `expo-network` es la **única** dependencia nueva (TS-16); `FlatList` es de React Native (TS-22); no se añade librería de fechas (C1 ya publica `formatCalendarDate`), ni de estado (C4 con reducer propio), ni de listas | Revisión de los `package.json` de `app` y de los tres paquetes nuevos: solo `expo-network` aparece de más |
+
+**Por qué estos cinco viven aquí y no en `performance-design.md` o `security-design.md`**: describen la forma del monorepo —superficie, umbral de cobertura, reloj inyectado, compatibilidad con Expo Go y cierre de dependencias—, y su compuerta natural es `npm test`, `npm run typecheck` y el recorrido en el teléfono, no una pantalla concreta. NFR7.4 se apoya en el adaptador que diseña `security-design.md` § NFR4.5 y NFR7.5 en el inventario de esta misma página; ninguna de las dos cosas cambia por ello.
 
 ## Dominios de fallo y radio de impacto
 
@@ -107,7 +122,7 @@ C5 necesita `countOpinions` para el «N opiniones» y para la media del detalle,
 | `appSession` | **Una** | `app/src/bootstrap/session.ts` (R-01) | Cerrar sesión desde Perfil tiene que devolver la app a Login |
 | `logger` | Un módulo | Importado donde haga falta | Sin estado, sin red; único sitio que llama a `console` |
 | Contador de versiones del catálogo | **Uno por hook**, no compartido | `useCatalog` | Es un detalle de repintado, no un dato del dominio: compartirlo obligaría a un contexto y a una segunda verdad |
-| Clave de memoización de tarjetas | Una por pantalla | La pantalla | Se deriva de `(opinions, revision, catalogVersion)`; no se guarda en ningún sitio |
+| Clave de memoización de tarjetas | Una por pantalla | La pantalla | Se deriva de `(opinions, revision, catalogVersion, online)`, como fija `performance-design.md` § NFR8.5 —la conexión entra porque la decisión de portada depende de C6—; no se guarda en ningún sitio |
 | Siembra | Un valor dentro de LC-6 | `content-store/src/seed.ts` | No se exporta un objeto mutable: dos almacenes parten de la misma siembra sin compartir estado (prueba de NFR3.6) |
 | Almacenamiento seguro | Uno, con **dos claves y dos dueños** | LC-3 (sesión); U4 (token) | U2 no escribe en él; solo cierra sesión, que borra (NFR3.6, NFR4.4) |
 
