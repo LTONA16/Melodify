@@ -1,0 +1,62 @@
+{
+  "stage": "nfr-requirements",
+  "unit": "u2-content-core",
+  "upstream_ids": [
+    "NFR1",
+    "NFR2",
+    "NFR3",
+    "NFR4",
+    "NFR5",
+    "NFR6",
+    "NFR7",
+    "NFR8",
+    "NFR9"
+  ],
+  "coverage": [
+    {
+      "id": "NFR1",
+      "status": "OK",
+      "target": "NFR1.4, NFR1.5, NFR1.6, NFR1.7, NFR1.8"
+    },
+    {
+      "id": "NFR2",
+      "status": "OK",
+      "target": "NFR2.4, NFR2.5, NFR2.6"
+    },
+    {
+      "id": "NFR3",
+      "status": "OK",
+      "target": "NFR3.6, NFR3.7, NFR3.8, NFR3.9, NFR3.10, NFR3.11"
+    },
+    {
+      "id": "NFR4",
+      "status": "OK",
+      "target": "NFR4.4, NFR4.5, NFR4.6"
+    },
+    {
+      "id": "NFR5",
+      "status": "OK",
+      "target": "NFR5.5, NFR5.6, NFR5.7"
+    },
+    {
+      "id": "NFR6",
+      "status": "OK",
+      "target": "NFR6.5, NFR6.6"
+    },
+    {
+      "id": "NFR7",
+      "status": "OK",
+      "target": "NFR7.4, NFR7.5"
+    },
+    {
+      "id": "NFR8",
+      "status": "OK",
+      "target": "NFR8.4, NFR8.5, NFR8.6, NFR8.7"
+    },
+    {
+      "id": "NFR9",
+      "status": "OK",
+      "target": "NFR9.4, NFR9.5"
+    }
+  ]
+}

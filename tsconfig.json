@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/design-system" },
+    { "path": "./packages/app-session" },
+    { "path": "./packages/connectivity" },
+    { "path": "./packages/content-store" },
+    { "path": "./packages/catalog" },
+    { "path": "./packages/app-shell" },
+    { "path": "./app" }
+  ]
+}

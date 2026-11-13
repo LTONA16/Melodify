@@ -1,5 +1,17 @@
 {
-  "extends": "@react-native/typescript-config",
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../packages/design-system" },
+    { "path": "../packages/app-session" },
+    { "path": "../packages/connectivity" },
+    { "path": "../packages/content-store" },
+    { "path": "../packages/catalog" },
+    { "path": "../packages/app-shell" }
+  ]
 }

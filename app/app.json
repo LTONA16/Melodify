@@ -1,4 +1,18 @@
 {
-  "name": "Ratetify",
-  "displayName": "Ratetify"
+  "expo": {
+    "name": "Melodify",
+    "slug": "melodify",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "melodify",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "platforms": ["android", "ios"],
+    "android": {
+      "userInterfaceStyle": "automatic"
+    },
+    "ios": {
+      "userInterfaceStyle": "automatic"
+    }
+  }
 }

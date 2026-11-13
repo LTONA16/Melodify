@@ -1,0 +1,106 @@
+{
+  "stage": "functional-design",
+  "unit": "u1-app-skeleton",
+  "upstream_ids": [
+    "AC1.1.1",
+    "AC1.1.2",
+    "AC1.1.3",
+    "AC1.1.4",
+    "AC1.2.1",
+    "AC1.2.2",
+    "AC1.2.3",
+    "AC1.3.1",
+    "AC1.3.2",
+    "AC1.3.3",
+    "AC1.3.4"
+  ],
+  "coverage": [
+    {
+      "id": "AC1.1.1",
+      "status": "OK",
+      "target": "BR1.6, BR1.5"
+    },
+    {
+      "id": "AC1.1.2",
+      "status": "OK",
+      "target": "BR1.1, BR1.2"
+    },
+    {
+      "id": "AC1.1.3",
+      "status": "OK",
+      "target": "BR1.1"
+    },
+    {
+      "id": "AC1.1.4",
+      "status": "OK",
+      "target": "BR1.5, BR2.4"
+    },
+    {
+      "id": "AC1.2.1",
+      "status": "OK",
+      "target": "BR1.3, BR1.2"
+    },
+    {
+      "id": "AC1.2.2",
+      "status": "OK",
+      "target": "BR2.1"
+    },
+    {
+      "id": "AC1.2.3",
+      "status": "OK",
+      "target": "BR1.3, BR1.4"
+    },
+    {
+      "id": "AC1.3.1",
+      "status": "Deferred",
+      "target": "la acción «Cerrar sesión» vive en Perfil y Perfil es de U2 (unit-of-work.md § U2); U1 entrega el destino completo —signOut borra el recuerdo y la cáscara vuelve a Login— y U2 monta el botón y lo cablea. El criterio se cierra en U2."
+    },
+    {
+      "id": "AC1.3.2",
+      "status": "OK",
+      "target": "BR1.3, BR1.4"
+    },
+    {
+      "id": "AC1.3.3",
+      "status": "OK",
+      "target": "BR1.4"
+    },
+    {
+      "id": "AC1.3.4",
+      "status": "OK",
+      "target": "BR1.1, BR3.1"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR2.2",
+      "status": "N/A",
+      "target": "política de navegación decidida en Q2 = A; ninguna historia de US1 la ejercita porque el detalle llega en U2 y U3"
+    },
+    {
+      "id": "BR2.3",
+      "status": "N/A",
+      "target": "capacidad de la cáscara que exige FR2.3; la ejercita U2 con el detalle de obra"
+    },
+    {
+      "id": "BR2.5",
+      "status": "N/A",
+      "target": "regla de tema de FR2.4 sin criterio de aceptación en US1"
+    },
+    {
+      "id": "BR3.2",
+      "status": "N/A",
+      "target": "alcance de la tarjeta decidido en Q5 = A; la interacción social llega en U3"
+    },
+    {
+      "id": "BR3.3",
+      "status": "N/A",
+      "target": "subconjunto de FR3.2 que U2 completa con el feed y la portada real"
+    },
+    {
+      "id": "BR3.4",
+      "status": "N/A",
+      "target": "FR11.5 y NFR2 se aplican a todas las unidades; ninguna historia de US1 afirma el idioma"
+    }
+  ]
+}
