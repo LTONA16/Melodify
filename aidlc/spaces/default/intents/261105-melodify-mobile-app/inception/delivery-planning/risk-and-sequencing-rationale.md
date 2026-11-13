@@ -1,6 +1,6 @@
 # Riesgos y justificación de secuencia — Melodify
 
-**Confirmación del resumen:** Looks correct (confirmación renovada, 2026-11-10). 
+**Confirmación del resumen:** Looks correct (confirmada el 2026-11-10).
 
 ## Heurística elegida
 

@@ -1,0 +1,194 @@
+{
+  "stage": "nfr-design",
+  "unit": "u1-app-skeleton",
+  "upstream_ids": [
+    "NFR8.1",
+    "NFR8.2",
+    "NFR8.3",
+    "NFR2.1",
+    "NFR2.2",
+    "NFR2.3",
+    "NFR9.2",
+    "NFR1.1",
+    "NFR1.2",
+    "NFR1.3",
+    "NFR6.1",
+    "NFR6.3",
+    "NFR6.4",
+    "NFR3.1",
+    "NFR3.2",
+    "NFR3.3",
+    "NFR3.4",
+    "NFR3.5",
+    "NFR4.1",
+    "NFR4.2",
+    "NFR4.3",
+    "NFR5.1",
+    "NFR5.2",
+    "NFR5.3",
+    "NFR5.4",
+    "NFR6.2",
+    "NFR7.1",
+    "NFR7.2",
+    "NFR7.3",
+    "NFR9.1",
+    "NFR9.3"
+  ],
+  "coverage": [
+    {
+      "id": "NFR8.1",
+      "status": "OK",
+      "target": "performance-design § NFR8.1 — secuencia del arranque de cinco pasos: splash preventAutoHideAsync en el módulo de entrada, lectura de sesión, hideAsync en finally; nada que descontar del presupuesto"
+    },
+    {
+      "id": "NFR8.2",
+      "status": "OK",
+      "target": "performance-design § NFR8.2 — el splash del sistema es el único estado de espera: sin temporizadores, sin retardo mínimo, sin pantalla de carga propia; la raíz devuelve null mientras el estado es arranque"
+    },
+    {
+      "id": "NFR8.3",
+      "status": "OK",
+      "target": "performance-design § La semilla no depende de nada — semilla constante en memoria, sin red ni estado de carga al llegar a Inicio"
+    },
+    {
+      "id": "NFR2.1",
+      "status": "OK",
+      "target": "performance-design § NFR2.1 — un NavigationContainer con cinco destinos hermanos en la barra, sin menú intermedio ni cajón; Login no monta la barra"
+    },
+    {
+      "id": "NFR2.2",
+      "status": "OK",
+      "target": "performance-design § NFR2.2 — tabla de acciones por toques: entrar en 1, reintentar en 1, cambiar de pestaña en 1, ver la semilla en 0; Login sin pasos intermedios"
+    },
+    {
+      "id": "NFR2.3",
+      "status": "OK",
+      "target": "performance-design § El error que se muestra y el que no — regla «se pinta solo si hay acción en esa pantalla», con la tabla de qué se pinta y qué solo se registra"
+    },
+    {
+      "id": "NFR9.2",
+      "status": "OK",
+      "target": "security-design § La regla de no duplicar, § Catálogo de eventos y § Qué sobrevive en release — cuatro códigos cerrados con su nivel y su mensaje; los tres avisos son garantía de desarrollo (NFR9.1 los descarta en release) y los dos fallos del sistema sobreviven como error"
+    },
+    {
+      "id": "NFR1.1",
+      "status": "OK",
+      "target": "performance-design § NFR1 — estado único «arranque | login | inicio» que hace imposible el estado doble, más la tabla de lo que no puede pasar y lo que lo impide"
+    },
+    {
+      "id": "NFR1.2",
+      "status": "OK",
+      "target": "performance-design § Matriz de fallos — ocho fallos del almacenamiento, todos desembocan en Login o en «Reintentar», ninguno en una pantalla de error de arranque"
+    },
+    {
+      "id": "NFR1.3",
+      "status": "OK",
+      "target": "performance-design § La semilla no depende de nada — bloque con la inicial como respaldo de portada y ningún error posible al pintar Inicio"
+    },
+    {
+      "id": "NFR6.1",
+      "status": "OK",
+      "target": "logical-components § Sistema de diseño — utilidad de ratio en el paquete y prueba que recorre los pares usados en claro y oscuro contra 4.5:1 y 3:1"
+    },
+    {
+      "id": "NFR6.2",
+      "status": "OK",
+      "target": "logical-components § Sistema de diseño — tamaños mínimos en los tokens `size` (no valores sueltos por pantalla) y prueba de las piezas interactivas que monta U1: barra inferior, botones principales e iconos de la tarjeta"
+    },
+    {
+      "id": "NFR6.3",
+      "status": "OK",
+      "target": "logical-components § Sistema de diseño — useColorScheme dentro del ThemeProvider, null tratado como claro, roles semánticos y sin selector manual"
+    },
+    {
+      "id": "NFR6.4",
+      "status": "OK",
+      "target": "logical-components § Sistema de diseño — pestaña activa por color y por icono relleno, etiqueta siempre visible, comprobado en claro y oscuro"
+    },
+    {
+      "id": "NFR7.1",
+      "status": "OK",
+      "target": "tech-stack-decisions § TS-01 — Expo SDK 57 fijado exactamente; performance-design § Cómo se comprueba el presupuesto mide en Expo Go sobre el teléfono Android físico, que es la plataforma de esta versión"
+    },
+    {
+      "id": "NFR7.2",
+      "status": "OK",
+      "target": "tech-stack-decisions § TS-13 — solo APIs disponibles en Expo Go; security-design § El adaptador del almacenamiento y logical-components § Reglas de importación impiden añadir un módulo nativo o un segundo almacén"
+    },
+    {
+      "id": "NFR7.3",
+      "status": "OK",
+      "target": "tech-stack-decisions § TS-13 — Android es la única plataforma verificada; ninguna prueba de este diseño promete iOS ni se declara una verificación que no se haya hecho en el teléfono"
+    },
+    {
+      "id": "NFR3.1",
+      "status": "OK",
+      "target": "security-design § NFR3.1 — .env ignorado, .env.example con el client ID vacío, ningún client secret declarado, y la regla no-console que impide llevar credenciales a un registro"
+    },
+    {
+      "id": "NFR3.2",
+      "status": "OK",
+      "target": "security-design § NFR3.2 — tres decisiones que cierran la ruta al token: ports.ts declarado sin implementación, sin AsyncStorage y una clave por dueño"
+    },
+    {
+      "id": "NFR3.3",
+      "status": "OK",
+      "target": "security-design § NFR3.3 — clave melodify.session, forma de dos campos, adaptador inyectado y las tres puertas (leer, escribir, borrar) con su asimetría de fallos"
+    },
+    {
+      "id": "NFR3.4",
+      "status": "OK",
+      "target": "security-design § NFR3.4 — credenciales solo en memoria, firma del logger cerrada a dos cadenas, una sola normalización y mensaje que no revela el campo"
+    },
+    {
+      "id": "NFR3.5",
+      "status": "OK",
+      "target": "security-design § La guarda — parseSessionRecord devuelve null en vez de lanzar, construye un objeto nuevo y valida authorId y la fecha como ISO con zona"
+    },
+    {
+      "id": "NFR4.1",
+      "status": "OK",
+      "target": "security-design § NFR4 — la unidad no abre ninguna conexión; inventario completo de datos y ninguno sale del teléfono"
+    },
+    {
+      "id": "NFR4.2",
+      "status": "OK",
+      "target": "security-design § NFR4 — tabla de inventario con dónde vive cada dato, si se envía y cuándo se borra"
+    },
+    {
+      "id": "NFR4.3",
+      "status": "OK",
+      "target": "security-design § NFR4.3 — El registro de restricciones se reescribe antes de tener usuarios reales: CR-03 queda anotado y atado a la primera distribución, que esta versión no tiene (RC-07)"
+    },
+    {
+      "id": "NFR5.1",
+      "status": "OK",
+      "target": "tech-stack-decisions § TS-02 — TypeScript en `strict: true`; el diseño no introduce `any` en las interfaces de `AppSession`, en el puerto `SessionLogger` ni en la guarda del registro"
+    },
+    {
+      "id": "NFR5.2",
+      "status": "OK",
+      "target": "tech-stack-decisions § TS-03 — monorepo con espacios de trabajo y referencias de proyecto; logical-components § Inventario reparte LC-1…LC-5 entre paquetes y `app/src/bootstrap/`, sin paquete que importe la app"
+    },
+    {
+      "id": "NFR5.3",
+      "status": "OK",
+      "target": "tech-stack-decisions § TS-10 — Jest con `jest-expo` y 80 % de líneas por árbol con `collectCoverageFrom`; security-design § Cómo se demuestra cada requisito declara, requisito a requisito, la prueba que lo demuestra"
+    },
+    {
+      "id": "NFR5.4",
+      "status": "OK",
+      "target": "tech-stack-decisions § TS-11 — ESLint con `eslint-config-expo`, Prettier y los tres comandos como puerta; security-design § La puerta que lo mantiene así y logical-components § Reglas de importación añaden `no-console` y `no-restricted-imports` a esa misma configuración"
+    },
+    {
+      "id": "NFR9.1",
+      "status": "OK",
+      "target": "security-design § El logger — módulo con warn y error, firma cerrada a literales, código en unión de tipos y puerta __DEV__"
+    },
+    {
+      "id": "NFR9.3",
+      "status": "OK",
+      "target": "security-design § NFR9.3 — Sin panel, sin telemetría, sin alertas: no se define ningún SLI, SLO ni umbral porque no hay servicio que observar, y Sentry y equivalentes se descartan por NFR4 y RC-04"
+    }
+  ]
+}

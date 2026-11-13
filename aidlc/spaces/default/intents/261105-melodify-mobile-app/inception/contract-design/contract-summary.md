@@ -2,7 +2,8 @@
 
 > **Provenance**: deriva de `inception/units-generation/unit-of-work.md` (`unit-of-work`), `inception/units-generation/unit-of-work-dependency.md` (`unit-of-work-dependency`), `inception/domain-design/components.md` (`components`), `inception/requirements-analysis/requirements.md` (`requirements`) y de las respuestas de `contract-design-questions.md` (Q1–Q5, F1 y F2).
 > Fecha: 2026-11-09. Etapa: Contract Design. Agente: aidlc-architect-agent. Profundidad: Standard.
-> Revisión 8 (2026-11-09): cierra R-44…R-47. La revisión 7 cerró R-39 y R-41…R-43, la 6 R-33…R-40, la 5 R-27…R-32, la 4 R-19 y R-22…R-26, la 3 R-12…R-21 y la 2 R-01…R-11. El registro de cambios está al final.
+> Revisión 13 (2026-11-12): enmienda de NFR Requirements de U2 — C6 publica su superficie de construcción, `createConnectivity({ network })`, que hasta ahora vivía solo en el Functional Design; C2 corrige la invariante del aviso de sin conexión (lo pinta cada pantalla bajo su cabecera, no la cáscara), sin cambio de props; C3 y C4 no cambian: los códigos de diagnóstico de U2 se declaran en `app/src/bootstrap/logger.ts` con un tipo de la app asignable a `SessionLogger`.
+> Revisión 12 (2026-11-12): enmiendas del Functional Design de U2 — C1 completa su `1.2.0` (`AppHeader.leftSlot`, `EmptyState.body` opcional, estado `own` de `OpinionCard` y `formatCalendarDate`); C2 sube a `1.2.0` por comportamiento (`AppShell` monta toda la pila de la pestaña y oculta las entradas de debajo, para que volver del detalle conserve el feed y AC2.3.2 se cumpla; sin cambio de props ni exportaciones); C4 declara `createContentStore({ now?, seed? })` y el `422` de lectura sin `viewerId`; C5 sube a `1.1.0` con `subscribe`, `getCoverFailure`, `retryCovers` y `createCatalog({ content, connectivity, session, search, resolve })`; C6 se publica en `1.0.0` sin cambios. La revisión 11 (2026-11-11) registró la superficie aditiva realmente enviada por U1 —C1 y C2 a `1.1.0`, el token `space` alineado y C3 completa—. La revisión 10 (2026-11-11) enmendó C3 con el puerto de registro `SessionLogger` y las opciones de `createAppSession`, sin cambiar ninguna operación. La revisión 9 enmendó C1 (entrega por versiones) y el fallo de lectura de C3 (sin reintento). La revisión 8 cerró R-44…R-47, la 7 cerró R-39 y R-41…R-43, la 6 R-33…R-40, la 5 R-27…R-32, la 4 R-19 y R-22…R-26, la 3 R-12…R-21 y la 2 R-01…R-11. El registro de cambios está al final.
 
 ## Cómo leer este documento
 
@@ -81,7 +82,7 @@ melodify/
 ```yaml
 shared-schema:
   package: '@melodify/design-system'
-  version: 1.0.0
+  version: 1.1.0
   owner: U1
   transport: import en proceso
   exports:
@@ -94,7 +95,7 @@ shared-schema:
                warningContainer, onWarningContainer, overlay, skeleton, skeletonHighlight,
                focusRing, inverseSurface, inverseText }
       type: { display, title1, title2, headline, body, bodySmall, label, caption }
-      space: { 1..12 }
+      space: { 1, 2, 3, 4, 5, 6, 8, 10 }
       radius: { sm, md, lg, xl, pill }
       size: { header, tabBar, touch, cover, field, button, avatar, icon }
     components:
@@ -108,7 +109,7 @@ shared-schema:
       RatingInput:          { value: number, onChange: "(value: number) => void", disabled?: boolean }
       Avatar:               { author: AuthorSummary, size?: "small | medium | large" }
       SocialActionBar:      { likeCount: number, commentCount: number, likedByMe: boolean,
-                              onLike: "() => void", onComment: "() => void" }
+                              onLike?: "() => void", onComment?: "() => void" }
       ConnectionCard:       { title: string, body: string, actionLabel: string, onAction: "() => void" }
       SpotifyCard:          { status: "disconnected | connecting | connected | connectionError | invalidToken | notConfigured",
                               onConnect: "() => void", onDisconnect: "() => void", onRetry: "() => void" }
@@ -120,10 +121,14 @@ shared-schema:
                               onRetry: "() => void", onSubmit: "(text: string) => void", onClose: "() => void" }
       SearchField:          { value: string, placeholder: string, onChange: "(text: string) => void" }
       TextField:            { label: string, value: string, onChange: "(text: string) => void",
-                              error?: string, maxLength?: number }
+                              error?: string, maxLength?: number, placeholder?: string,
+                              secureTextEntry?: boolean,
+                              autoCapitalize?: "none | sentences | words | characters",
+                              autoFocus?: boolean, testID?: string }
       MultilineField:       { label: string, value: string, onChange: "(text: string) => void",
                               error?: string, maxLength?: number }
-      PrimaryButton:        { label: string, onPress: "() => void", disabled?: boolean, loading?: boolean }
+      PrimaryButton:        { label: string, onPress: "() => void", disabled?: boolean, loading?: boolean,
+                              testID?: string }
       SecondaryButton:      { label: string, onPress: "() => void", disabled?: boolean }
       TextButton:           { label: string, onPress: "() => void", tone?: "default | danger", disabled?: boolean }
       WorkResultRow:        { work: WorkSummary, opinionCount: number, onPress: "() => void" }
@@ -166,18 +171,35 @@ shared-schema:
   invariants:
     - "Ningún consumidor usa colores ni tamaños crudos; todo pasa por `tokens` del tema activo."
     - "`OpinionCard` es la única tarjeta de opinión; `isOwn` es una propiedad, no una variante, y vive solo ahí — el modelo no la lleva y la pantalla la pasa desde `OpinionView.isOwn`."
-    - "El inventario de `design-system-mapping.md` está completo aquí; ninguna pantalla reimplementa una pieza."
+    - "El inventario de `design-system-mapping.md` es la lista autoritativa de piezas, pero se entrega por versiones: la 1.0.0 exporta los tokens completos y las doce piezas del esqueleto, y cada unidad posterior añade las suyas (§ «Enmienda de la revisión 9»). Ninguna pantalla reimplementa una pieza: cada pieza existe en C1 antes de que la unidad que la usa construya su pantalla."
     - "Los contrastes y tamaños son los de `design-system-mapping.md`."
     - "El inventario crece de forma aditiva: añadir una pieza sube la versión menor; cambiar props existentes, la mayor."
-    - "C1 no importa tipos de C4, C5 ni C8: las props usan sus propios modelos de presentación y la pantalla mapea. Así U1 compila el inventario completo sin esperar a U2 ni a U5."
+    - "C1 no importa tipos de C4, C5 ni C8: las props usan sus propios modelos de presentación y la pantalla mapea. Así U1 compila su subconjunto sin esperar a U2 ni a U5."
 ```
+
+### Enmienda de la revisión 9 — qué exporta cada versión de C1
+
+Esta enmienda sustituye dos frases que afirmaban una entrega única en U1: el invariante anterior «El inventario de `design-system-mapping.md` está completo aquí» y la de `components.md` § DesignSystem («Implementa **todo** el inventario de `design-system-mapping.md`»). El inventario sigue siendo la lista autoritativa; lo que cambia es **cuándo** entra cada pieza, porque el 80 % de cobertura se mide por paquete y una pieza que ninguna pantalla usa hay que probarla igual.
+
+La 1.0.0 —la versión que U1 publica— exporta los **tokens completos** (`color`, `type`, `space`, `radius`, `size`), `ThemeProvider` y estas **doce piezas**: `AppHeader`, `BottomTabBar`, `OpinionCard`, `CoverArt`, `RatingStars`, `Avatar`, `SocialActionBar`, `TextField`, `PrimaryButton`, `EmptyState`, `Banner` y `Skeleton`. Las trece restantes del inventario entran así, en el orden en que se construyen los Bolts:
+
+| Versión | Unidad que la entrega | Piezas que entran | Por qué ahí |
+|---|---|---|---|
+| 1.0.0 | — (borrador de la revisión 9) | tokens, `ThemeProvider` y las doce piezas del esqueleto | Base planificada antes de construir U1; ninguna unidad la consumió. |
+| 1.1.0 | U1 | la base más las props aditivas y las utilidades de la § Revisión 11 | Es lo que el tramo mínimo pinta y prueba de verdad. |
+| 1.2.0 | U2 | `ErrorState`, `TextButton`; y, en la misma versión, tres adiciones opcionales de la revisión 12: `AppHeader.leftSlot?`, `EmptyState.body?` y el estado `own` de `OpinionCard` con `formatCalendarDate` | Los estados de error del feed y de Perfil (FR11.1, FR11.2); el botón de reintento es el `TextButton` de `ErrorState`. Las tres adiciones son las que hacen falta para el «‹ Volver» del detalle, el vacío de Perfil y la opinión propia «destacada» (AC2.3.2, AC9.1.5, AC4.2.1, AC4.2.4). |
+| 1.3.0 | U4 | `SearchField`, `ConnectionCard`, `SpotifyCard`, `WorkResultRow` | Explorar busca, conecta y lista resultados (FR4.1, FR4.5); U4 se construye antes que U3 en la secuencia acordada. |
+| 1.4.0 | U3 | `RatingInput`, `MultilineField`, `SecondaryButton`, `CommentSheet`, `Snackbar` | El formulario de Crear, la hoja de comentarios y los avisos que la acompañan (FR5.1, FR5.4, FR7.x). `SecondaryButton` aparece con el «Cancelar» de Crear; `SearchField` de Crear se reutiliza de la 1.3.0. |
+| 1.5.0 | U5 | `ActivityRow`, `DayHeader` | La lista de Actividad y sus encabezados por día (FR8.x). |
+
+Cada fila es un cambio **aditivo**: añade exportaciones y sube la versión menor; las props de una pieza existente solo cambian cuando lo añadido es opcional, como `AppHeader.leftSlot?`, `EmptyState.body?` y el estado `own` de `OpinionCard` de la revisión 12, que dejan compilando a quien use la forma anterior. Un consumidor que importe una pieza antes de su versión no compila, y eso es deliberado: obliga a que la unidad que la necesita la haya entregado antes. `Snackbar` y `CommentSheet` siguen siendo de U3 aunque la cáscara de U1 ya declare sus puntos de montaje: en U1 ninguno de los dos llega a pintarse, porque el aviso nunca se dispara y la hoja solo se pinta con un `opinionId` que en el esqueleto nunca existe.
 
 ## C2 — Cáscara de la app
 
 ```yaml
 shared-schema:
   package: '@melodify/app-shell'
-  version: 1.0.0
+  version: 1.2.0
   owner: U1
   transport: import en proceso
   exports:
@@ -186,6 +208,7 @@ shared-schema:
         screens: ScreenModule[]
         initialRoute: string
         services: ShellServices
+        entry?: ReactNode   # rama de sesión (Login), fuera de la barra; cuando viene, la barra no se pinta
     ShellServices:
       shape:
         network:
@@ -264,10 +287,11 @@ shared-schema:
     - "«Crear» y «Editar» son dos modos del mismo `ScreenModule` de U3, con dos entradas cada uno: la pestaña con el formulario vacío y el tercer nivel apilado sobre el detalle (`mockups.md` § Navegación). `openCreate({ workId })` apila el formulario de publicación con la obra preseleccionada; `openEdit({ opinionId })` apila el mismo formulario en modo edición con la opinión de origen, y `CreateEntry.returnTo` guarda desde dónde se abrió."
     - "El ciclo de `CreateEntry` está cerrado. `openCreate({ workId })` deja `mode: 'create'` y `openEdit({ opinionId })` deja `mode: 'edit'` con `editingOpinionId` y los campos rellenos desde `getOpinion` de C4. «Guardar» en modo edición actualiza con `updateOpinion` y llama a `closeCreate()`, que desapila y vuelve a `returnTo` (FR6.3); «Cancelar» llama a `closeCreate()` sin guardar (FR5.4, FR6.2). Publicar llama a `goToTab({ name: 'inicio' })` (FR5.3), que desapila y limpia `CreateEntry`. Tocar la pestaña Crear en `BottomTabBar.onSelect` selecciona esa pestaña con formulario vacío y reescribe `CreateEntry` como `{ mode: 'create', preselectedWorkId: null, editingOpinionId: null, returnTo: <la pestaña que estaba activa> }`: una visita nueva nunca arrastra la obra ni la opinión de la anterior, y «Cancelar» desde ahí vuelve a la pestaña anterior."
     - "`DetailScreenProps` va con la forma de su `kind`: el detalle de obra recibe `{ workId }` y el de opinión `{ opinionId }`."
-    - "El snackbar y el banner de sin conexión se pintan una sola vez, en la cáscara."
+    - "El snackbar se pinta una sola vez, en la cáscara. El banner de sin conexión lo pinta **cada pantalla** bajo su propia cabecera con la pieza `Banner` y el texto único de `interaction-spec.md`, y la cáscara **no** lo pinta: las raíces de pestaña llevan su `AppHeader` dentro de la pantalla, así que un banner en la cáscara quedaría por encima de la cabecera, al revés que el mockup. Se conserva la invariante de fondo —una sola pieza y un solo texto, sin duplicar el aviso— (revisión 13; `functional-spec.md` § Precisión a C2)."
     - "La cáscara no importa `@melodify/connectivity` ni `@melodify/spotify`: el estado de red y el de Spotify le llegan en `services`, inyectado por `@melodify/app` desde `bootstrap/`. Con el valor por defecto de U1, U1 funciona sola."
     - "Las pantallas leen el estado y lanzan las acciones de Spotify con `useShellServices()`, no reciben props y no importan `@melodify/spotify`: el chip de Inicio (FR3.3) y la tarjeta de Perfil (AC9.1.8) usan el mismo cauce."
-    - "La vista de detalle se apila dentro de la pestaña activa y se abre con `openWorkDetail({ workId })` o `openOpinionDetail({ opinionId })`; las rutas y los parámetros los fija C2, no cada unidad. U2 aporta el detalle de obra y U3 el de opinión; en los dos, «Editar» de una opinión propia llama a `openEdit({ opinionId })`, y cualquier pestaña abre el detalle con las mismas operaciones, sin conocer el componente."
+    - "La vista de detalle se apila dentro de la pestaña activa y se abre con `openWorkDetail({ workId })` o `openOpinionDetail({ opinionId })`; las rutas y los parámetros los fija C2, no cada unidad. U2 aporta el detalle de obra **y el detalle de opinión** —US2.3 es suya y Perfil lo necesita para AC9.1.4; U3 no lo rehace y solo cablea «Editar», como registran la revisión 12 y `construction/u2-content-core/functional-design/functional-spec.md` § Assumptions—; en los dos, «Editar» de una opinión propia llama a `openEdit({ opinionId })`, y cualquier pestaña abre el detalle con las mismas operaciones, sin conocer el componente."
+    - "La pila de cada pestaña se pinta **entera**: la entrada de la cima se ve y las de debajo se ocultan con `display: none`, igual que la cáscara ya oculta las pestañas inactivas. Así la pantalla que abre un detalle sigue montada y «‹ Volver» la devuelve con su desplazamiento y su estado, que es lo que pide AC2.3.2 (revisión 12; antes el panel pintaba solo la última entrada y la raíz se desmontaba)."
     - "Un cambio en `ShellServices` es un cambio incompatible de C2: se sube la versión mayor y se actualiza el punto de composición en el mismo PR."
 ```
 
@@ -275,7 +299,7 @@ shared-schema:
 
 ```yaml
 openapi: 3.1.0
-info: { title: AppSession, version: 1.0.0, x-owner: U1, x-transport: in-process }
+info: { title: AppSession, version: 1.1.0, x-owner: U1, x-transport: in-process }
 paths:
   /session:
     get:
@@ -285,7 +309,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SessionView' }
-        '503': { description: no se pudo leer el almacenamiento seguro; la interfaz ofrece reintentar }
+        '503': { description: no se pudo leer el almacenamiento seguro; la interfaz lo trata como «sin sesión» y abre Login sin aviso ni reintento — ver § Revisión 9 de C3 }
     post:
       operationId: signIn
       requestBody:
@@ -327,6 +351,46 @@ components:
         authorId: { type: string, const: demo }
         remembered: { type: boolean }
 ```
+
+### Revisión 9 — enmienda de C3 al fallo de lectura
+
+`getSession` responde `503` cuando el almacenamiento seguro no se puede leer, y **en esta versión ese `503` no ofrece reintento**. La interfaz lo trata como «sin sesión»: abre Login, intenta borrar el valor ilegible y no muestra aviso (FR1.4; `mockups.md` Pantalla 0, que decide Login sin reintento, y `mockups.md` § Pantalla 1, que declara que en Login no existe estado de error de arranque).
+
+El motivo: no hay nada que la persona pueda reintentar con una acción, porque el fallo es del almacenamiento local y la salida natural —entrar de nuevo— es la propia pantalla de Login. FR11.2 pide «Reintentar» para los errores **que se muestran**; aquí no se muestra error alguno, así que la regla no se incumple. `signIn` conserva su `503` de guardado, y ese sí se pinta con acción: el texto y el botón los fija U1 en `construction/u1-app-skeleton/functional-design/functional-spec.md` § Flujo F2.
+
+### Revisión 10 — superficie aditiva de C3
+
+`@melodify/app-session` sube a **`1.1.0`**. Ninguna operación, respuesta ni esquema de C3 cambia: lo que crece es la superficie de construcción del paquete, en tres exportaciones nuevas que la app importa.
+
+```ts
+// Exportaciones nuevas de @melodify/app-session (aditivas, 1.1.0).
+export type SessionLogCode =
+  | "SESSION_READ_FAILED" | "SESSION_RECORD_INVALID"
+  | "SESSION_SAVE_FAILED" | "SESSION_DELETE_FAILED";
+
+export interface SessionLogger {
+  warn(code: SessionLogCode, message: string): void;
+  error(code: SessionLogCode, message: string): void;
+}
+
+export interface SecureStorePort {
+  getItemAsync(key: string): Promise<string | null>;
+  setItemAsync(key: string, value: string): Promise<void>;
+  deleteItemAsync(key: string): Promise<void>;
+}
+
+export function createAppSession(options?: {
+  store?: SecureStorePort;
+  logger?: SessionLogger;
+}): AppSession;
+```
+
+Por qué es aditivo y no incompatible:
+
+- **`getSession`, `signIn`, `signOut` y `subscribeSession` responden lo mismo**, incluido el `503` de lectura de la § Revisión 9. La distinción entre «no había registro» y «registro inválido» se registra dentro del paquete y no cruza el contrato: U2, U3 y U5 siguen viendo `signedOut` en los dos casos.
+- **Las tres exportaciones son opcionales de usar.** Un paquete consumidor no necesita construir la sesión —eso lo hace `app/src/bootstrap/`— ni implementar `SessionLogger`; solo la app lo hace. `store` y `logger` tienen valor por defecto, así que `createAppSession()` sin argumentos sigue siendo válido.
+- **El adaptador real vive en el paquete** (`packages/app-session/src/secure-store-adapter.ts`) y es el único archivo que importa `expo-secure-store`; `SecureStorePort` es el tipo que permite sustituirlo en las pruebas. La dependencia queda en `packages/app-session/package.json`.
+- **Un cambio aditivo sube la versión menor** (§ Reglas de propiedad y versionado), y ningún consumidor tiene que tocar su código en el mismo PR. El diseño de la unidad lo desarrolla en `construction/u1-app-skeleton/nfr-design/security-design.md` § NFR9.1.
 
 ## C4 — Contenido
 
@@ -588,13 +652,27 @@ components:
         opinionId: { type: string }
         author: { $ref: '#/components/schemas/AuthorView' }
         createdAt: { type: string, format: date-time }
+x-construction:
+  file: '@melodify/content-store'
+  signature: "createContentStore({ now?, seed? })"
+  rule: >
+    Sin opciones siembra el contenido de ejemplo con el reloj real; `now` fija el instante
+    desde el que se calculan las edades de la siembra y `seed` la sustituye por una mínima
+    (lista vacía, una sola opinión, varias obras) para ejercitar los estados de las
+    pantallas (revisión 12).
+x-read-errors:
+  rule: >
+    Las lecturas y la suscripción —`listOpinions`, `getOpinion`, `updateOpinion`,
+    `listFollowing`, `getAuthor` y `subscribeContent`— responden `422` cuando falta
+    `viewerId`, porque sin él no se pueden calcular `isOwn`, `likedByMe` ni `followedByMe`
+    y C4 no los inventa (revisión 12).
 ```
 
 ## C5 — Catálogo
 
 ```yaml
 openapi: 3.1.0
-info: { title: Catalog, version: 1.0.0, x-owner: U2, x-transport: in-process }
+info: { title: Catalog, version: 1.1.0, x-owner: U2, x-transport: in-process }
 paths:
   /works:
     get:
@@ -662,6 +740,30 @@ paths:
                 properties:
                   kind: { enum: [url, initialBlock] }
                   value: { type: [string, 'null'] }
+  /catalog/changes:
+    get:
+      operationId: subscribe
+      description: >
+        Emite el catálogo actual nada más suscribirse y tras cada cambio de catálogo o de
+        resultado de portada; devuelve la baja. Lo usan las pantallas para repintar portadas
+        sin volver a preguntar (revisión 12).
+      responses:
+        '200': { description: 'emisión del catálogo vigente; la suscripción devuelve su función de baja' }
+  /catalog/cover-failure:
+    get:
+      operationId: getCoverFailure
+      description: Último resultado de resolución de metadatos; es lo que enciende el aviso de portadas (BR7.5).
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { type: boolean }
+  /catalog/retry-covers:
+    post:
+      operationId: retryCovers
+      description: Reintenta las portadas pendientes; sin `SpotifyResolvePort` no hace nada (revisión 12).
+      responses:
+        '204': { description: reintento iniciado o nada que reintentar }
 components:
   schemas:
     WorkView:
@@ -676,8 +778,10 @@ components:
 x-ports:
   types_location: '@melodify/catalog/src/ports.ts'
   injection: >
-    `createCatalog({ session, search, resolve })` recibe las implementaciones como
-    parámetro en la construcción. No hay registro global: `@melodify/catalog` no importa
+    `createCatalog({ content, connectivity, session, search, resolve })` recibe el contenido (C4),
+    la conectividad (C6) y las implementaciones de los tres puertos como parámetros en la
+    construcción; `session`, `search` y `resolve` viajan en `null` hasta U4 (revisión 12).
+    No hay registro global: `@melodify/catalog` no importa
     `@melodify/spotify`, y `@melodify/spotify` solo toma de `@melodify/catalog` los tipos
     de los puertos con `import type`, que no crea arista de ejecución.
   declared:
@@ -754,6 +858,16 @@ components:
       type: object
       required: [online, measuredAt]
       properties: { online: { type: boolean }, measuredAt: { type: string, format: date-time } }
+x-construction:
+  factory: 'createConnectivity({ network })'
+  rule: >
+    El paquete expone una sola función de construcción que recibe sus colaboradores en un
+    objeto de opciones. `network` es el adaptador de plataforma —el de `expo-network` en la
+    app, un doble en las pruebas— con la forma `{ getState(): Promise<NetworkState>,
+    addListener(cb): () => void }`. Sin adaptador no se construye: no hay valor por defecto
+    que lea el sistema operativo por su cuenta. La degradación a «en línea» cuando el
+    adaptador falla (BR6.3) es comportamiento, no superficie: la decide la implementación
+    sin cambiar esta firma.
 ```
 
 ## C7 — Spotify (paquete propio)
@@ -1050,7 +1164,7 @@ x-timeouts:
 - **Cambio incompatible**: se sube la mayor **y** se actualizan en el mismo PR todos los consumidores; el CI (`typecheck`, `lint`, `test`) es la garantía. No conviven dos versiones de un paquete interno.
 - **Cambio aditivo**: añadir campos opcionales, componentes del sistema de diseño o estados nuevos no rompe; el consumidor ignora lo que no usa.
 - **Fronteras externas** (C9, C10): las versiona Spotify. Si cambian, se adapta `@melodify/spotify` y ninguna otra unidad se entera.
-- **Puertos**: `SpotifySessionPort`, `SpotifySearchPort` y `SpotifyResolvePort` los declara U2 y los implementa U4. Sus tipos viven en `@melodify/catalog/src/ports.ts`; U4 los importa solo con `import type` y `createCatalog({ session, search, resolve })` los recibe como parámetro. U2 no conoce a Spotify; U4 no conoce `Catalog`. El punto de composición `app/src/bootstrap/ports.ts` nace vacío con U1 y lo rellena U4. Sin implementación registrada, el catálogo de ejemplo y los bloques de inicial funcionan solos.
+- **Puertos**: `SpotifySessionPort`, `SpotifySearchPort` y `SpotifyResolvePort` los declara U2 y los implementa U4. Sus tipos viven en `@melodify/catalog/src/ports.ts`; U4 los importa solo con `import type` y `createCatalog({ content, connectivity, session, search, resolve })` los recibe como parámetro. U2 no conoce a Spotify; U4 no conoce `Catalog`. El punto de composición `app/src/bootstrap/ports.ts` nace vacío con U1 y lo rellena U4. Sin implementación registrada, el catálogo de ejemplo y los bloques de inicial funcionan solos.
 - **Servicios de la cáscara**: `ShellServices` no es un puerto hacia una unidad posterior: la cáscara recibe el estado de red y el de Spotify ya resueltos, con valores por defecto que U1 puede usar sola. Añadir un servicio o cambiar su forma es incompatible y sube la versión mayor de C2.
 - **Módulos de C7**: `auth` es la única superficie que toca el token; `catalog` lo pide a `auth`. Ningún otro módulo ni unidad lee `expo-secure-store`.
 
@@ -1179,3 +1293,58 @@ x-timeouts:
 | R-45 Minor | El invariante del ciclo de `CreateEntry` fija qué hace la barra: selecciona la pestaña Crear con formulario vacío y reescribe la entrada con `returnTo` igual a la pestaña que estaba activa, de modo que «Cancelar» tiene destino y no se arrastra la obra ni la opinión anterior. La llamada de ejemplo pasa a `goToTab({ name: 'inicio' })`, con la forma declarada. |
 | R-46 Minor | El árbol nombra a U2, U3 y U4 como quienes rellenan `app/src/bootstrap/`, añade `app/src/comments/` como carpeta de U3 y el supuesto del punto de composición dice lo mismo. |
 | R-47 Minor | La regla de `view-models` cubre el mapeo en la pantalla o en el controlador de presentación (`app/src/comments/`), y el invariante de la hoja dice que el controlador entrega ya `CommentModel` mapeando desde `CommentView`. |
+
+### Revisión 9 — enmienda de U1 (2026-11-11)
+
+| Cambio | Qué se cambió |
+|---|---|
+| Inventario de C1 repartido por versiones | C1 ya no afirma que la 1.0.0 publique el inventario completo: la 1.0.0 exporta los tokens completos, `ThemeProvider` y las doce piezas del esqueleto, y las trece restantes entran con la unidad que las usa (1.1.0 U2, 1.2.0 U4, 1.3.0 U3, 1.4.0 U5). Sustituye la frase «El inventario está completo aquí» del invariante y la de `components.md` § DesignSystem. El reparto completo está en C1, § «Enmienda de la revisión 9». |
+| Fallo de lectura de C3 sin reintento | El `503` de `getSession` se declara como «se trata como sin sesión, se abre Login sin aviso ni reintento», en lugar de «la interfaz ofrece reintentar». Se alinea con `mockups.md` Pantalla 0 y con FR11.2, que exige acción solo para los errores que se muestran. El detalle está en C3, § «Revisión 9 — enmienda de C3 al fallo de lectura». |
+| Fallo de guardado de C3 con acción | No cambia el contrato: `signIn` mantiene su `503` («no se pudo guardar la sesión; no se entra»). U1 fija en su Functional Design el texto y la acción que lo acompañan («No pudimos guardar tu sesión. Inténtalo de nuevo.», con el botón en «Reintentar»). |
+
+### Revisión 10 — superficie aditiva de C3 (2026-11-11)
+
+| Cambio | Qué se cambió |
+|---|---|
+| C3 sube a `1.1.0` | El NFR Design de U1 declara el puerto de registro de la sesión y lo hace exportación pública del paquete, porque la app lo implementa y lo inyecta. Cambio aditivo, versión menor; ninguna operación ni respuesta cambia. |
+| Exportaciones nuevas | `SessionLogger`, `SessionLogCode`, `SecureStorePort` y las opciones `createAppSession({ store?, logger? })`. Las tres tienen valor por defecto: `createAppSession()` sin argumentos sigue siendo válido, y ningún consumidor necesita tocar su código. |
+| Dueño del adaptador | El único archivo del repositorio que importa `expo-secure-store` para la sesión es `packages/app-session/src/secure-store-adapter.ts`, y la dependencia se declara en `packages/app-session/package.json`. `SecureStorePort` es lo que permite sustituirlo por un doble en las pruebas. |
+| Sin cambio de comportamiento | `getSession`, `signIn`, `signOut` y `subscribeSession` responden exactamente lo mismo, incluido el `503` de lectura de la revisión 9. La distinción «registro vacío» / «registro inválido» se registra dentro del paquete y no cruza el contrato. El detalle está en `construction/u1-app-skeleton/nfr-design/security-design.md` § NFR9.1. |
+
+### Revisión 11 — superficie aditiva realmente enviada por U1 (2026-11-11)
+
+La revisión de Code Generation de U1 encontró que los paquetes se enviaban con más superficie que la publicada y sin subir versión. Esta revisión registra lo que de verdad se envía y sube la versión menor de los paquetes afectados. Ningún consumidor existente (no hay ninguno todavía: U2–U6 empiezan después) tiene que tocar su código. Las props añadidas son **opcionales**: una pantalla que use la forma anterior de la revisión 9 sigue compilando.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C1 sube a `1.1.0` | El sistema de diseño envía props aditivas que el contrato no recogía. `TextField` añade `placeholder?`, `secureTextEntry?`, `autoCapitalize?`, `autoFocus?` y `testID?`; `PrimaryButton` añade `testID?`; `SocialActionBar` vuelve opcionales `onLike?` y `onComment?` (sin ellas las acciones no responden, que es el estado de la tarjeta sembrada). Se exportan además `contrastRatio`, `relativeLuminance`, `formatRelativeTime`, `lightTheme`, `darkTheme`, `useTheme`, `ThemeScheme`, los tipos de props de cada pieza y `TabIcon`. Es la sección «Enmienda de la revisión 9» la que reparte las piezas por versión: la fila de U1 pasa a `1.1.0` y las de U2, U4, U3 y U5 suben un escalón a `1.2.0`, `1.3.0`, `1.4.0` y `1.5.0`, sin cambiar qué piezas entran en cada una. |
+| Token `space` corregido | C1 publicaba `space: { 1..12 }`, pero `design-system-mapping.md` define ocho pasos (`1, 2, 3, 4, 5, 6, 8, 10`) y es la lista autoritativa de valores. El contrato se alinea con la escala real: un consumidor que escriba `theme.space[7]` no compila, y nunca compiló. |
+| C2 sube a `1.1.0` | `AppShell` acepta `entry?: ReactNode`: la rama de sesión (Login) que se monta **fuera** de la barra y que, cuando viene, impide pintar la barra inferior (BR1.5, NFR2.1). Es aditivo y opcional; sin `entry` la cáscara se comporta como en la revisión 9. Se exportan además `DEFAULT_CREATE_ENTRY`, `TAB_ITEMS`, `TabName`, `WorkDetailScreen`, `OpinionDetailScreen`, `AppShellProps` y los tres contextos de lectura (`CreateEntryContext`, `ShellServicesContext`, `GlobalServicesContext`). |
+| C3 completa su `1.1.0` | La 1.1.0 de la revisión 10 no llegó a consumirse (U1 es su primer y único consumidor), así que sus exportaciones se completan en la misma versión: `parseSessionRecord`, `SESSION_STORAGE_KEY` y el tipo `SessionRecord`. Siguen siendo aditivas y ninguna operación cambia. |
+| Punto único de composición de la sesión | La app construye **una sola** instancia de sesión, con el logger del proyecto inyectado, y vive en `app/src/bootstrap/session.ts` (`appSession`). `App` se suscribe a esa instancia y U2 cierra sesión con ella. La superficie por defecto que C3 publica (`getSession`, `signIn`, `signOut`, `subscribeSession`) sigue existiendo para las pruebas y para un consumidor que no necesite logger, pero el cierre de sesión de la app debe usar `appSession`: usar la instancia por defecto no devuelve la app a Login. Es una nota de composición, no un cambio de contrato. |
+| Por qué es aditivo | Ninguna prop existente cambia de tipo ni se vuelve obligatoria, ninguna operación de C3 cambia de respuesta y la cáscara se comporta igual sin `entry`. Todo lo añadido tiene valor por defecto o es opcional, y las pruebas de U1 lo cubren (`app/src/bootstrap/__tests__/app-session-wiring.test.tsx`, `packages/design-system/src/__tests__/components.test.tsx`, `packages/app-shell/src/__tests__/app-shell.test.tsx`). |
+| Dependencia retirada | `@react-navigation/bottom-tabs` sale de `packages/app-shell/package.json` y de `app/package.json`: la cáscara usa `NavigationContainer` con pilas propias por pestaña y ningún archivo la importaba. `@react-navigation/native` se queda, porque `NavigationContainer` lo necesita. |
+
+### Revisión 12 — enmiendas de U2 en su Functional Design (2026-11-12)
+
+El Functional Design de `u2-content-core` cruzó cuatro fronteras que el contrato no tenía escritas. Las tres primeras eran huecos reales —quien implemente desde el contrato cablearía una superficie que no existe o una navegación que no cumple AC2.3.2—; la cuarta es la primera publicación de un paquete que aún no tenía consumidor. Todo lo añadido es aditivo salvo el cambio de comportamiento de `AppShell`, que no cambia ninguna prop ni exportación.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C1 completa su `1.2.0` | La 1.2.0 ya estaba contratada para `ErrorState` y `TextButton` (revisión 9). U2 añade tres cosas en la misma versión, todas opcionales: `AppHeader` gana `leftSlot?: ReactNode`; `EmptyState.body` pasa a opcional; `OpinionCard` implementa el estado `own` del `interaction-spec.md` —en `variant: "detail"` con `isOwn`, fondo `primaryContainer`, etiqueta «Tu opinión», acción «Editar» pintada con `isOwn` y no con `onEdit`, y línea de fechas en lugar del tiempo relativo— y exporta `formatCalendarDate(iso)`. Sin `isOwn` la tarjeta se pinta como hoy: ninguna pantalla de U1 cambia. |
+| C2 sube a `1.2.0` (comportamiento, sin cambio de superficie) | `AppShell` pasa a montar **todas** las entradas de la pila de cada pestaña y a ocultar las que no están en la cima con `display: none`, igual que ya hace entre pestañas. Hasta ahora el panel pintaba solo `(stacks[nombre] ?? []).at(-1)`, así que abrir un detalle desmontaba la pantalla raíz y al volver se recomponía desde cero: el feed perdía su desplazamiento y AC2.3.2 no se podía cumplir. No cambia ninguna prop, exportación ni contexto; `entry`, `GlobalServices`, `ShellServices` y `CreateEntry` siguen exactamente igual. La cabecera de detalle usa `leftSlot` (C1 1.2.0) para pintar «‹ Volver» y desapila con la misma operación que el atrás del sistema. `GlobalServices` **no** gana `goBack`. |
+| C4 declara su superficie de construcción y su `422` de lectura | El contrato define las operaciones pero no cómo se construye el almacén ni qué responde una lectura sin `viewerId`. Se declara `createContentStore({ now?, seed? })` —`now` fija el reloj de la siembra y `seed` la sustituye, ambos con valor por defecto— y el `422` de `listOpinions`, `getOpinion`, `updateOpinion`, `listFollowing`, `getAuthor` y `subscribeContent` cuando falta `viewerId`, que es lo que `x-identity` ya exigía sin decir la respuesta. Ninguna operación cambia de forma. |
+| C5 sube a `1.1.0` | Primera publicación del paquete, sin consumidor previo, y el contrato no tenía todo lo que AC2.1.6 necesita. Se añaden `subscribe` (aviso de cambio de catálogo o de portada resuelta), `getCoverFailure` y `retryCovers` —las tres cosas que sostienen el banner «No pudimos actualizar las portadas.» con «Reintentar»—, y `countOpinions` devuelve `{ workId, count }`. La construcción pasa a `createCatalog({ content, connectivity, session, search, resolve })`: `content` (C4) y `connectivity` (C6) son entradas nuevas y necesarias, porque el recuento de opiniones por obra sale de C4 y la decisión de portada consulta C6; los tres puertos conservan nombre, forma y dueño, y siguen siendo `null` hasta U4. Sin puertos, `searchWorks` responde `{ status: "offline", works: [] }` y no toca la red. |
+| C6 sin cambios | Se publica en `1.0.0` tal y como está escrito. El adaptador de `expo-network` y la degradación a «en línea» cuando el módulo falla son construcción, no superficie: no cruzan el contrato. |
+| Por qué es aditivo | Ninguna prop existente cambia de tipo ni se vuelve obligatoria; el único cambio de comportamiento es el montaje de la pila en `AppShell`, que hace que la pantalla de abajo siga viva y no puede romper a nadie que hoy dependa de que se desmonte. `getCoverFailure` y `retryCovers` son operaciones nuevas y `createCatalog` gana dos entradas que en U1–U3 viajan con valor. El reparto de piezas por versión de C1 no cambia: U4 sigue en `1.3.0`, U3 en `1.4.0` y U5 en `1.5.0`. |
+
+### Revisión 13 — superficie de construcción de C6 (2026-11-12)
+
+NFR Requirements de `u2-content-core` encontró la última firma que vivía solo en el Functional Design: C6 no publicaba cómo se construye la conectividad, y el artefacto de pila técnica y el de componentes ya no coincidían entre sí. Se escribe en el contrato para que no vuelva a derivar.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C6 gana `x-construction` | `createConnectivity({ network })`: una sola función, con el adaptador de plataforma en un objeto de opciones (`{ getState(): Promise<NetworkState>, addListener(cb): () => void }`). Es la misma forma que las otras dos fábricas de U2, se puede sustituir por un doble en las pruebas y no obliga a importar `expo-network` fuera de `@melodify/connectivity`. La degradación a «en línea» cuando el adaptador falla (BR6.3) es comportamiento y no cambia la firma. La versión de C6 no cambia: sigue en `1.0.0`, aún sin consumidor. |
+| C2 corrige la invariante del aviso de sin conexión | La invariante decía que snackbar y banner de sin conexión se pintaban una sola vez en la cáscara, y el Functional Design de U2 ya había precisado lo contrario: las raíces de pestaña pintan su `AppHeader` dentro de la pantalla, así que un banner en la cáscara quedaría **encima** de la cabecera. El banner lo pinta cada pantalla bajo su propia cabecera; la cáscara solo conserva el snackbar. No cambia ninguna prop, exportación ni la versión de C2 (`1.2.0`). |
+| C3 y C4 no cambian | Los códigos de diagnóstico que U2 necesita (`CONTENT_SUBSCRIBE_FAILED`, `CONTENT_READ_FAILED`, `NETWORK_STATE_UNAVAILABLE`) no entran en `SessionLogCode`: U2 declara en `app/src/bootstrap/logger.ts` un tipo de la aplicación que es un superconjunto y sigue siendo asignable a `SessionLogger`. Ampliar C3 habría metido códigos de contenido en el contrato de la sesión y roto su cierre. |
+| Por qué es aditivo | C6 no tenía consumidor: la app la construye en su punto de composición y la inyecta en `ShellServices`. Añadir `x-construction` no cambia ninguna operación, ningún esquema ni la versión, y ninguna otra unidad depende de la firma anterior porque no existía. |

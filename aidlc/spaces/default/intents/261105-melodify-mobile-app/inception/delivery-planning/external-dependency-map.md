@@ -1,6 +1,6 @@
 # Mapa de dependencias externas — Melodify
 
-**Confirmación del resumen:** Looks correct (confirmación renovada, 2026-11-10). 
+**Confirmación del resumen:** Looks correct (confirmada el 2026-11-10).
 
 ## Dependencias registradas
 
@@ -8,9 +8,9 @@ El mapa distingue bloqueos reales de Construction de respaldos locales ya previs
 
 | Dependencia | Propietario | Cuándo se necesita | Bolt bloqueado | Plan si se retrasa |
 |---|---|---|---|---|
-| Spotify Developer App | Persona/equipo del proyecto | Antes de probar conexión real y el recorrido autenticado | U4, U6 | Construir y probar U4 con dobles; U6 demuestra sin sesión y registra el motivo, sin cambiar los requisitos. |
+| Spotify Developer App | Persona/equipo del proyecto | **Ya registrada**; solo falta cargarle el redirect URI antes de probar la conexión real | U4, U6 | El registro existe desde antes de Construction (Q8 = D). Si aun así faltara, construir y probar U4 con dobles y dejar constancia del motivo; el camino previsto es el recorrido con sesión. |
 | Client ID de Spotify | Persona/equipo del proyecto | Antes de ejecutar la autorización en dispositivo | U4, U6 | Mantener `EXPO_PUBLIC_SPOTIFY_CLIENT_ID` ausente: la app debe mostrar el aviso de instalación no configurada y seguir operativa con catálogo de ejemplo. |
-| Redirect URI de PKCE | Se decide en Functional Design y se registra en Spotify | Antes de cerrar la conexión real | U4, U6 | No inventar un URI; dejar la conexión real pendiente y completar la demostración sin sesión. |
+| Redirect URI de PKCE | Functional Design lo fija y se pega en el panel de Spotify | Antes del primer intento de conexión real (Bolt 3) | U4, U6 | No inventar un URI: se calcula con el `makeRedirectUri()` de Expo Go y se registra. Si no estuviera cargado, dejar la conexión real pendiente y anotar el motivo. |
 | Red del dispositivo y límites de Spotify | Spotify/operador de red | Búsqueda, resolución de portadas y autorización | U4, U6 | Usar caché y catálogo de ejemplo, mostrar errores con «Reintentar» y probar fallos con dobles. |
 | Expo Go en teléfono Android físico | Persona que verifica | Cada checkpoint y la demostración final | U1, U6 | No sustituir por emulador: registrar el bloqueo y reanudar la demostración cuando el dispositivo esté disponible. |
 

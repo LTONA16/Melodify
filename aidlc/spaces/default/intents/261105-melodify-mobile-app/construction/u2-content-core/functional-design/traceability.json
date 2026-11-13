@@ -1,0 +1,284 @@
+{
+  "stage": "functional-design",
+  "unit": "u2-content-core",
+  "upstream_ids": [
+    "AC2.1.1",
+    "AC2.1.2",
+    "AC2.1.3",
+    "AC2.1.4",
+    "AC2.1.5",
+    "AC2.1.6",
+    "AC2.2.1",
+    "AC2.2.2",
+    "AC2.2.3",
+    "AC2.2.4",
+    "AC2.3.1",
+    "AC2.3.2",
+    "AC2.3.3",
+    "AC4.1.1",
+    "AC4.1.2",
+    "AC4.1.3",
+    "AC4.1.4",
+    "AC4.1.5",
+    "AC4.1.6",
+    "AC4.2.1",
+    "AC4.2.2",
+    "AC4.2.3",
+    "AC4.2.4",
+    "AC4.3.1",
+    "AC4.3.2",
+    "AC4.3.3",
+    "AC9.1.1",
+    "AC9.1.2",
+    "AC9.1.3",
+    "AC9.1.4",
+    "AC9.1.5",
+    "AC9.1.6",
+    "AC9.1.7",
+    "AC9.1.8"
+  ],
+  "coverage": [
+    {
+      "id": "AC2.1.1",
+      "status": "OK",
+      "target": "BR4.1, BR4.2, BR5.1, BR7.1"
+    },
+    {
+      "id": "AC2.1.2",
+      "status": "OK",
+      "target": "BR7.9"
+    },
+    {
+      "id": "AC2.1.3",
+      "status": "OK",
+      "target": "BR4.5, BR4.7, BR7.1"
+    },
+    {
+      "id": "AC2.1.4",
+      "status": "OK",
+      "target": "BR7.2, BR10.3"
+    },
+    {
+      "id": "AC2.1.5",
+      "status": "OK",
+      "target": "BR7.3"
+    },
+    {
+      "id": "AC2.1.6",
+      "status": "OK",
+      "target": "BR5.3, BR7.5, BR10.4"
+    },
+    {
+      "id": "AC2.2.1",
+      "status": "Deferred",
+      "target": "la portada real exige sesión de Spotify y U2 no conecta (Q2 = A); u4-spotify-explore resuelve metadatos y portadas y cierra el criterio"
+    },
+    {
+      "id": "AC2.2.2",
+      "status": "OK",
+      "target": "BR5.3, BR7.10"
+    },
+    {
+      "id": "AC2.2.3",
+      "status": "OK",
+      "target": "BR5.3, BR7.10, BR8.7"
+    },
+    {
+      "id": "AC2.2.4",
+      "status": "OK",
+      "target": "BR6.1, BR6.4, BR7.6, BR10.5"
+    },
+    {
+      "id": "AC2.3.1",
+      "status": "OK",
+      "target": "BR7.7, BR10.1"
+    },
+    {
+      "id": "AC2.3.2",
+      "status": "OK",
+      "target": "BR8.9, BR10.1, BR10.2"
+    },
+    {
+      "id": "AC2.3.3",
+      "status": "OK",
+      "target": "BR8.10"
+    },
+    {
+      "id": "AC4.1.1",
+      "status": "OK",
+      "target": "BR5.2, BR5.4, BR8.1"
+    },
+    {
+      "id": "AC4.1.2",
+      "status": "OK",
+      "target": "BR8.2"
+    },
+    {
+      "id": "AC4.1.3",
+      "status": "OK",
+      "target": "BR8.3"
+    },
+    {
+      "id": "AC4.1.4",
+      "status": "OK",
+      "target": "BR5.3, BR8.7"
+    },
+    {
+      "id": "AC4.1.5",
+      "status": "OK",
+      "target": "BR8.8, BR10.4"
+    },
+    {
+      "id": "AC4.1.6",
+      "status": "OK",
+      "target": "BR8.6, BR10.3"
+    },
+    {
+      "id": "AC4.2.1",
+      "status": "OK",
+      "target": "BR4.6, BR8.4"
+    },
+    {
+      "id": "AC4.2.2",
+      "status": "OK",
+      "target": "BR8.4"
+    },
+    {
+      "id": "AC4.2.3",
+      "status": "OK",
+      "target": "BR8.4"
+    },
+    {
+      "id": "AC4.2.4",
+      "status": "OK",
+      "target": "BR4.4, BR8.4"
+    },
+    {
+      "id": "AC4.3.1",
+      "status": "OK",
+      "target": "BR8.5"
+    },
+    {
+      "id": "AC4.3.2",
+      "status": "OK",
+      "target": "BR8.3"
+    },
+    {
+      "id": "AC4.3.3",
+      "status": "OK",
+      "target": "BR5.3, BR8.5"
+    },
+    {
+      "id": "AC9.1.1",
+      "status": "OK",
+      "target": "BR4.8, BR9.1, BR9.2"
+    },
+    {
+      "id": "AC9.1.2",
+      "status": "OK",
+      "target": "BR4.2, BR4.8, BR9.2"
+    },
+    {
+      "id": "AC9.1.3",
+      "status": "OK",
+      "target": "BR9.3"
+    },
+    {
+      "id": "AC9.1.4",
+      "status": "OK",
+      "target": "BR8.10, BR9.4"
+    },
+    {
+      "id": "AC9.1.5",
+      "status": "OK",
+      "target": "BR9.5"
+    },
+    {
+      "id": "AC9.1.6",
+      "status": "OK",
+      "target": "BR9.6, BR10.3"
+    },
+    {
+      "id": "AC9.1.7",
+      "status": "OK",
+      "target": "BR9.7, BR10.4"
+    },
+    {
+      "id": "AC9.1.8",
+      "status": "Deferred",
+      "target": "la tarjeta de Spotify es de u4-spotify-explore (Q2 = A; C1 1.3.0); U2 aprueba Perfil sin la tarjeta y U4 la añade con sus cinco estados"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR4.3",
+      "status": "N/A",
+      "target": "la unicidad por persona y obra se ejerce al escribir y U2 no tiene entrada de escritura; U3 la cablea y la prueba al publicar"
+    },
+    {
+      "id": "BR4.9",
+      "status": "N/A",
+      "target": "FR3.2 y FR11.5 se aplican a la siembra; ninguna AC de U2 afirma el idioma ni la procedencia de los identificadores"
+    },
+    {
+      "id": "BR5.5",
+      "status": "N/A",
+      "target": "la búsqueda es la superficie de Explorar (U4); en U2 no hay puerto y searchWorks no se pinta en ninguna pantalla"
+    },
+    {
+      "id": "BR5.6",
+      "status": "N/A",
+      "target": "los tres puertos se declaran para que U4 los implemente; ninguna AC de U2 los observa"
+    },
+    {
+      "id": "BR6.2",
+      "status": "N/A",
+      "target": "la emisión inmediata y la baja son comportamiento interno de C6; las AC observan el aviso, no el contrato de suscripción"
+    },
+    {
+      "id": "BR6.3",
+      "status": "N/A",
+      "target": "la degradación a «en línea» cuando el módulo de red falla es defensiva; ninguna AC la exige"
+    },
+    {
+      "id": "BR6.5",
+      "status": "N/A",
+      "target": "la ausencia de peticiones propias es una restricción de diseño sin criterio observable en la interfaz"
+    },
+    {
+      "id": "BR7.4",
+      "status": "N/A",
+      "target": "el error de contenido es una ruta defensiva que los mockups fijan pero ninguna AC de U2 enumera; AC2.1.6 cubre el error de metadatos"
+    },
+    {
+      "id": "BR7.8",
+      "status": "N/A",
+      "target": "las acciones sociales de las tarjetas llegan en U3; U2 solo deja las tarjetas en lectura"
+    },
+    {
+      "id": "BR8.11",
+      "status": "N/A",
+      "target": "la cabecera de obra repetida en el detalle de opinión viene de los mockups; ninguna AC la enuncia"
+    },
+    {
+      "id": "BR8.12",
+      "status": "N/A",
+      "target": "los estados de carga y error del detalle de opinión están en la matriz de estados; ninguna AC los enumera"
+    },
+    {
+      "id": "BR9.8",
+      "status": "N/A",
+      "target": "AC1.3.1 no está en los upstream_ids de U2: la traza de U1 la difirió a esta unidad y el botón se implementa aquí, pero se verifica al cerrar el recorrido"
+    },
+    {
+      "id": "BR9.9",
+      "status": "N/A",
+      "target": "la tarjeta de Spotify se difiere a U4 por Q2 = A; AC9.1.8 queda Deferred en esta misma traza"
+    },
+    {
+      "id": "BR10.6",
+      "status": "N/A",
+      "target": "FR11.5 se aplica a toda la interfaz; ninguna AC de U2 afirma el idioma"
+    }
+  ]
+}

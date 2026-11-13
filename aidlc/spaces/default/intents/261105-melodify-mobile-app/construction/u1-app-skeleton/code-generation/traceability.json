@@ -1,0 +1,351 @@
+{
+  "stage": "code-generation",
+  "unit": "u1-app-skeleton",
+  "version": 1,
+  "upstream_ids": [
+    "AC1.1.1",
+    "AC1.1.2",
+    "AC1.1.3",
+    "AC1.1.4",
+    "AC1.2.1",
+    "AC1.2.2",
+    "AC1.2.3",
+    "AC1.3.1",
+    "AC1.3.2",
+    "AC1.3.3",
+    "AC1.3.4",
+    "NFR8.1",
+    "NFR8.2",
+    "NFR8.3",
+    "NFR2.1",
+    "NFR2.2",
+    "NFR2.3",
+    "NFR9.2",
+    "NFR1.1",
+    "NFR1.2",
+    "NFR1.3",
+    "NFR6.1",
+    "NFR6.3",
+    "NFR6.4",
+    "NFR3.1",
+    "NFR3.2",
+    "NFR3.3",
+    "NFR3.4",
+    "NFR3.5",
+    "NFR4.1",
+    "NFR4.2",
+    "NFR4.3",
+    "NFR5.1",
+    "NFR5.2",
+    "NFR5.3",
+    "NFR5.4",
+    "NFR6.2",
+    "NFR7.1",
+    "NFR7.2",
+    "NFR7.3",
+    "NFR9.1",
+    "NFR9.3",
+    "BR1.1",
+    "BR1.2",
+    "BR1.3",
+    "BR1.4",
+    "BR1.5",
+    "BR1.6",
+    "BR2.1",
+    "BR2.2",
+    "BR2.3",
+    "BR2.4",
+    "BR2.5",
+    "BR3.1",
+    "BR3.2",
+    "BR3.3",
+    "BR3.4"
+  ],
+  "coverage": [
+    {
+      "id": "AC1.1.1",
+      "status": "OK",
+      "target": "app/src/screens/login/__tests__/login-screen.test.tsx"
+    },
+    {
+      "id": "AC1.1.2",
+      "status": "OK",
+      "target": "app/src/screens/login/__tests__/login-screen.test.tsx"
+    },
+    {
+      "id": "AC1.1.3",
+      "status": "OK",
+      "target": "app/src/screens/login/__tests__/login-screen.test.tsx"
+    },
+    {
+      "id": "AC1.1.4",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/app-shell.test.tsx"
+    },
+    {
+      "id": "AC1.2.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "id": "AC1.2.2",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/app-shell.test.tsx"
+    },
+    {
+      "id": "AC1.2.3",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "id": "AC1.3.1",
+      "status": "Deferred",
+      "target": "El botón «Cerrar sesión» vive en Perfil y esa pantalla llega con U2: U1 entrega la suscripción de la sesión y el desmontaje de la cáscara, no el botón (functional-spec § U1 entrega / U2 entrega)."
+    },
+    {
+      "id": "AC1.3.2",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "id": "AC1.3.3",
+      "status": "OK",
+      "target": "packages/app-session/src/__tests__/app-session.test.ts"
+    },
+    {
+      "id": "AC1.3.4",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "id": "NFR8.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/App.tsx"
+    },
+    {
+      "id": "NFR8.2",
+      "status": "OK",
+      "target": "app/index.ts"
+    },
+    {
+      "id": "NFR8.3",
+      "status": "OK",
+      "target": "app/src/bootstrap/App.tsx"
+    },
+    {
+      "id": "NFR2.1",
+      "status": "OK",
+      "target": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "id": "NFR2.2",
+      "status": "OK",
+      "target": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "id": "NFR2.3",
+      "status": "OK",
+      "target": "app/src/screens/login/LoginScreen.tsx"
+    },
+    {
+      "id": "NFR9.2",
+      "status": "OK",
+      "target": "packages/app-session/src/app-session.ts"
+    },
+    {
+      "id": "NFR1.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/App.tsx"
+    },
+    {
+      "id": "NFR1.2",
+      "status": "OK",
+      "target": "packages/app-session/src/app-session.ts"
+    },
+    {
+      "id": "NFR1.3",
+      "status": "OK",
+      "target": "app/src/screens/inicio/seed.ts"
+    },
+    {
+      "id": "NFR6.1",
+      "status": "OK",
+      "target": "packages/design-system/src/contrast.ts"
+    },
+    {
+      "id": "NFR6.3",
+      "status": "OK",
+      "target": "packages/design-system/src/ThemeProvider.tsx"
+    },
+    {
+      "id": "NFR6.4",
+      "status": "OK",
+      "target": "packages/design-system/src/components/BottomTabBar.tsx"
+    },
+    {
+      "id": "NFR3.1",
+      "status": "OK",
+      "target": ".env.example"
+    },
+    {
+      "id": "NFR3.2",
+      "status": "OK",
+      "target": "packages/app-session/src/secure-store-adapter.ts"
+    },
+    {
+      "id": "NFR3.3",
+      "status": "OK",
+      "target": "packages/app-session/src/storage-keys.ts"
+    },
+    {
+      "id": "NFR3.4",
+      "status": "OK",
+      "target": "app/src/screens/login/LoginScreen.tsx"
+    },
+    {
+      "id": "NFR3.5",
+      "status": "OK",
+      "target": "packages/app-session/src/session-record.ts"
+    },
+    {
+      "id": "NFR4.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/ports.ts"
+    },
+    {
+      "id": "NFR4.2",
+      "status": "OK",
+      "target": "packages/app-session/src/storage-keys.ts"
+    },
+    {
+      "id": "NFR4.3",
+      "status": "N/A",
+      "target": "Esta versión no se distribuye (RC-07): no hay tiendas, ni build de release, ni cuenta de desarrollador. La reescritura del registro de restricciones (CR-03) queda atada a la primera distribución real y no hay código de esta unidad que la ejecute."
+    },
+    {
+      "id": "NFR5.1",
+      "status": "OK",
+      "target": "tsconfig.base.json"
+    },
+    {
+      "id": "NFR5.2",
+      "status": "OK",
+      "target": "package.json"
+    },
+    {
+      "id": "NFR5.3",
+      "status": "OK",
+      "target": "jest.config.js"
+    },
+    {
+      "id": "NFR5.4",
+      "status": "OK",
+      "target": "eslint.config.js"
+    },
+    {
+      "id": "NFR6.2",
+      "status": "OK",
+      "target": "packages/design-system/src/tokens.ts"
+    },
+    {
+      "id": "NFR7.1",
+      "status": "OK",
+      "target": "app/package.json"
+    },
+    {
+      "id": "NFR7.2",
+      "status": "OK",
+      "target": "app/package.json"
+    },
+    {
+      "id": "NFR7.3",
+      "status": "OK",
+      "target": "app/app.json"
+    },
+    {
+      "id": "NFR9.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/logger.ts"
+    },
+    {
+      "id": "NFR9.3",
+      "status": "OK",
+      "target": "package.json"
+    },
+    {
+      "id": "BR1.1",
+      "status": "OK",
+      "target": "app/src/screens/login/__tests__/login-screen.test.tsx"
+    },
+    {
+      "id": "BR1.2",
+      "status": "OK",
+      "target": "packages/app-session/src/__tests__/app-session.test.ts"
+    },
+    {
+      "id": "BR1.3",
+      "status": "OK",
+      "target": "packages/app-session/src/app-session.ts"
+    },
+    {
+      "id": "BR1.4",
+      "status": "OK",
+      "target": "packages/app-session/src/app-session.ts"
+    },
+    {
+      "id": "BR1.5",
+      "status": "OK",
+      "target": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "id": "BR1.6",
+      "status": "OK",
+      "target": "app/src/screens/login/LoginScreen.tsx"
+    },
+    {
+      "id": "BR2.1",
+      "status": "OK",
+      "target": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "id": "BR2.2",
+      "status": "OK",
+      "target": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "id": "BR2.3",
+      "status": "OK",
+      "target": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "id": "BR2.4",
+      "status": "OK",
+      "target": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "id": "BR2.5",
+      "status": "OK",
+      "target": "packages/design-system/src/ThemeProvider.tsx"
+    },
+    {
+      "id": "BR3.1",
+      "status": "OK",
+      "target": "app/src/screens/inicio/InicioScreen.tsx"
+    },
+    {
+      "id": "BR3.2",
+      "status": "OK",
+      "target": "app/src/screens/inicio/__tests__/inicio-screen.test.tsx"
+    },
+    {
+      "id": "BR3.3",
+      "status": "OK",
+      "target": "app/src/screens/inicio/seed.ts"
+    },
+    {
+      "id": "BR3.4",
+      "status": "OK",
+      "target": "app/src/screens/inicio/InicioScreen.tsx"
+    }
+  ]
+}

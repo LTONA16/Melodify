@@ -14,7 +14,9 @@ El alcance `mvp` ya activa el walking skeleton (el tramo mínimo que corre de pu
 - D. **Esqueleto primero, luego riesgo y luego valor**: U1, U2, U4, U3, U5 y U6.
 - X. Other (please specify)
 
-[Answer]: C
+[Answer]: D
+
+> Cambiado de C a D el 2026-11-10: se construye U4 antes que U3 y U5 para descubrir el riesgo de PKCE y del token cuanto antes. `bolt-plan.md` ya sigue este orden.
 
 ## Q2. [entrega] ¿Qué tamaño tiene un Bolt?
 
@@ -103,4 +105,4 @@ El requisito FR12.2 y la historia US11.2 piden demostrar el recorrido dos veces,
 - Looks correct
 - Request changes
 
-[Answer]:
+[Answer]: Looks correct

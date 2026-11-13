@@ -1,0 +1,26 @@
+{
+  "name": "@melodify/app",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "15.1.1",
+    "@melodify/app-session": "1.1.0",
+    "@melodify/app-shell": "1.1.0",
+    "@melodify/design-system": "1.1.0",
+    "@react-navigation/native": "7.5.1",
+    "expo": "57.0.32",
+    "expo-asset": "57.0.21",
+    "expo-font": "57.0.4",
+    "expo-secure-store": "57.0.4",
+    "expo-splash-screen": "57.0.11",
+    "expo-status-bar": "57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-screens": "4.26.2"
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "stage": "nfr-design",
+  "unit": "u2-content-core",
+  "upstream_ids": [
+    "NFR8.4",
+    "NFR8.2",
+    "NFR8.5",
+    "NFR8.6",
+    "NFR8.7",
+    "NFR2.4",
+    "NFR2.5",
+    "NFR2.3",
+    "NFR9.4",
+    "NFR1.6",
+    "NFR2.6",
+    "NFR6.6",
+    "NFR1.5",
+    "NFR1.4",
+    "NFR1.7",
+    "NFR1.8",
+    "NFR6.1",
+    "NFR6.3",
+    "NFR6.5",
+    "NFR8.1",
+    "NFR3.6",
+    "NFR3.7",
+    "NFR3.8",
+    "NFR3.9",
+    "NFR3.10",
+    "NFR3.1",
+    "NFR3.11",
+    "NFR4.4",
+    "NFR4.5",
+    "NFR4.6",
+    "NFR9.1",
+    "NFR9.3",
+    "NFR9.5"
+  ],
+  "coverage": [
+    {
+      "id": "NFR8.4",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.4 — La suscripción que no espera (hook sobre la emisión inmediata de C4)"
+    },
+    {
+      "id": "NFR8.2",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.4 (esqueleto como estado real; sin setTimeout ni espera de cortesía)"
+    },
+    {
+      "id": "NFR8.5",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.5 — Una suscripción, un contador, un mapeo (presupuesto de consultas)"
+    },
+    {
+      "id": "NFR8.6",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.6 — El resto del recorrido sigue sin número (sin umbral ni prueba por tiempo)"
+    },
+    {
+      "id": "NFR8.7",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.7 — El feed con FlatList"
+    },
+    {
+      "id": "NFR2.4",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.4 — Todo lo de esta unidad, en dos toques"
+    },
+    {
+      "id": "NFR2.5",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.5 — El error que se pinta y el que no (tabla de fallos y avisos)"
+    },
+    {
+      "id": "NFR2.3",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.5 (regla heredada de U1: solo se pinta lo que se puede reintentar en la pantalla)"
+    },
+    {
+      "id": "NFR9.4",
+      "status": "OK",
+      "target": "security-design.md § NFR9.4 — El catálogo de eventos de esta unidad (AppLogCode/AppLogger)"
+    },
+    {
+      "id": "NFR1.6",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.6 — Sin conexión se conserva lo cargado (aviso por pantalla)"
+    },
+    {
+      "id": "NFR2.6",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.6 — El estado se dice con palabras"
+    },
+    {
+      "id": "NFR6.6",
+      "status": "OK",
+      "target": "performance-design.md § NFR6.5 / NFR6.6 y logical-components.md § Sistema de diseño (etiqueta «Tu opinión» y avisos con texto)"
+    },
+    {
+      "id": "NFR1.5",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.5 — Una portada caída no deja hueco roto"
+    },
+    {
+      "id": "NFR1.4",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.4 — Ninguna pantalla se queda en blanco (un valor de estado por pantalla)"
+    },
+    {
+      "id": "NFR1.7",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.7 — La navegación no pierde lo de abajo (pila montada de C2 1.2.0)"
+    },
+    {
+      "id": "NFR1.8",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.8 — Una sola fuente por dominio; logical-components.md § Recursos compartidos"
+    },
+    {
+      "id": "NFR6.1",
+      "status": "OK",
+      "target": "logical-components.md § Sistema de diseño (pares onPrimaryContainer/primaryContainer ya verificados por U1)"
+    },
+    {
+      "id": "NFR6.3",
+      "status": "OK",
+      "target": "logical-components.md § Sistema de diseño (roles semánticos color.*; sin valores crudos)"
+    },
+    {
+      "id": "NFR6.5",
+      "status": "OK",
+      "target": "performance-design.md § NFR6.5 / NFR6.6 («‹ Volver» con size.touch 44)"
+    },
+    {
+      "id": "NFR8.1",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.1 a NFR8.3 — El arranque no empeora (siembra sin E/S y red que no bloquea)"
+    },
+    {
+      "id": "NFR3.6",
+      "status": "OK",
+      "target": "security-design.md § NFR3.6 — Nada nuevo se escribe en el teléfono (prueba de dos almacenes sin estado compartido)"
+    },
+    {
+      "id": "NFR3.7",
+      "status": "OK",
+      "target": "security-design.md § NFR3.7 — La identidad no la elige el cliente (useViewerId + 422 de C4)"
+    },
+    {
+      "id": "NFR3.8",
+      "status": "OK",
+      "target": "security-design.md § NFR3.8 — Los datos de ejemplo no son datos personales reales"
+    },
+    {
+      "id": "NFR3.9",
+      "status": "OK",
+      "target": "security-design.md § NFR3.9 — Todo se pinta como texto, no como instrucción"
+    },
+    {
+      "id": "NFR3.10",
+      "status": "OK",
+      "target": "security-design.md § NFR3.10 / NFR3.1 — Sin secretos nuevos y sin credenciales"
+    },
+    {
+      "id": "NFR3.1",
+      "status": "OK",
+      "target": "security-design.md § NFR3.10 / NFR3.1 (ningún archivo lee EXPO_PUBLIC_*; .env.example sin valor)"
+    },
+    {
+      "id": "NFR3.11",
+      "status": "OK",
+      "target": "security-design.md § NFR3.11 — El catálogo y Spotify solo comparten tipos (import type + regla con allowTypeImports)"
+    },
+    {
+      "id": "NFR4.4",
+      "status": "OK",
+      "target": "security-design.md § NFR4.4 — Inventario de lo que queda escrito en el teléfono (sin filas nuevas)"
+    },
+    {
+      "id": "NFR4.5",
+      "status": "OK",
+      "target": "security-design.md § NFR4.5 — El estado de red se lee, no se envía (adaptador de un solo booleano)"
+    },
+    {
+      "id": "NFR4.6",
+      "status": "OK",
+      "target": "security-design.md § NFR4.6 — El registro no se lleva el contenido (firma cerrada y mensajes literales)"
+    },
+    {
+      "id": "NFR9.1",
+      "status": "OK",
+      "target": "security-design.md § NFR9.1 / NFR9.5 — Sin superficie nueva ni telemetría (un solo logger, no-console)"
+    },
+    {
+      "id": "NFR9.3",
+      "status": "OK",
+      "target": "security-design.md § NFR9.1 / NFR9.5 (sin panel, sin servicio de errores, sin SLI/SLO)"
+    },
+    {
+      "id": "NFR9.5",
+      "status": "OK",
+      "target": "security-design.md § NFR9.1 / NFR9.5 y logical-components.md § Inventario (LC-5 única superficie de diagnóstico)"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/design-system" },
+    { "path": "./packages/app-session" },
+    { "path": "./packages/app-shell" },
+    { "path": "./app" }
+  ]
+}

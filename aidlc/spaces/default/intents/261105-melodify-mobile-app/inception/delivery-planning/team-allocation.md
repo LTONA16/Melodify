@@ -1,6 +1,6 @@
 # Asignación de equipo — Melodify
 
-**Confirmación del resumen:** Looks correct (confirmación renovada, 2026-11-10). 
+**Confirmación del resumen:** Looks correct (confirmada el 2026-11-10).
 
 ## Equipo y forma de trabajo
 

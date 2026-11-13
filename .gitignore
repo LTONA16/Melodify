@@ -200,6 +200,9 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 
+# Expo
+.expo/
+
 # Ruby / CocoaPods
 **/Pods/
 /vendor/bundle/

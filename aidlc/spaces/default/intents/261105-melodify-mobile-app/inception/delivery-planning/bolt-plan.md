@@ -1,6 +1,6 @@
 # Plan de Bolts — Melodify
 
-**Confirmación del resumen:** Looks correct (confirmación renovada, 2026-11-10). 
+**Confirmación del resumen:** Looks correct (confirmada el 2026-11-10, con el orden en versión risk-first: Q1 = D).
 
 ## Contexto y entradas
 
@@ -43,7 +43,7 @@ El orden respeta el DAG aprobado: `U1 → U2 → {U3, U4, U5} → U6`. La única
 ### Bolt 3 — Spotify y Explorar (`u4-spotify-explore`)
 
 - **Incluye:** `SpotifyAuth`, PKCE S256, almacenamiento seguro, renovación, `SpotifyCatalog`, Explorar y portadas reales.
-- **Definition of Done:** dobles cubren autorización, token, búsqueda y fallos; el client ID solo llega por `EXPO_PUBLIC_SPOTIFY_CLIENT_ID`; el redirect URI se fija en Functional Design; PR a `develop`, CI verde y prueba manual de conexión si RC-09 está listo.
+- **Definition of Done:** dobles cubren autorización, token, búsqueda y fallos; el client ID solo llega por `EXPO_PUBLIC_SPOTIFY_CLIENT_ID`; el redirect URI que fija Functional Design queda cargado en el panel de Spotify; PR a `develop`, CI verde y prueba manual de la conexión real en el teléfono.
 - **Hipótesis de confianza:** la integración externa puede funcionar en Expo Go sin client secret y degradar al catálogo de ejemplo cuando no está configurada.
 - **Demo:** conectar o mostrar el estado sin configurar, buscar con dos caracteres y ver la portada real o el bloque de inicial.
 
@@ -64,7 +64,7 @@ El orden respeta el DAG aprobado: `U1 → U2 → {U3, U4, U5} → U6`. La única
 ### Bolt 6 — Recorrido completo (`u6-walkthrough`)
 
 - **Incluye:** verificación y ajustes del recorrido completo, no funciones nuevas.
-- **Definition of Done:** recorrido de las seis pantallas sin Spotify en el teléfono; recorrido con Spotify cuando RC-09 y A6 están resueltos; CI verde, documentación de variables actualizada y PR a `develop`.
+- **Definition of Done:** recorrido de las seis pantallas sin Spotify en el teléfono; recorrido con Spotify conectado, con la app ya registrada y el redirect URI cargado; CI verde, documentación de variables actualizada y PR a `develop`.
 - **Hipótesis de confianza:** las unidades integradas cumplen el criterio de terminado del MVP en un dispositivo real.
 - **Demo:** recorrer Login, Inicio, Explorar, Crear, Actividad y Perfil en ambos estados de Spotify disponibles.
 

@@ -39,9 +39,12 @@ jobs:
             - name: Detectar directorio del proyecto
               id: project-dir
               run: |
-                  if [ -f "./app/package.json" ]; then
+                  # Un proyecto en subcarpeta solo lo es si tiene su propio lockfile:
+                  # en el monorepo de Melodify el lockfile vive en la raíz y el
+                  # paquete `app/` no instala por su cuenta.
+                  if [ -f "./app/package.json" ] && [ -f "./app/package-lock.json" ]; then
                     echo "path=app" >> "$GITHUB_OUTPUT"
-                  elif [ -f "./Ratetify/package.json" ]; then
+                  elif [ -f "./Ratetify/package.json" ] && [ -f "./Ratetify/package-lock.json" ]; then
                     echo "path=Ratetify" >> "$GITHUB_OUTPUT"
                   else
                     echo "path=." >> "$GITHUB_OUTPUT"
