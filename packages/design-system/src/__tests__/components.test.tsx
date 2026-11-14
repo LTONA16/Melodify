@@ -168,6 +168,15 @@ describe("EmptyState", () => {
 
     expect(onAction).toHaveBeenCalledTimes(1);
   });
+
+  it("omite el cuerpo cuando no se le pasa", () => {
+    renderWithTheme(<EmptyState title="Todavía no has publicado opiniones." />);
+
+    expect(screen.queryByTestId("empty-state-body")).toBeNull();
+    expect(
+      screen.getByText("Todavía no has publicado opiniones."),
+    ).toBeVisible();
+  });
 });
 
 describe("Banner", () => {
@@ -210,6 +219,15 @@ describe("AppHeader", () => {
     renderWithTheme(<AppHeader title="Perfil" />);
 
     expect(screen.getByText("Perfil")).toBeVisible();
+  });
+
+  it("pinta la ranura izquierda además del título", () => {
+    renderWithTheme(
+      <AppHeader title="Detalle de obra" leftSlot={<Text>‹ Volver</Text>} />,
+    );
+
+    expect(screen.getByText("‹ Volver")).toBeVisible();
+    expect(screen.getByText("Detalle de obra")).toBeVisible();
   });
 });
 

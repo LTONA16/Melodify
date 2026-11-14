@@ -1,5 +1,5 @@
 /**
- * La cáscara de la app (C2): decide entre la pantalla de entrada y las cinco
+ * La cáscara de la app (C2 1.2.0): decide entre la pantalla de entrada y las cinco
  * pestañas, compone la barra inferior y ofrece los tres contextos que leen las
  * pantallas —servicios, acciones globales y la entrada de Crear—.
  *
@@ -9,6 +9,15 @@
  * - **Cada pestaña conserva su pila y su posición**: las cinco raíces siguen
  *   montadas y la inactiva se oculta con `display: none`, así volver a una pestaña
  *   no reinicia lo que había dentro ni su scroll (BR2.2, F4.4).
+ * - **La pila de una pestaña se pinta entera y se oculta lo que no está arriba**
+ *   (1.2.0, revisión 12 del contrato): abrir un detalle ya no desmonta la raíz, de
+ *   modo que el feed vuelve con su scroll y su estado de carga tal como se dejó
+ *   (AC2.3.2). Solo se pinta una entrada por nivel visible, así que no hay dos
+ *   pantallas midiendo a la vez.
+ * - **La cabecera del detalle la pinta la cáscara**, con «‹ Volver» en la ranura
+ *   izquierda: volver es una operación suya (C1 no conoce la navegación) y al
+ *   desapilar el título se limpia para que el siguiente detalle no herede el
+ *   anterior.
  * - **La barra se pinta una sola vez**, fuera de las pilas, nunca en Login.
  * - El aviso y la hoja de comentarios son puntos de montaje condicionales: en U1
  *   ninguno llega a tener contenido (ver `functional-spec.md`).
@@ -16,6 +25,7 @@
 import {
   AppHeader,
   BottomTabBar,
+  TextButton,
   useTheme,
   type TabItem,
 } from "@melodify/design-system";
@@ -219,6 +229,19 @@ function TabShell({
     setHeaderTitle(null);
   };
 
+  /**
+   * Desapila una entrada de la pestaña activa. El título de la cabecera vuelve a
+   * vaciarse aquí y no en el render: si se limpiara al pintar, el detalle que se
+   * abre después heredaría el título del anterior antes de que su pantalla lo fije.
+   */
+  const popDetail = (): void => {
+    setStacks((previous) => ({
+      ...previous,
+      [activeName]: (previous[activeName] ?? []).slice(0, -1),
+    }));
+    setHeaderTitle(null);
+  };
+
   const openCreateTab = (
     mode: CreateEntry["mode"],
     extra: Pick<CreateEntry, "preselectedWorkId" | "editingOpinionId">,
@@ -294,10 +317,7 @@ function TabShell({
         // Con algo apilado, atrás desapila; en la raíz, deja que Android cierre la
         // app (F5, BR2.4).
         if (stack.length > 1) {
-          setStacks((previous) => ({
-            ...previous,
-            [activeName]: (previous[activeName] ?? []).slice(0, -1),
-          }));
+          popDetail();
           return true;
         }
 
@@ -324,25 +344,54 @@ function TabShell({
             style={[styles.fill, { backgroundColor: theme.colors.bg }]}
           >
             {showsDetailHeader ? (
-              <AppHeader title={headerTitle ?? "Detalle"} />
+              <AppHeader
+                title={headerTitle ?? "Detalle"}
+                leftSlot={
+                  <TextButton
+                    label="‹ Volver"
+                    onPress={popDetail}
+                    testID="header-back"
+                  />
+                }
+              />
             ) : null}
 
             <View style={styles.fill}>
-              {screens.map((screen) => (
-                <View
-                  key={screen.name}
-                  testID={`tab-panel-${screen.name}`}
-                  style={[
-                    styles.fill,
-                    {
-                      display:
-                        screen.name === activeName ? "flex" : "none",
-                    },
-                  ]}
-                >
-                  {renderEntry((stacks[screen.name] ?? []).at(-1))}
-                </View>
-              ))}
+              {screens.map((screen) => {
+                const stack = stacks[screen.name] ?? [];
+
+                return (
+                  <View
+                    key={screen.name}
+                    testID={`tab-panel-${screen.name}`}
+                    style={[
+                      styles.fill,
+                      {
+                        display:
+                          screen.name === activeName ? "flex" : "none",
+                      },
+                    ]}
+                  >
+                    {stack.map((entry, index) => (
+                      <View
+                        key={entry.key}
+                        testID={`stack-entry-${entry.key}`}
+                        style={[
+                          styles.fill,
+                          {
+                            // Solo el nivel de arriba se ve; el resto queda
+                            // montado y oculto para no perder su estado.
+                            display:
+                              index === stack.length - 1 ? "flex" : "none",
+                          },
+                        ]}
+                      >
+                        {renderEntry(entry)}
+                      </View>
+                    ))}
+                  </View>
+                );
+              })}
             </View>
 
             {snackbar !== null ? <View testID="snackbar-mount" /> : null}

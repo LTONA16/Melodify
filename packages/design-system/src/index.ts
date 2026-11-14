@@ -1,8 +1,14 @@
 /**
- * Superficie pública de `@melodify/design-system` (C1 1.1.0): los tokens, el tema,
- * los modelos de presentación y las doce piezas del esqueleto.
+ * Superficie pública de `@melodify/design-system` (C1 1.2.0): los tokens, el tema,
+ * los modelos de presentación, las doce piezas del esqueleto y las que estrena esta
+ * versión —`ErrorState`, `TextButton` y `formatCalendarDate`—.
+ *
+ * La 1.2.0 es aditiva: añade piezas y campos opcionales (`AppHeader.leftSlot?`,
+ * `EmptyState.body?`) y el estado `own` de `OpinionCard`; ninguna forma anterior
+ * deja de compilar.
  */
 export { contrastRatio, relativeLuminance } from "./contrast";
+export { formatCalendarDate } from "./calendar-date";
 export { formatRelativeTime } from "./relative-time";
 export type {
   AuthorSummary,
@@ -34,6 +40,8 @@ export { CoverArt } from "./components/CoverArt";
 export type { CoverArtProps } from "./components/CoverArt";
 export { EmptyState } from "./components/EmptyState";
 export type { EmptyStateProps } from "./components/EmptyState";
+export { ErrorState } from "./components/ErrorState";
+export type { ErrorStateProps } from "./components/ErrorState";
 export { OpinionCard } from "./components/OpinionCard";
 export type { OpinionCardProps } from "./components/OpinionCard";
 export { PrimaryButton } from "./components/PrimaryButton";
@@ -46,3 +54,5 @@ export { SocialActionBar } from "./components/SocialActionBar";
 export type { SocialActionBarProps } from "./components/SocialActionBar";
 export { TextField } from "./components/TextField";
 export type { TextFieldProps } from "./components/TextField";
+export { TextButton } from "./components/TextButton";
+export type { TextButtonProps, TextButtonTone } from "./components/TextButton";

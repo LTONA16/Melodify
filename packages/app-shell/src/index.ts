@@ -1,6 +1,7 @@
 /**
- * Superficie pública de `@melodify/app-shell` (C2 1.1.0): la cáscara, sus tipos y
- * los tres hooks de lectura.
+ * Superficie pública de `@melodify/app-shell` (C2 1.2.0): la cáscara, sus tipos y
+ * los tres hooks de lectura. La 1.2.0 no cambia ninguna forma: la misma superficie
+ * de la 1.1.0, con la pila que conserva la raíz detrás.
  */
 export { AppShell } from "./AppShell";
 export type { AppShellProps } from "./AppShell";

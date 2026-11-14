@@ -1,3 +1,5 @@
+import type { SessionLogger } from "@melodify/app-session";
+
 import { logger } from "../logger";
 
 /**
@@ -40,11 +42,38 @@ describe("logger del proyecto", () => {
     (globalThis as unknown as { __DEV__: boolean }).__DEV__ = false;
 
     logger.warn("SESSION_READ_FAILED", "no se pudo leer la sesión");
+    logger.warn("NETWORK_STATE_UNAVAILABLE", "módulo de red no disponible");
     logger.error("SESSION_SAVE_FAILED", "no se pudo guardar la sesión");
 
     expect(warnSpy).not.toHaveBeenCalled();
     expect(errorSpy).toHaveBeenCalledWith(
       "[melodify] SESSION_SAVE_FAILED: no se pudo guardar la sesión",
     );
+  });
+
+  it("acepta los tres códigos nuevos de U2 además de los de la sesión", () => {
+    (globalThis as unknown as { __DEV__: boolean }).__DEV__ = true;
+
+    logger.warn("CONTENT_SUBSCRIBE_FAILED", "no se pudo seguir el contenido");
+    logger.warn("CONTENT_READ_FAILED", "no se pudo leer el contenido");
+    logger.warn("NETWORK_STATE_UNAVAILABLE", "módulo de red no disponible");
+
+    expect(warnSpy).toHaveBeenCalledTimes(3);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[melodify] CONTENT_SUBSCRIBE_FAILED: no se pudo seguir el contenido",
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[melodify] CONTENT_READ_FAILED: no se pudo leer el contenido",
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[melodify] NETWORK_STATE_UNAVAILABLE: módulo de red no disponible",
+    );
+  });
+
+  it("sigue siendo asignable a `SessionLogger`, que es donde C3 lo espera", () => {
+    const asSession: SessionLogger = logger;
+
+    expect(typeof asSession.warn).toBe("function");
+    expect(typeof asSession.error).toBe("function");
   });
 });

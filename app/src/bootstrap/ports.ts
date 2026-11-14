@@ -5,73 +5,31 @@
  * sesión, ni búsqueda, ni resolución, y el catálogo de ejemplo y los bloques con la
  * inicial funcionan solos (C5 § `x-composition`, NFR3.2).
  *
- * Nada de este archivo importa `@melodify/spotify` ni `@melodify/catalog`: solo
- * fluyen formas. La prohibición del contrato es de importación en tiempo de
- * ejecución, y un `import type` de los tipos de C5 cuando existan no la rompe.
+ * Los tipos ya no se declaran aquí: se importan de `@melodify/catalog` con
+ * `import type`. Así una implementación de U4 no puede discrepar de la declaración
+ * del consumidor, y no se crea ninguna arista de ejecución hacia el paquete
+ * (TS-21, NFR3.11). `PortWorkView` desaparece porque su forma era `WorkView` sin
+ * `origin`, y el contrato devuelve `WorkView` completa.
  */
+import type { CatalogPorts } from "@melodify/catalog";
 
-/**
- * La forma mínima de una obra que cruza estos puertos. Es la misma que la vista
- * `WorkView` de C5 (`workId`, `title`, `artist`, `coverUrl`, `origin`), sin
- * `origin` porque el catálogo la decide él mismo.
- */
-export interface PortWorkView {
-  workId: string;
-  title: string;
-  artist: string;
-  coverUrl: string | null;
-}
-
-export type SearchPortFailure =
-  | "unauthorized"
-  | "rateLimited"
-  | "timeout"
-  | "network"
-  | "error";
-
-export type ResolvePortFailure = SearchPortFailure | "notFound";
-
-/** Resultado de una búsqueda: el catálogo normaliza `failure` a `offline` o `error`. */
-export interface SearchPortResult {
-  kind: "ok" | "empty" | "failure";
-  works?: PortWorkView[];
-  failure?: SearchPortFailure;
-}
-
-/** Resultado de resolver una obra ya conocida; es lo que trae su portada real. */
-export interface ResolvePortResult {
-  kind: "ok" | "failure";
-  work?: PortWorkView;
-  failure?: ResolvePortFailure;
-}
-
-/** Si hay sesión de Spotify, sin que el catálogo conozca el paquete ni su token. */
-export interface SpotifySessionPort {
-  isConnected(): boolean;
-  onConnectionChange(listener: (connected: boolean) => void): () => void;
-}
-
-/** Búsqueda de obras; el catálogo nunca propaga el error de Spotify. */
-export interface SpotifySearchPort {
-  search(query: string): Promise<SearchPortResult>;
-}
-
-/** Metadatos y portada de una obra del catálogo de ejemplo que nunca se buscó. */
-export interface SpotifyResolvePort {
-  resolve(workId: string): Promise<ResolvePortResult>;
-}
+export type {
+  CatalogPorts,
+  ResolvePortFailure,
+  ResolvePortResult,
+  SearchPortFailure,
+  SearchPortResult,
+  SpotifyResolvePort,
+  SpotifySearchPort,
+  SpotifySessionPort,
+  WorkView,
+} from "@melodify/catalog";
 
 /**
  * Los tres puertos tal como los ve el punto de composición. Los tres arrancan en
  * `null`: «sin implementación registrada» es un estado válido y observable, no un
- * error, y por eso el catálogo de ejemplo sigue funcionando.
+ * error, y por eso el catálogo de ejemplo sigue funcionando (BR5.6).
  */
-export interface CatalogPorts {
-  session: SpotifySessionPort | null;
-  search: SpotifySearchPort | null;
-  resolve: SpotifyResolvePort | null;
-}
-
 export const catalogPorts: CatalogPorts = {
   session: null,
   search: null,

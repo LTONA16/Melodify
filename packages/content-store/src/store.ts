@@ -376,6 +376,25 @@ function upsertWork(works: WorkRecord[], record: OpinionRecord): WorkRecord[] {
   ];
 }
 
+/**
+ * El número más alto de los identificadores con ese prefijo. Las escrituras siguen
+ * desde ahí: sin esto, la primera opinión publicada se llamaba `op-001` y repetía
+ * el identificador de una opinión sembrada.
+ */
+function highestIdSequence(ids: string[], prefix: string): number {
+  let highest = 0;
+  for (const id of ids) {
+    if (!id.startsWith(prefix)) {
+      continue;
+    }
+    const suffix = Number.parseInt(id.slice(prefix.length), 10);
+    if (Number.isInteger(suffix) && suffix > highest) {
+      highest = suffix;
+    }
+  }
+  return highest;
+}
+
 function byCreatedAtDescending(
   left: { createdAt: string; opinionId?: string; commentId?: string },
   right: { createdAt: string; opinionId?: string; commentId?: string },
@@ -403,17 +422,25 @@ export function createContentStore(
     return new Date(lastStampMs).toISOString();
   };
 
-  let opinionSequence = 0;
-  let commentSequence = 0;
+  // Los identificadores nuevos continúan la numeración de la siembra: empezar en
+  // 1 repetía `op-001` y `cm-001`, y dos opiniones con el mismo identificador
+  // rompen el feed (la lista se indexa por él) y cualquier lectura por identificador.
+  let opinionSequence = highestIdSequence(
+    state.opinions.map((opinion) => opinion.opinionId),
+    "op-",
+  );
+  let commentSequence = highestIdSequence(
+    state.comments.map((comment) => comment.commentId),
+    "cm-",
+  );
   const nextOpinionId = (): string => {
     opinionSequence += 1;
     return `op-${String(opinionSequence).padStart(3, "0")}`;
   };
   const nextCommentId = (): string => {
     commentSequence += 1;
-    return `cm-${String(commentSequence + 100).padStart(3, "0")}`;
+    return `cm-${String(commentSequence).padStart(3, "0")}`;
   };
-
   const listeners = new Set<{
     viewerId: string;
     listener: (snapshot: ContentSnapshot) => void;
