@@ -346,10 +346,10 @@ Cada capa se implementa y **después** se escriben y ejecutan sus pruebas, antes
 
 ### Paso 32 — Documentación y trazabilidad
 
-- [ ] `code-summary.md` con archivos creados y modificados, decisiones de implementación, desviaciones registradas (C4 sin React frente a ADR-010, detalle de opinión en U2, `backAtRoot` de la cáscara), cobertura obtenida por árbol y pruebas escritas pero no ejecutadas, con su razón.
-- [ ] `source-manifest.json` con **todas** las rutas de código que esta unidad crea, modifica o elimina, incluidas las de configuración.
-- [ ] `traceability.json` generado con `sensor-traceability --stage code-generation --unit u2-content-core --write-upstream`; cada `ACx.y.z`, `NFRx.y` y `BRx.y` con su archivo real; `AC2.2.1` y `AC9.1.8` quedan `Deferred` con la razón de la especificación (la portada real y la tarjeta de Spotify llegan en U4).
-- [ ] Pasar `sensor-traceability` y `sensor-required-sections` en verde antes de la revisión, y comprobar que las pruebas de U1 siguen verdes sin haber sido reescritas.
+- [x] `code-summary.md` con archivos creados y modificados, decisiones de implementación, desviaciones registradas (C4 sin React frente a ADR-010, detalle de opinión en U2, `backAtRoot` de la cáscara), cobertura obtenida por árbol y pruebas escritas pero no ejecutadas, con su razón.
+- [x] `source-manifest.json` con **todas** las rutas de código que esta unidad crea, modifica o elimina, incluidas las de configuración.
+- [x] `traceability.json` generado con `sensor-traceability --stage code-generation --unit u2-content-core --write-upstream`; cada `ACx.y.z`, `NFRx.y` y `BRx.y` con su archivo real; `AC2.2.1` y `AC9.1.8` quedan `Deferred` con la razón de la especificación (la portada real y la tarjeta de Spotify llegan en U4).
+- [x] Pasar `sensor-traceability` y `sensor-required-sections` en verde antes de la revisión, y comprobar que las pruebas de U1 siguen verdes sin haber sido reescritas.
 
 **Historias**: US2.1–US2.3, US4.1–US4.3, US9.1 (traza).
 

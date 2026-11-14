@@ -1,0 +1,313 @@
+{
+  "stage": "code-generation",
+  "unit": "u2-content-core",
+  "version": 1,
+  "writes": [
+    {
+      "path": ".commitlintrc.json"
+    },
+    {
+      "path": ".github/workflows/ci.yml"
+    },
+    {
+      "path": "app/package.json"
+    },
+    {
+      "path": "app/src/bootstrap/App.tsx"
+    },
+    {
+      "path": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "path": "app/src/bootstrap/__tests__/instance-doubles.ts"
+    },
+    {
+      "path": "app/src/bootstrap/__tests__/instances.test.ts"
+    },
+    {
+      "path": "app/src/bootstrap/__tests__/logger.test.ts"
+    },
+    {
+      "path": "app/src/bootstrap/__tests__/shell-services.test.ts"
+    },
+    {
+      "path": "app/src/bootstrap/instances.ts"
+    },
+    {
+      "path": "app/src/bootstrap/logger.ts"
+    },
+    {
+      "path": "app/src/bootstrap/ports.ts"
+    },
+    {
+      "path": "app/src/bootstrap/shell-services.ts"
+    },
+    {
+      "path": "app/src/components/OfflineBanner.tsx"
+    },
+    {
+      "path": "app/src/components/WorkHeader.tsx"
+    },
+    {
+      "path": "app/src/components/__tests__/offline-banner.test.tsx"
+    },
+    {
+      "path": "app/src/components/__tests__/work-header.test.tsx"
+    },
+    {
+      "path": "app/src/screens/dependencies.ts"
+    },
+    {
+      "path": "app/src/screens/detalle-obra/DetalleObraScreen.tsx"
+    },
+    {
+      "path": "app/src/screens/detalle-obra/DetalleObraView.tsx"
+    },
+    {
+      "path": "app/src/screens/detalle-obra/__tests__/detalle-obra-screen.test.tsx"
+    },
+    {
+      "path": "app/src/screens/detalle-obra/__tests__/detalle-obra-view.test.tsx"
+    },
+    {
+      "path": "app/src/screens/detalle-obra/useDetalleObra.ts"
+    },
+    {
+      "path": "app/src/screens/detalle-opinion/DetalleOpinionScreen.tsx"
+    },
+    {
+      "path": "app/src/screens/detalle-opinion/DetalleOpinionView.tsx"
+    },
+    {
+      "path": "app/src/screens/detalle-opinion/__tests__/detalle-opinion.test.tsx"
+    },
+    {
+      "path": "app/src/screens/detalle-opinion/useDetalleOpinion.ts"
+    },
+    {
+      "path": "app/src/screens/inicio/InicioHeader.tsx"
+    },
+    {
+      "path": "app/src/screens/inicio/InicioScreen.tsx"
+    },
+    {
+      "path": "app/src/screens/inicio/InicioView.tsx"
+    },
+    {
+      "path": "app/src/screens/inicio/__tests__/inicio-screen.test.tsx"
+    },
+    {
+      "path": "app/src/screens/inicio/__tests__/inicio-view.test.tsx"
+    },
+    {
+      "path": "app/src/screens/inicio/seed.ts"
+    },
+    {
+      "path": "app/src/screens/perfil/PerfilScreen.tsx"
+    },
+    {
+      "path": "app/src/screens/perfil/PerfilView.tsx"
+    },
+    {
+      "path": "app/src/screens/perfil/__tests__/perfil-screen.test.tsx"
+    },
+    {
+      "path": "app/src/screens/perfil/__tests__/perfil-view.test.tsx"
+    },
+    {
+      "path": "app/src/screens/perfil/usePerfil.ts"
+    },
+    {
+      "path": "app/src/screens/placeholders/PerfilScreen.tsx"
+    },
+    {
+      "path": "app/src/state/__tests__/opinion-card-model.test.ts"
+    },
+    {
+      "path": "app/src/state/__tests__/use-catalog.test.tsx"
+    },
+    {
+      "path": "app/src/state/__tests__/use-content.test.tsx"
+    },
+    {
+      "path": "app/src/state/__tests__/use-network.test.tsx"
+    },
+    {
+      "path": "app/src/state/__tests__/use-viewer-id.test.tsx"
+    },
+    {
+      "path": "app/src/state/opinionCardModel.ts"
+    },
+    {
+      "path": "app/src/state/ratings.ts"
+    },
+    {
+      "path": "app/src/state/useCatalog.ts"
+    },
+    {
+      "path": "app/src/state/useContent.ts"
+    },
+    {
+      "path": "app/src/state/useNetwork.ts"
+    },
+    {
+      "path": "app/src/state/useViewerId.ts"
+    },
+    {
+      "path": "app/tsconfig.json"
+    },
+    {
+      "path": "eslint.config.js"
+    },
+    {
+      "path": "jest.config.js"
+    },
+    {
+      "path": "jest.setup.js"
+    },
+    {
+      "path": "package-lock.json"
+    },
+    {
+      "path": "package.json"
+    },
+    {
+      "path": "packages/app-shell/package.json"
+    },
+    {
+      "path": "packages/app-shell/src/AppShell.tsx"
+    },
+    {
+      "path": "packages/app-shell/src/__tests__/stack.test.tsx"
+    },
+    {
+      "path": "packages/app-shell/src/index.ts"
+    },
+    {
+      "path": "packages/catalog/package.json"
+    },
+    {
+      "path": "packages/catalog/src/__tests__/catalog.test.ts"
+    },
+    {
+      "path": "packages/catalog/src/__tests__/index.test.ts"
+    },
+    {
+      "path": "packages/catalog/src/catalog.ts"
+    },
+    {
+      "path": "packages/catalog/src/index.ts"
+    },
+    {
+      "path": "packages/catalog/src/ports.ts"
+    },
+    {
+      "path": "packages/catalog/src/sample.ts"
+    },
+    {
+      "path": "packages/catalog/tsconfig.json"
+    },
+    {
+      "path": "packages/connectivity/package.json"
+    },
+    {
+      "path": "packages/connectivity/src/__tests__/connectivity.test.ts"
+    },
+    {
+      "path": "packages/connectivity/src/__tests__/expo-network-adapter.test.ts"
+    },
+    {
+      "path": "packages/connectivity/src/__tests__/index.test.ts"
+    },
+    {
+      "path": "packages/connectivity/src/connectivity.ts"
+    },
+    {
+      "path": "packages/connectivity/src/expo-network-adapter.ts"
+    },
+    {
+      "path": "packages/connectivity/src/index.ts"
+    },
+    {
+      "path": "packages/connectivity/tsconfig.json"
+    },
+    {
+      "path": "packages/content-store/package.json"
+    },
+    {
+      "path": "packages/content-store/src/__tests__/index.test.ts"
+    },
+    {
+      "path": "packages/content-store/src/__tests__/reads.test.ts"
+    },
+    {
+      "path": "packages/content-store/src/__tests__/seed.test.ts"
+    },
+    {
+      "path": "packages/content-store/src/__tests__/store.test.ts"
+    },
+    {
+      "path": "packages/content-store/src/__tests__/subscribe.test.ts"
+    },
+    {
+      "path": "packages/content-store/src/__tests__/writes.test.ts"
+    },
+    {
+      "path": "packages/content-store/src/index.ts"
+    },
+    {
+      "path": "packages/content-store/src/seed.ts"
+    },
+    {
+      "path": "packages/content-store/src/store.ts"
+    },
+    {
+      "path": "packages/content-store/src/views.ts"
+    },
+    {
+      "path": "packages/content-store/tsconfig.json"
+    },
+    {
+      "path": "packages/design-system/package.json"
+    },
+    {
+      "path": "packages/design-system/src/__tests__/components.test.tsx"
+    },
+    {
+      "path": "packages/design-system/src/__tests__/error-state.test.tsx"
+    },
+    {
+      "path": "packages/design-system/src/__tests__/format-calendar-date.test.ts"
+    },
+    {
+      "path": "packages/design-system/src/__tests__/own-opinion.test.tsx"
+    },
+    {
+      "path": "packages/design-system/src/__tests__/text-button.test.tsx"
+    },
+    {
+      "path": "packages/design-system/src/calendar-date.ts"
+    },
+    {
+      "path": "packages/design-system/src/components/AppHeader.tsx"
+    },
+    {
+      "path": "packages/design-system/src/components/EmptyState.tsx"
+    },
+    {
+      "path": "packages/design-system/src/components/ErrorState.tsx"
+    },
+    {
+      "path": "packages/design-system/src/components/OpinionCard.tsx"
+    },
+    {
+      "path": "packages/design-system/src/components/TextButton.tsx"
+    },
+    {
+      "path": "packages/design-system/src/index.ts"
+    },
+    {
+      "path": "tsconfig.json"
+    }
+  ]
+}
