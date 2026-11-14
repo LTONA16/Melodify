@@ -31,6 +31,7 @@ import {
 } from "@melodify/design-system";
 import { NavigationContainer } from "@react-navigation/native";
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -234,13 +235,13 @@ function TabShell({
    * vaciarse aquí y no en el render: si se limpiara al pintar, el detalle que se
    * abre después heredaría el título del anterior antes de que su pantalla lo fije.
    */
-  const popDetail = (): void => {
+  const popDetail = useCallback((): void => {
     setStacks((previous) => ({
       ...previous,
       [activeName]: (previous[activeName] ?? []).slice(0, -1),
     }));
     setHeaderTitle(null);
-  };
+  }, [activeName]);
 
   const openCreateTab = (
     mode: CreateEntry["mode"],
@@ -326,7 +327,7 @@ function TabShell({
     );
 
     return () => subscription.remove();
-  }, [activeName, stacks]);
+  }, [activeName, stacks, popDetail]);
 
   const items = tabItemsFor(screens);
   const activeIndex = indexOfTab(activeName);

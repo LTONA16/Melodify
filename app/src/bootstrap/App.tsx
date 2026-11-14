@@ -27,26 +27,97 @@ import { useEffect, useState } from "react";
 import { ActividadScreen } from "../screens/placeholders/ActividadScreen";
 import { CrearScreen } from "../screens/placeholders/CrearScreen";
 import { ExplorarScreen } from "../screens/placeholders/ExplorarScreen";
-import { PerfilScreen } from "../screens/placeholders/PerfilScreen";
+import { DetalleObraScreen } from "../screens/detalle-obra/DetalleObraScreen";
+import { DetalleOpinionScreen } from "../screens/detalle-opinion/DetalleOpinionScreen";
 import { InicioScreen } from "../screens/inicio/InicioScreen";
 import { LoginScreen } from "../screens/login/LoginScreen";
+import { PerfilScreen } from "../screens/perfil/PerfilScreen";
+import { catalog, contentStore } from "./instances";
 import { appSession } from "./session";
 import { defaultShellServices } from "./shell-services";
 
 /** Los estados visibles del arranque (F1). «Arranque» no pinta pantalla: es el splash. */
 export type AppPhase = "arranque" | "login" | "inicio";
 
+/*
+ * La cáscara monta cada pantalla sin props (`ScreenProps`) y a los detalles solo les
+ * pasa su identificador, así que las dependencias de composición se entregan en
+ * adaptadores de una línea en vez de en cada render. Existen para que las instancias
+ * de C4 y C5 se construyan **una vez**, aquí, y no una por pantalla (TS-18, R-01):
+ * dos almacenes de contenido darían dos feeds con revisiones distintas.
+ *
+ * Van en el módulo y no dentro de `App` para que su identidad no cambie entre
+ * renders: una función nueva en cada render remontaría la pestaña entera.
+ */
+function InicioRoute() {
+  return (
+    <InicioScreen
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
+function DetalleObraRoute({ work }: { work: { workId: string } }) {
+  return (
+    <DetalleObraScreen
+      work={work}
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
+function DetalleOpinionRoute({
+  opinion,
+}: {
+  opinion: { opinionId: string };
+}) {
+  return (
+    <DetalleOpinionScreen
+      opinion={opinion}
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
+function PerfilRoute() {
+  return (
+    <PerfilScreen
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
 /**
- * Las cinco pestañas en el orden de la barra (F4.1). Inicio y las cuatro
- * contenedoras comparten la misma forma, así que U2–U5 sustituyen el componente
- * sin tocar el registro.
+ * Las cinco pestañas en el orden de la barra (F4.1). Inicio y Perfil ya son las
+ * pantallas de U2; Explorar, Crear y Actividad siguen siendo contenedoras hasta U3–U5.
  */
 const screens: ScreenModule[] = [
-  { name: "inicio", title: "Inicio", component: InicioScreen },
+  {
+    name: "inicio",
+    title: "Inicio",
+    component: InicioRoute,
+    details: [
+      { kind: "work", component: DetalleObraRoute },
+      { kind: "opinion", component: DetalleOpinionRoute },
+    ],
+  },
   { name: "explorar", title: "Explorar", component: ExplorarScreen },
   { name: "crear", title: "Crear", component: CrearScreen },
   { name: "actividad", title: "Actividad", component: ActividadScreen },
-  { name: "perfil", title: "Perfil", component: PerfilScreen },
+  {
+    name: "perfil",
+    title: "Perfil",
+    component: PerfilRoute,
+    details: [{ kind: "opinion", component: DetalleOpinionRoute }],
+  },
 ];
 
 export function App() {

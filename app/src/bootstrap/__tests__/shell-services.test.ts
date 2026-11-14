@@ -1,6 +1,56 @@
 import { defaultShellServices } from "../shell-services";
 
 /**
+ * `expo-network` se dobla con un oyente que la prueba puede mover: este archivo
+ * comprueba que la red de la cáscara sale de la conectividad de la app y no del valor
+ * fijo de U1, así que hace falta poder simular un cambio del adaptador (BR6.4).
+ */
+jest.mock("expo-network", () => {
+  const listeners = new Set();
+
+  return {
+    __listeners: listeners,
+    getNetworkStateAsync: jest.fn(async () => ({
+      isConnected: true,
+      isInternetReachable: true,
+      type: "WIFI",
+    })),
+    addNetworkStateListener: jest.fn((listener: unknown) => {
+      listeners.add(listener);
+      return {
+        remove: () => {
+          listeners.delete(listener);
+        },
+      };
+    }),
+  };
+});
+
+const networkMock = jest.requireMock("expo-network") as unknown as {
+  __listeners: Set<
+    (state: {
+      isConnected: boolean;
+      isInternetReachable: boolean | null;
+      type: string;
+    }) => void
+  >;
+};
+
+function setOnline(online: boolean): void {
+  for (const listener of [...networkMock.__listeners]) {
+    listener({
+      isConnected: online,
+      isInternetReachable: online,
+      type: online ? "WIFI" : "NONE",
+    });
+  }
+}
+
+afterEach(() => {
+  setOnline(true);
+});
+
+/**
  * Los servicios por defecto son lo que la cáscara recibe cuando todavía no hay red
  * ni Spotify (U1). Se prueban por su forma y por su comportamiento: una pantalla
  * puede llamarlos desde el primer día y no rompe nada.
@@ -73,5 +123,40 @@ describe("servicios por defecto de la cáscara", () => {
     expect(network.online).toBe(true);
     expect(spotify.status).toBe("disconnected");
     expect(comments.state.opinionId).toBeNull();
+  });
+
+  it("la red de la cáscara emite el estado vigente al suscribirse", () => {
+    const seen: boolean[] = [];
+
+    const unsubscribe = defaultShellServices.network.subscribe((online) =>
+      seen.push(online),
+    );
+
+    expect(seen).toEqual([defaultShellServices.network.online]);
+
+    unsubscribe();
+  });
+
+  it("la red deja de ser el valor fijo de U1: sigue al adaptador del sistema", () => {
+    const seen: boolean[] = [];
+    const unsubscribe = defaultShellServices.network.subscribe((online) =>
+      seen.push(online),
+    );
+
+    setOnline(false);
+
+    expect(seen).toEqual([true, false]);
+    expect(defaultShellServices.network.online).toBe(false);
+
+    setOnline(true);
+
+    expect(seen).toEqual([true, false, true]);
+    expect(defaultShellServices.network.online).toBe(true);
+
+    unsubscribe();
+
+    setOnline(false);
+
+    expect(seen).toEqual([true, false, true]);
   });
 });

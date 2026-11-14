@@ -12,6 +12,8 @@
     "lint": "eslint ."
   },
   "devDependencies": {
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
     "@react-native/jest-preset": "0.86.3",
     "@testing-library/react-native": "13.3.3",
     "@types/jest": "29.5.14",

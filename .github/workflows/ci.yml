@@ -71,4 +71,14 @@ jobs:
 
             - name: Ejecutar pruebas unitarias (Jest)
               working-directory: ${{ steps.project-dir.outputs.path }}
-              run: npm test -- --passWithNoTests
+              run: npm test
+
+            # El título del PR también es un commit: se valida con el mismo
+            # `.commitlintrc.json` que los commits, y el binario ya está instalado
+            # por `npm ci` en el paso anterior.
+            - name: Validar el título del PR con Conventional Commits
+              if: github.event_name == 'pull_request'
+              working-directory: ${{ steps.project-dir.outputs.path }}
+              env:
+                  PR_TITLE: ${{ github.event.pull_request.title }}
+              run: printf '%s\n' "$PR_TITLE" | npx --no-install commitlint

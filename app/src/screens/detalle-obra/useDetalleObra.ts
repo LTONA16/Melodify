@@ -24,6 +24,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { logger, type AppLogger } from "../../bootstrap/logger";
 import { toOpinionCardModel } from "../../state/opinionCardModel";
+import { averageRating } from "../../state/ratings";
 import { useCatalog } from "../../state/useCatalog";
 import type { ContentStatus } from "../../state/useContent";
 
@@ -192,16 +193,12 @@ export function useDetalleObra(
     return { own: own[0] ?? null, others };
   }, [current.opinions, cover]);
 
-  const average = useMemo(() => {
-    if (current.opinions.length === 0) {
-      return 0;
-    }
-    const total = current.opinions.reduce(
-      (sum, opinion) => sum + opinion.rating,
-      0,
-    );
-    return Math.round(total / current.opinions.length);
-  }, [current.opinions]);
+  // Un solo redondeo para toda la app: el de `state/ratings.ts`, que el detalle de
+  // opinión también usa. Dos copias del mismo redondeo acaban discrepando en el borde.
+  const average = useMemo(
+    () => averageRating(current.opinions.map((opinion) => opinion.rating)),
+    [current.opinions],
+  );
 
   const retry = useCallback(() => {
     setAttempt((previous) => previous + 1);

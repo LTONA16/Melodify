@@ -290,57 +290,57 @@ Cada capa se implementa y **después** se escriben y ejecutan sus pruebas, antes
 
 ### Paso 25 — Interfaz (6): Detalle de opinión
 
-- [ ] `useDetalleOpinion.ts` con `(opinionId, viewerId)`: `getOpinion`, `getWork` con degradación al título y artista de la opinión si da `404`, `countOpinions` y media; sin `CONTENT_READ_FAILED` por un `404` (BR5.2, NFR9.4).
-- [ ] `DetalleOpinionView.tsx` puro: `WorkHeader`, tarjeta `detail` completa sin recortar, estados de carga y error, `OfflineBanner`.
-- [ ] `DetalleOpinionScreen.tsx` contenedor con `setHeader({ title: "Detalle de opinión" })`, `useNetwork` y «Reintentar».
+- [x] `useDetalleOpinion.ts` con `(opinionId, viewerId)`: `getOpinion`, `getWork` con degradación al título y artista de la opinión si da `404`, `countOpinions` y media; sin `CONTENT_READ_FAILED` por un `404` (BR5.2, NFR9.4).
+- [x] `DetalleOpinionView.tsx` puro: `WorkHeader`, tarjeta `detail` completa sin recortar, estados de carga y error, `OfflineBanner`.
+- [x] `DetalleOpinionScreen.tsx` contenedor con `setHeader({ title: "Detalle de opinión" })`, `useNetwork` y «Reintentar».
 
 **Historias**: US2.3 (AC2.3.1–AC2.3.3), US4.1 (AC4.1.2, AC4.1.4), US9.1 (AC9.1.4).
 
 ### Paso 26 — Pruebas del detalle de opinión
 
-- [ ] `detalle-opinion.test.tsx`, 10–12 pruebas: el texto completo se pinta sin recortar (AC2.3.3); una opinión ajena no pinta «Editar»; una propia pinta «Editar» y las fechas (AC9.1.4); una obra fuera del catálogo usa el título y artista de la opinión y el bloque con la inicial (BR5.2); un `404` pinta «No pudimos cargar esta opinión.» con «Reintentar» y **no** registra `CONTENT_READ_FAILED`; un almacén que lanza sí lo registra; esqueletos y banner sin conexión. Ejecutar y dejar en verde.
+- [x] `detalle-opinion.test.tsx`, 10–12 pruebas: el texto completo se pinta sin recortar (AC2.3.3); una opinión ajena no pinta «Editar»; una propia pinta «Editar» y las fechas (AC9.1.4); una obra fuera del catálogo usa el título y artista de la opinión y el bloque con la inicial (BR5.2); un `404` pinta «No pudimos cargar esta opinión.» con «Reintentar» y **no** registra `CONTENT_READ_FAILED`; un almacén que lanza sí lo registra; esqueletos y banner sin conexión. Ejecutar y dejar en verde.
 
 **Historias**: US2.3 (AC2.3.1–AC2.3.3), US4.1 (AC4.1.2), US9.1 (AC9.1.4).
 
 ### Paso 27 — Interfaz (7): Perfil
 
-- [ ] `usePerfil.ts` con `viewerId`: `getAuthor`, `listFollowing` y las opiniones propias ordenadas de la más reciente a la más antigua.
-- [ ] `PerfilView.tsx` puro: avatar de 72 con la inicial, nombre y `@demo`, «3 opiniones · 2 siguiendo» con singular correcto, «Mis opiniones» en variante `compact`, vacío con «Crear opinión», `ErrorState`, esqueletos, «Cerrar sesión» como `TextButton` en tono de error; **sin** tarjeta de Spotify (BR9.1–BR9.9).
-- [ ] `PerfilScreen.tsx` contenedor: `useViewerId`, `usePerfil`, `useNetwork`, `openOpinionDetail`, `goToTab({ name: "crear" })` y `appSession.signOut()` (R-01: la instancia única de `session.ts`).
+- [x] `usePerfil.ts` con `viewerId`: `getAuthor`, `listFollowing` y las opiniones propias ordenadas de la más reciente a la más antigua.
+- [x] `PerfilView.tsx` puro: avatar de 72 con la inicial, nombre y `@demo`, «3 opiniones · 2 siguiendo» con singular correcto, «Mis opiniones» en variante `compact`, vacío con «Crear opinión», `ErrorState`, esqueletos, «Cerrar sesión» como `TextButton` en tono de error; **sin** tarjeta de Spotify (BR9.1–BR9.9).
+- [x] `PerfilScreen.tsx` contenedor: `useViewerId`, `usePerfil`, `useNetwork`, `openOpinionDetail`, `goToTab({ name: "crear" })` y `appSession.signOut()` (R-01: la instancia única de `session.ts`).
 
 **Historias**: US9.1 (AC9.1.1–AC9.1.7).
 
 ### Paso 28 — Pruebas de Perfil
 
-- [ ] `perfil-view.test.tsx`, 8–10 pruebas: identidad y contadores exactos (AC9.1.1, AC9.1.2); «3 opiniones» y «2 siguiendo» con las tres tarjetas en `compact` (AC9.1.3); vacío con acción (AC9.1.5); esqueletos (AC9.1.6); error con «Reintentar» (AC9.1.7); no hay tarjeta de Spotify (AC9.1.8 sigue `Deferred`).
-- [ ] `perfil-screen.test.tsx`, 4–5 pruebas: tocar una opinión llama a `openOpinionDetail` (AC9.1.4); «Cerrar sesión» llama a `signOut` de la sesión inyectada y no borra contenido; sin conexión se pinta el banner y la identidad sigue. Ejecutar y dejar en verde.
+- [x] `perfil-view.test.tsx`, 8–10 pruebas: identidad y contadores exactos (AC9.1.1, AC9.1.2); «3 opiniones» y «2 siguiendo» con las tres tarjetas en `compact` (AC9.1.3); vacío con acción (AC9.1.5); esqueletos (AC9.1.6); error con «Reintentar» (AC9.1.7); no hay tarjeta de Spotify (AC9.1.8 sigue `Deferred`).
+- [x] `perfil-screen.test.tsx`, 4–5 pruebas: tocar una opinión llama a `openOpinionDetail` (AC9.1.4); «Cerrar sesión» llama a `signOut` de la sesión inyectada y no borra contenido; sin conexión se pinta el banner y la identidad sigue. Ejecutar y dejar en verde.
 
 **Historias**: US9.1 (AC9.1.1–AC9.1.7).
 
 ### Paso 29 — Composición: instancias, servicios, registro y arranque
 
-- [ ] `app/src/bootstrap/instances.ts` (nuevo): construye **una sola vez** `contentStore`, `connectivity` y `catalog` —con los tres puertos en `null` y el adaptador real de `expo-network`— y los exporta, siguiendo el patrón de `session.ts` (TS-18, R-01).
-- [ ] `app/src/bootstrap/shell-services.ts`: `network.online` y `network.subscribe` salen de la instancia de conectividad; Spotify y comentarios siguen con sus valores por defecto (BR6.4, C2 `default_by_owner`).
-- [ ] `app/src/bootstrap/App.tsx`: registra Inicio completo y Perfil como raíces, y los dos detalles `{ kind: "work" }` y `{ kind: "opinion" }` en Inicio y `{ kind: "opinion" }` en Perfil (tabla de registro de `frontend-components.md`).
-- [ ] Mantener Login fuera de la barra y la decisión Login/Inicio con `appSession` sin cambios.
+- [x] `app/src/bootstrap/instances.ts` (nuevo): construye **una sola vez** `contentStore`, `connectivity` y `catalog` —con los tres puertos en `null` y el adaptador real de `expo-network`— y los exporta, siguiendo el patrón de `session.ts` (TS-18, R-01).
+- [x] `app/src/bootstrap/shell-services.ts`: `network.online` y `network.subscribe` salen de la instancia de conectividad; Spotify y comentarios siguen con sus valores por defecto (BR6.4, C2 `default_by_owner`).
+- [x] `app/src/bootstrap/App.tsx`: registra Inicio completo y Perfil como raíces, y los dos detalles `{ kind: "work" }` y `{ kind: "opinion" }` en Inicio y `{ kind: "opinion" }` en Perfil (tabla de registro de `frontend-components.md`).
+- [x] Mantener Login fuera de la barra y la decisión Login/Inicio con `appSession` sin cambios.
 
 **Historias**: US2.1–US2.3, US4.1–US4.3, US9.1 (integración).
 
 ### Paso 30 — Pruebas de composición e integración de límites
 
-- [ ] `app/src/bootstrap/__tests__/instances.test.ts`, 4–5 pruebas: una sola instancia por dominio, el catálogo recibe la misma de contenido y de conectividad, y los puertos siguen en `null` (NFR1.8, NFR3.10).
-- [ ] `shell-services.test.ts` ampliado: la red responde al cambio del adaptador y deja de ser el valor fijo de U1 (BR6.4).
-- [ ] `app-bootstrap.test.tsx` ampliado, 5–6 pruebas de integración: sesión válida → Inicio con 10 tarjetas; abrir un detalle desde Inicio mantiene la raíz y «‹ Volver» devuelve al feed; sin conexión aparece el banner en Inicio, el detalle y Perfil; Perfil → detalle de opinión → «Editar» visible. Ejecutar y dejar en verde.
+- [x] `app/src/bootstrap/__tests__/instances.test.ts`, 4–5 pruebas: una sola instancia por dominio, el catálogo recibe la misma de contenido y de conectividad, y los puertos siguen en `null` (NFR1.8, NFR3.10).
+- [x] `shell-services.test.ts` ampliado: la red responde al cambio del adaptador y deja de ser el valor fijo de U1 (BR6.4).
+- [x] `app-bootstrap.test.tsx` ampliado, 5–6 pruebas de integración: sesión válida → Inicio con 10 tarjetas; abrir un detalle desde Inicio mantiene la raíz y «‹ Volver» devuelve al feed; sin conexión aparece el banner en Inicio, el detalle y Perfil; Perfil → detalle de opinión → «Editar» visible. Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.1), US2.3 (AC2.3.1, AC2.3.2), US4.1–US4.3, US9.1 (AC9.1.4).
 
 ### Paso 31 — Configuración de entorno y build
 
-- [ ] `eslint.config.js`: añadir `expo-network` restringido a `packages/connectivity/src/expo-network-adapter.ts`; `@typescript-eslint/no-restricted-imports` con `@melodify/spotify` prohibido en `packages/catalog/src/**` **sin** `allowTypeImports` y `@melodify/catalog` prohibido en `packages/spotify/src/**` **con** `allowTypeImports: true` (NFR3.11; la segunda regla solo morderá cuando U4 cree el paquete).
-- [ ] Crear `.commitlintrc.json` en la raíz con `{ "extends": ["@commitlint/config-conventional"] }` y añadir `@commitlint/cli` y `@commitlint/config-conventional` como `devDependencies` exactas de la raíz, con el lockfile (infrastructure-design § Lo que esta unidad cambia).
-- [ ] `.github/workflows/ci.yml`: retirar `--passWithNoTests` del paso de pruebas (el script ya es `jest --coverage`, así que la cobertura y los umbrales se evalúan hoy) y añadir al job `code-quality` —que ya ejecuta `npm ci`— el paso que valida el **título del PR** con `commitlint` (npx con el binario instalado) sobre `${{ github.event.pull_request.title }}`; ningún paso de build, firma, publicación ni despliegue (Q1–Q6 = A).
-- [ ] `README.md`: comprobar que el enlace a `.commitlintrc.json` deja de estar roto; no se toca nada más del archivo del proyecto.
-- [ ] `npm run typecheck`, `npm run lint` y `npm test` en verde sobre el árbol completo; anotar cualquier aviso y su causa.
+- [x] `eslint.config.js`: añadir `expo-network` restringido a `packages/connectivity/src/expo-network-adapter.ts`; `@typescript-eslint/no-restricted-imports` con `@melodify/spotify` prohibido en `packages/catalog/src/**` **sin** `allowTypeImports` y `@melodify/catalog` prohibido en `packages/spotify/src/**` **con** `allowTypeImports: true` (NFR3.11; la segunda regla solo morderá cuando U4 cree el paquete).
+- [x] Crear `.commitlintrc.json` en la raíz con `{ "extends": ["@commitlint/config-conventional"] }` y añadir `@commitlint/cli` y `@commitlint/config-conventional` como `devDependencies` exactas de la raíz, con el lockfile (infrastructure-design § Lo que esta unidad cambia).
+- [x] `.github/workflows/ci.yml`: retirar `--passWithNoTests` del paso de pruebas (el script ya es `jest --coverage`, así que la cobertura y los umbrales se evalúan hoy) y añadir al job `code-quality` —que ya ejecuta `npm ci`— el paso que valida el **título del PR** con `commitlint` (npx con el binario instalado) sobre `${{ github.event.pull_request.title }}`; ningún paso de build, firma, publicación ni despliegue (Q1–Q6 = A).
+- [x] `README.md`: comprobar que el enlace a `.commitlintrc.json` deja de estar roto; no se toca nada más del archivo del proyecto.
+- [x] `npm run typecheck`, `npm run lint` y `npm test` en verde sobre el árbol completo; anotar cualquier aviso y su causa.
 
 **Historias**: ninguna funcional (NFR3.11, NFR5.5–5.7, CI).
 
