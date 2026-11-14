@@ -259,32 +259,32 @@ Cada capa se implementa y **después** se escriben y ejecutan sus pruebas, antes
 
 ### Paso 21 — Interfaz (4): Inicio completo
 
-- [ ] `app/src/screens/inicio/InicioHeader.tsx` con `AppHeader` «Inicio» y el chip «Conectado»/«Conectar», sin acción en U2 (BR7.9).
-- [ ] `InicioView.tsx` puro con `{ status, cards, online, metadataError, spotifyStatus, onOpenOpinion, onRetry, onRetryCovers, onCreate }`: `FlatList` con `keyExtractor` por `opinionId`, `ListHeaderComponent` con los banners de metadatos y sin conexión en ese orden, `ListEmptyComponent` con el vacío, 3 esqueletos en `loading` y `ErrorState` en `error` (NFR8.7, BR7.1–BR7.6).
-- [ ] `InicioScreen.tsx` contenedor: `useViewerId`, `useContent`, `useNetwork`, `useCatalog`, memo con clave `(opinions, revision, catalogVersion, online)`, `openOpinionDetail` y `goToTab({ name: "crear" })` (NFR8.5).
-- [ ] Eliminar `app/src/screens/inicio/seed.ts` y su importación; la siembra vive en C4 (BR4.1).
+- [x] `app/src/screens/inicio/InicioHeader.tsx` con `AppHeader` «Inicio» y el chip «Conectado»/«Conectar», sin acción en U2 (BR7.9).
+- [x] `InicioView.tsx` puro con `{ status, cards, online, metadataError, spotifyStatus, onOpenOpinion, onRetry, onRetryCovers, onCreate }`: `FlatList` con `keyExtractor` por `opinionId`, `ListHeaderComponent` con los banners de metadatos y sin conexión en ese orden, `ListEmptyComponent` con el vacío, 3 esqueletos en `loading` y `ErrorState` en `error` (NFR8.7, BR7.1–BR7.6).
+- [x] `InicioScreen.tsx` contenedor: `useViewerId`, `useContent`, `useNetwork`, `useCatalog`, memo con clave `(opinions, revision, catalogVersion, online)`, `openOpinionDetail` y `goToTab({ name: "crear" })` (NFR8.5).
+- [x] Eliminar `app/src/screens/inicio/seed.ts` y su importación; la siembra vive en C4 (BR4.1).
 
 **Historias**: US2.1 (AC2.1.1–AC2.1.6), US2.2 (AC2.2.2–AC2.2.4), US2.3 (AC2.3.1).
 
 ### Paso 22 — Pruebas de Inicio
 
-- [ ] `inicio-view.test.tsx`, 10–12 pruebas: `loading` pinta 3 esqueletos y «Para ti»; `ready` pinta las 10 tarjetas con autor, obra, valoración y texto; vacío con «Crear opinión» que llama a `onCreate`; error con el texto exacto y «Reintentar»; banners de metadatos y de sin conexión en orden y sin tapar la lista; «Conectar» en el chip (AC2.1.1–AC2.1.6, AC2.2.4).
-- [ ] `inicio-screen.test.tsx`, 6–8 pruebas de integración con un C4 y un C5 reales sembrados: 10 tarjetas, `coverFor` llamado una vez por opinión y no desde la tarjeta, 10 llamadas al cambiar la red y ninguna al repintar sin cambio; tocar una tarjeta llama a `openOpinionDetail` con su `opinionId` (AC2.1.3, AC2.3.1, NFR8.5). Ejecutar y dejar en verde.
+- [x] `inicio-view.test.tsx`, 10–12 pruebas: `loading` pinta 3 esqueletos y «Para ti»; `ready` pinta las 10 tarjetas con autor, obra, valoración y texto; vacío con «Crear opinión» que llama a `onCreate`; error con el texto exacto y «Reintentar»; banners de metadatos y de sin conexión en orden y sin tapar la lista; «Conectar» en el chip (AC2.1.1–AC2.1.6, AC2.2.4).
+- [x] `inicio-screen.test.tsx`, 6–8 pruebas de integración con un C4 y un C5 reales sembrados: 10 tarjetas, `coverFor` llamado una vez por opinión y no desde la tarjeta, 10 llamadas al cambiar la red y ninguna al repintar sin cambio; tocar una tarjeta llama a `openOpinionDetail` con su `opinionId` (AC2.1.3, AC2.3.1, NFR8.5). Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.1–AC2.1.6), US2.2 (AC2.2.2–AC2.2.4), US2.3 (AC2.3.1).
 
 ### Paso 23 — Interfaz (5): Detalle de obra
 
-- [ ] `useDetalleObra.ts` con `(workId, viewerId)`: `getWork`, `listOpinions({ workId, viewerId })`, `countOpinions`, portada y media; relee solo al cambiar la obra o la revisión; portada una vez por `(workId, catalogVersion, online)` (NFR8.5).
-- [ ] `DetalleObraView.tsx` puro con las cuatro variantes —mía + ajenas, mía sola, ajenas sin mía, sin opiniones—, la propia primero en estado `own`, «Otras opiniones», «Nadie más ha opinado todavía.», «Todavía nadie ha opinado sobre esta obra.», «Opinar sobre esta obra» solo sin opinión propia, esqueletos y `ErrorState` (BR8.1–BR8.8).
-- [ ] `DetalleObraScreen.tsx` contenedor: `setHeader({ title: "Detalle de obra" })`, `useNetwork`, `openCreate({ workId })` y «Reintentar».
+- [x] `useDetalleObra.ts` con `(workId, viewerId)`: `getWork`, `listOpinions({ workId, viewerId })`, `countOpinions`, portada y media; relee solo al cambiar la obra o la revisión; portada una vez por `(workId, catalogVersion, online)` (NFR8.5).
+- [x] `DetalleObraView.tsx` puro con las cuatro variantes —mía + ajenas, mía sola, ajenas sin mía, sin opiniones—, la propia primero en estado `own`, «Otras opiniones», «Nadie más ha opinado todavía.», «Todavía nadie ha opinado sobre esta obra.», «Opinar sobre esta obra» solo sin opinión propia, esqueletos y `ErrorState` (BR8.1–BR8.8).
+- [x] `DetalleObraScreen.tsx` contenedor: `setHeader({ title: "Detalle de obra" })`, `useNetwork`, `openCreate({ workId })` y «Reintentar».
 
 **Historias**: US4.1 (AC4.1.1–AC4.1.6), US4.2 (AC4.2.1–AC4.2.4), US4.3 (AC4.3.1–AC4.3.3).
 
 ### Paso 24 — Pruebas del detalle de obra
 
-- [ ] `detalle-obra-view.test.tsx`, 10–12 pruebas con las cinco variantes de la siembra: `Bohemian Rhapsody` (propia + ajena, media 5), `Blinding Lights` (propia con «Creada el …» y «Editada el …»), `bad guy` (ajena sin propia y botón), `Smells Like Teen Spirit` (propia sin ajenas), `As It Was` (sin opiniones y botón); esqueletos y error con «Reintentar» (AC4.1.1, AC4.1.3, AC4.1.6, AC4.2.1–AC4.2.4, AC4.3.1).
-- [ ] `detalle-obra-screen.test.tsx`, 5–6 pruebas de integración: «Opinar sobre esta obra» llama a `openCreate` con el `workId`; sin conexión se pinta el banner y la identidad sigue; `coverFor` se llama una vez; «Editar» existe y no navega (AC4.3.2, AC4.3.3, AC2.2.4). Ejecutar y dejar en verde.
+- [x] `detalle-obra-view.test.tsx`, 10–12 pruebas con las cinco variantes de la siembra: `Bohemian Rhapsody` (propia + ajena, media 5), `Blinding Lights` (propia con «Creada el …» y «Editada el …»), `bad guy` (ajena sin propia y botón), `Smells Like Teen Spirit` (propia sin ajenas), `As It Was` (sin opiniones y botón); esqueletos y error con «Reintentar» (AC4.1.1, AC4.1.3, AC4.1.6, AC4.2.1–AC4.2.4, AC4.3.1).
+- [x] `detalle-obra-screen.test.tsx`, 5–6 pruebas de integración: «Opinar sobre esta obra» llama a `openCreate` con el `workId`; sin conexión se pinta el banner y la identidad sigue; `coverFor` se llama una vez; «Editar» existe y no navega (AC4.3.2, AC4.3.3, AC2.2.4). Ejecutar y dejar en verde.
 
 **Historias**: US4.1, US4.2, US4.3.
 

@@ -17,7 +17,10 @@ export function useNetwork(): boolean {
 
   useEffect(() => {
     // El servicio puede cambiar de valor entre el render y la suscripción; sin
-    // esta lectura se perdería el cambio ocurrido en ese hueco.
+    // esta lectura se perdería el cambio ocurrido en ese hueco. Es una
+    // sincronización con una fuente externa, no un estado derivado: la regla del
+    // linter no aplica al caso que describe.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOnline(services.network.online);
 
     return services.network.subscribe((next) => setOnline(next));

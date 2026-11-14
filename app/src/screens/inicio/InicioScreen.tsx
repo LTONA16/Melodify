@@ -1,105 +1,130 @@
 /**
- * Inicio (F6, BR3.1–BR3.3): la cabecera con el chip de Spotify, el encabezado de
- * sección «Para ti» y la tarjeta sembrada. Es una pantalla de lectura: no navega,
- * no tiene acciones sociales y no hay estados de carga ni de error en U1.
+ * El contenedor de Inicio (BR7.1–BR7.10): reúne la identidad, el contenido, la red y
+ * el catálogo, mapea las opiniones a tarjetas una sola vez por cambio real y entrega
+ * a la vista todo ya resuelto. La vista no conoce C4, C5 ni la sesión; esta pantalla
+ * no decide cómo se pinta nada.
  *
- * La pantalla mapea la semilla a `OpinionCardModel` (el sistema de diseño no conoce
- * el contenido) y acepta una lista para que la prueba del estado vacío recorra el
- * mismo camino que recorrería U2 con el feed sin datos.
+ * El mapeo va en un `useMemo` con clave `(opinions, revision, catalogVersion, online)`
+ * (NFR8.5): cada tarjeta pide `coverFor` a C5, y eso son diez decisiones por feed. Sin
+ * la clave, cualquier repintado —abrir el detalle, un cambio de red sin consecuencias—
+ * volvería a preguntar por las diez portadas; con ella, solo se rehace cuando cambia
+ * el contenido, el catálogo o la red, que son las tres cosas que pueden cambiar la
+ * respuesta.
+ *
+ * Las dependencias de composición son opcionales mientras `bootstrap/instances.ts` no
+ * exista (ver `screens/dependencies.ts`): sin ellas la pantalla se queda en carga —su
+ * estado honesto, porque no ha recibido nada que cargar— en lugar de construir una
+ * segunda instancia de C4 o C5. El paso 29 de la composición las pasa una vez.
  */
-import {
-  AppHeader,
-  EmptyState,
-  OpinionCard,
-  useTheme,
-  type OpinionCardModel,
-} from "@melodify/design-system";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import type { AppSession } from "@melodify/app-session";
+import { useGlobalServices, useShellServices } from "@melodify/app-shell";
+import type { Catalog } from "@melodify/catalog";
+import type { ContentStore } from "@melodify/content-store";
+import { useMemo } from "react";
 
-import { inicioSeed } from "./seed";
+import { logger, type AppLogger } from "../../bootstrap/logger";
+import { toOpinionCardModel } from "../../state/opinionCardModel";
+import { useCatalog } from "../../state/useCatalog";
+import { useContent } from "../../state/useContent";
+import { useNetwork } from "../../state/useNetwork";
+import { useViewerId } from "../../state/useViewerId";
+import type { ScreenDependencies } from "../dependencies";
+import { InicioView } from "./InicioView";
 
-export interface InicioScreenProps {
-  /** Semilla a pintar. Sin elementos pinta el estado vacío sin acción (BR3.1). */
-  opinions?: readonly OpinionCardModel[];
-}
+export type InicioScreenProps = ScreenDependencies;
 
-export function InicioScreen({ opinions = inicioSeed }: InicioScreenProps) {
-  const theme = useTheme();
+/** Sin colaboradores no hay nada que hacer ni a quién llamar; la vista está en carga. */
+const NO_ACTION = () => undefined;
+
+export function InicioScreen({
+  session,
+  content,
+  catalog,
+  log = logger,
+}: InicioScreenProps) {
+  if (session === undefined || content === undefined || catalog === undefined) {
+    return (
+      <InicioView
+        status="loading"
+        cards={[]}
+        online
+        metadataError={false}
+        spotifyStatus="disconnected"
+        onOpenOpinion={NO_ACTION}
+        onRetry={NO_ACTION}
+        onRetryCovers={NO_ACTION}
+        onCreate={NO_ACTION}
+      />
+    );
+  }
 
   return (
-    <View style={styles.fill}>
-      <AppHeader title="Inicio" rightSlot={<SpotifyChip />} />
-
-      <ScrollView
-        testID="inicio-scroll"
-        contentContainerStyle={[
-          styles.content,
-          { padding: theme.space[4], gap: theme.space[3] },
-        ]}
-      >
-        <Text style={[theme.type.title2, { color: theme.colors.text }]}>
-          Para ti
-        </Text>
-
-        {opinions.length === 0 ? (
-          // La pieza pide título y cuerpo; la especificación da una sola frase, así
-          // que va entera en el título y el cuerpo queda vacío a propósito.
-          <EmptyState title="Aún no hay opiniones. Sé el primero." body="" />
-        ) : (
-          opinions.map((opinion) => (
-            <OpinionCard
-              key={opinion.opinionId}
-              opinion={opinion}
-              variant="feed"
-              isOwn={false}
-            />
-          ))
-        )}
-      </ScrollView>
-    </View>
+    <InicioConnected
+      session={session}
+      content={content}
+      catalog={catalog}
+      log={log}
+    />
   );
+}
+
+interface InicioConnectedProps {
+  session: AppSession;
+  content: ContentStore;
+  catalog: Catalog;
+  log: AppLogger;
 }
 
 /**
- * El chip de estado de Spotify (F6.2). En U1 siempre dice «Conectar» y no hace
- * nada: lo cablea U4 al servicio de Spotify inyectado en la cáscara. Se pinta como
- * control porque en la versión final se toca, y mide el mínimo táctil desde ya.
+ * Los hooks viven aquí y no en el componente de arriba para que las reglas de hooks
+ * se cumplan: `InicioScreen` puede devolver una vista sin hooks, y un componente que
+ * a veces los llama y a veces no rompería el orden entre renderizados.
  */
-function SpotifyChip() {
-  const theme = useTheme();
+function InicioConnected({
+  session,
+  content,
+  catalog,
+  log,
+}: InicioConnectedProps) {
+  const viewerId = useViewerId(session);
+  const { status, opinions, revision, retry } = useContent(
+    viewerId,
+    content,
+    log,
+  );
+  const online = useNetwork();
+  const catalogVersion = useCatalog(catalog);
+  const { spotify } = useShellServices();
+  const global = useGlobalServices();
+
+  const cards = useMemo(
+    () =>
+      opinions.map((opinion) => ({
+        opinion: toOpinionCardModel({
+          opinion,
+          cover: catalog.coverFor(opinion.workId),
+        }),
+        isOwn: opinion.isOwn,
+      })),
+    // `revision`, `catalogVersion` y `online` son la clave del mapeo aunque no se lean
+    // en el cuerpo: las portadas se deciden con la versión del catálogo y con la red, y
+    // el mapeo solo debe rehacerse cuando alguna cambia (NFR8.5). La primera emisión
+    // del catálogo no cuenta como cambio, y `opinions` ya cambia con la revisión.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [opinions, revision, catalogVersion, online, catalog],
+  );
 
   return (
-    <Pressable
-      testID="spotify-chip"
-      accessibilityRole="button"
-      accessibilityLabel="Conectar"
-      onPress={() => undefined}
-      style={[
-        styles.chip,
-        {
-          minHeight: theme.size.touch,
-          borderRadius: theme.radius.pill,
-          paddingHorizontal: theme.space[3],
-          backgroundColor: theme.colors.primaryContainer,
-        },
-      ]}
-    >
-      <Text style={[theme.type.label, { color: theme.colors.onPrimaryContainer }]}>
-        Conectar
-      </Text>
-    </Pressable>
+    <InicioView
+      status={status}
+      cards={cards}
+      online={online}
+      metadataError={catalog.getCoverFailure()}
+      spotifyStatus={spotify.status}
+      onOpenOpinion={(opinionId) => global.openOpinionDetail({ opinionId })}
+      onRetry={retry}
+      onRetryCovers={() => catalog.retryCovers()}
+      onCreate={() => global.goToTab({ name: "crear" })}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  fill: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: 24,
-  },
-  chip: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

@@ -55,11 +55,14 @@ export function useContent(
     if (viewerId === null) {
       // Sin identidad no se suscribe: C4 respondería `422` y el error sería una
       // mentira, porque lo que falta es la sesión, no el contenido (BR4.6).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSnapshot(LOADING);
       return undefined;
     }
 
     let active = true;
+    // Reintentar vuelve a empezar por `loading`; la suscripción emite de forma
+    // síncrona, así que no hay fotograma de espera artificial.
     setSnapshot(LOADING);
 
     const apply = (next: ContentSnapshot): void => {
