@@ -72,6 +72,16 @@ const NETWORK_UNAVAILABLE_MESSAGE = "módulo de red no disponible";
 export function createConnectivity(
   options: CreateConnectivityOptions,
 ): Connectivity {
+  // El contrato de C6 no da valor por defecto al adaptador: «sin adaptador no se
+  // construye». Arrancar en línea sin poder leer el sistema sería inventar el
+  // dato, que es justo lo que BR6.3 prohíbe.
+  const adapter: NetworkAdapter | undefined = options?.network;
+  if (adapter === undefined || adapter === null) {
+    throw new Error(
+      "createConnectivity necesita el adaptador de red: C6 no lee el sistema por su cuenta.",
+    );
+  }
+
   const clock = options.now ?? (() => Date.now());
   const stamp = (): string => new Date(clock()).toISOString();
   const listeners = new Set<(state: NetworkView) => void>();
@@ -92,7 +102,7 @@ export function createConnectivity(
   };
 
   try {
-    options.network.addListener((state) => {
+    adapter.addListener((state) => {
       publish(state.online === true);
     });
   } catch {
@@ -103,7 +113,7 @@ export function createConnectivity(
 
   void (async () => {
     try {
-      const state = await options.network.getState();
+      const state = await adapter.getState();
       publish(state.online === true);
     } catch {
       reportUnavailable();

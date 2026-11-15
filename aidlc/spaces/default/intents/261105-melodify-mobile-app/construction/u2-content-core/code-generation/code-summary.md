@@ -31,11 +31,11 @@ El corazón de Melodify sin Spotify: el contenido de ejemplo en memoria, el cat�
 | `jest.setup.js` | Doble de `expo-network` (en línea por defecto) junto a los dobles de U1. |
 | `eslint.config.js` | `expo-network` restringido a `packages/connectivity/src/expo-network-adapter.ts`; `@melodify/spotify` prohibido en `packages/catalog/src/**` y `@melodify/catalog` permitido solo como `import type` en `packages/spotify/src/**` (NFR3.11). |
 
-### `packages/content-store/` — C4 v1.0.0
+### `packages/content-store/` — C4 v1.1.0
 
 - `src/views.ts` — vistas `OpinionView`, `AuthorView`, `AuthorDetailView`, `CommentView`, `LikeView` y los resultados con código.
 - `src/seed.ts` — la siembra literal de `functional-spec.md` § Semilla: 5 autores, 8 obras, 10 opiniones, 4 me gusta, 3 comentarios y 2 seguimientos, con edades relativas a un `now` inyectado.
-- `src/store.ts` — estado inmutable, reductor puro, lecturas, escrituras, suscripción con revisión y cálculo de `isOwn`/`likedByMe`/`followedByMe` contra `viewerId`.
+- `src/store.ts` — estado inmutable, reductor puro, lecturas, escrituras, `countOpinions`, suscripción con revisión y cálculo de `isOwn`/`likedByMe`/`followedByMe` contra `viewerId`.
 - `src/index.ts` — superficie pública sin React.
 
 ### `packages/catalog/` — C5 v1.1.0
@@ -72,7 +72,7 @@ El corazón de Melodify sin Spotify: el contenido de ejemplo en memoria, el cat�
 
 ### Pruebas
 
-49 suites y 414 pruebas, todas en verde. Las nuevas o ampliadas por esta unidad:
+49 suites y 426 pruebas, todas en verde. Las nuevas o ampliadas por esta unidad:
 
 | Árbol | Suites y pruebas |
 |---|---|
@@ -107,43 +107,49 @@ Las suites de `packages/app-session/src` siguen corriendo en `npm test` y siguen
 Ejecutado en esta etapa sobre el árbol tal como quedó, con el comando de la unidad y la suite completa:
 
 ```
-npm test            → 49 suites, 414 pruebas, todas en verde
+npm test            → 49 suites, 426 pruebas, todas en verde
 npm run typecheck   → verde (tsc -b)
 npm run lint        → 0 errores, 0 avisos
 ```
 
+Las 426 pruebas se ejecutan también con `--coverage`, que es como se mide el suelo: la instrumentación alarga el montaje de las pantallas y por eso `jest.config.js` fija `testTimeout: 20000`. El presupuesto de 2 s del arranque en frío no se mide aquí, sino en el teléfono (NFR8.1).
+
 | Árbol | Líneas | Umbral |
 |---|---|---|
 | `app/src/**` | 94,96 % (358/377) | 80 % |
-| `packages/content-store/src/**` | 98,17 % (215/219) | 80 % |
+| `packages/content-store/src/**` | 98,17 % (214/218) | 80 % |
 | `packages/catalog/src/**` | 93,00 % (93/100) | 80 % |
-| `packages/connectivity/src/**` | 97,30 % (36/37) | 80 % |
+| `packages/connectivity/src/**` | 97,50 % (39/40) | 80 % |
 | `packages/design-system/src/**` | 99,28 % (138/139) | 80 % |
 | `packages/app-shell/src/**` | 93,55 % (116/124) | 80 % |
 | `packages/app-session/src/**` | 100,00 % (90/90) | 80 % |
-| **Total** | **96,32 % (1046/1086)** | — |
+| **Total** | **96,32 % (1048/1088)** | — |
 
 No se bajó ningún umbral. `coverage/` y los artefactos de compilación siguen ignorados por git.
 
 ## Pruebas escritas pero no ejecutadas en esta etapa
 
-Ninguna: las 414 pruebas se ejecutaron aquí y quedaron en verde.
+Ninguna: las 426 pruebas se ejecutaron aquí y quedaron en verde.
 
 **Lo que ninguna prueba automática demuestra** y sigue siendo verificación manual en Expo Go sobre el teléfono Android físico: el recorrido de las seis pantallas, que la posición del feed se conserve al abrir y cerrar un detalle, que el aviso de sin conexión responda al modo avión y que el arranque en frío siga por debajo de 2 s. Ninguna prueba mide milisegundos; las que podrían hacerlo cuentan llamadas (NFR8).
 
 ## Desviaciones del plan
 
 1. **C4 se implementa sin React, contra la letra de ADR-010.** El plan ya lo registraba en el paso 3: `@melodify/content-store` no importa React ni publica hooks; la suscripción se expone como función y los hooks viven en `app/src/state/`. La decisión mantiene el paquete ejecutable y probable sin renderizador y deja la integración de React en la app, que es donde se compone. ADR-010 se lee como «C4 no depende del renderizador», no como «C4 publica hooks».
-2. **El detalle de opinión se entrega en U2.** `unit-of-work.md` lo asignaba a U3 y el mapa de historias lo necesita para US2.3 y AC9.1.4. Se implementó, se registró en las dos pestañas y se probó; U3 solo cablea «Editar» a su formulario. La divergencia quedó elevada en el gate de revisión para que el mapa y `unit-of-work.md` se alineen.
+2. **El detalle de opinión se entrega en U2.** No es una divergencia con el contrato: la revisión 12 de `contract-summary.md` y su invariante de pila (§ C2) asignan explícitamente a U2 «el detalle de obra **y el detalle de opinión**», porque US2.3 es suya y Perfil lo necesita para AC9.1.4, y dejan a U3 solo cablear «Editar». Lo que todavía no refleja esa asignación es el mapa de historias, que sigue leyéndose como si el detalle llegara con U3; se elevó para que se alinee. `unit-of-work.md` § U3 tampoco lo incluye en su alcance.
 3. **Se adoptó el commit del compañero `199b1ad` en lugar de la implementación local paralela de los pasos 21–24.** El patrón de dependencias inyectadas de `screens/dependencies.ts` es más simple de probar y de componer que el que estaba en curso; los pasos 25–28 se refactorizaron a ese patrón y se descartaron los archivos locales que lo duplicaban (`Inicio*`, `detalle-obra/**`, `useDetalleObra`, los refactors locales de `useContent`/`useNetwork`). Los `eslint-disable-next-line` justificados del compañero se conservan con su razón.
 4. **`App.tsx` necesita envoltorios de ruta.** La cáscara monta `component` sin props y las pantallas nuevas dependen de `ScreenDependencies`; los envoltorios de una línea son el punto de inyección y no cambian la superficie de C2.
 5. **`defaultShellServices.network.online` es un getter.** Sin él, el valor se capturaba al construir los servicios y las pantallas veían siempre el estado del arranque. Es un cambio de implementación, no de contrato.
 6. **`popDetail` memoizado.** El efecto que atiende el botón «atrás» del sistema dependía de una función recreada en cada render y volvía a suscribirse; `useCallback` lo deja estable sin cambiar el comportamiento.
 7. **El detalle de obra no tiene entrada visible todavía.** Se registra y se prueba, pero ninguna pantalla lo abre hasta U4 (Q3 = A). No es un defecto del recorrido del teléfono.
 8. **AC2.2.1 y AC9.1.8 quedan `Deferred`.** La portada real y la tarjeta de Spotify de Perfil necesitan la sesión de Spotify y la resolución por `SpotifyResolvePort`, que llegan con U4; la razón está escrita en `traceability.json`.
+9. **`countOpinions` se publicó en C4 con una enmienda de contrato.** C5 ya lo consumía para el «N opiniones» (BR5.4) y el contrato de C4 no lo declaraba. Se publicó (`countOpinions(workId: string): number`, única lectura sin identidad porque no devuelve campos derivados) y C4 subió a **1.1.0** con su entrada de revisión 14; `@melodify/content-store` quedó en `1.1.0` y `@melodify/catalog` y la app lo consumen en esa versión. La alternativa —contar en C5 sobre `listOpinions`— exigía inventar un `viewerId` para un dato que no depende de quién mira, porque esa lectura responde `422` sin identidad.
+10. **C4 no impone tope de longitud al texto.** Se retiró el máximo que la implementación había fijado en silencio: `createOpinion` solo exige texto no vacío. El límite pertenece a las reglas del formulario de U3 y sigue abierto en el contrato (OQ1/A1), así que decidirlo aquí habría dejado un formulario que acepta lo que el almacén rechaza. Una prueba demuestra que un texto largo se acepta.
+11. **`opinionCardModel.ts` vive en `app/src/state/`, no en la pantalla.** La regla de C1 (`contract-summary.md` § C1) sitúa el mapeo de presentación en la pantalla o en su controlador de presentación y prohíbe el paquete de la entidad y el sistema de diseño; no prohíbe el estado de la app. Se dejó ahí porque Inicio, Explorar y Perfil pintan la misma tarjeta con los mismos campos y duplicar el mapeo en tres pantallas habría sido peor: es una función pura, sin hooks ni acceso a instancias, y la prueba que la cubre no monta ninguna pantalla.
+12. **Volumen de prueba: se completaron ocho suites y se justifican cuatro.** El `Testing Contract` del plan pide «cinco a ocho pruebas por componente» y once suites estaban por debajo. Se subieron a cinco `offline-banner`, `logger del proyecto`, `error-state`, `format-calendar-date`, `use-network`, `use-viewer-id` y `use-catalog`, y `ports`, con pruebas que afirman comportamiento (el reintento no se dispara solo, los doce meses en español, una sola suscripción por montaje, un texto largo aceptado, etc.), no relleno. Quedan por debajo cuatro suites, con razón escrita: las tres de barril —`packages/content-store/src/index`, `packages/catalog/src/index` y `packages/connectivity/src/index`— prueban la **superficie exportada**, no un componente con comportamiento propio, y su comportamiento lo cubren las suites hermanas de cada paquete; y `app/src/bootstrap/ports` declara exactamente una invariante —tres puertos y los tres en `null`—, que su única prueba afirma de forma exhaustiva. Los volúmenes que el plan planificó para el paso 20 (`use-catalog` 3–4, `use-network` 3) ya contradecían su propio `strategy_volume`; el plan no se reescribe aquí porque es el artefacto revisado, y la decisión queda registrada en este punto.
 
 ## Avisos conocidos
 
-- **Ruido de `VirtualizedList` en las pruebas.** `inicio-screen.test.tsx` y `app-bootstrap.test.tsx` imprimen avisos de `act` al montar el `FlatList` del feed. Son ruido del entorno de pruebas, no fallos: las 414 pruebas pasan y ninguna aserción depende de esos avisos. Se deja anotado para no confundirlo con una regresión al leer la salida.
+- **Ruido de `VirtualizedList` en las pruebas.** `inicio-screen.test.tsx` y `app-bootstrap.test.tsx` imprimen avisos de `act` al montar el `FlatList` del feed. Son ruido del entorno de pruebas, no fallos: las 426 pruebas pasan y ninguna aserción depende de esos avisos. Se deja anotado para no confundirlo con una regresión al leer la salida.
 - **El repositorio remoto redirige.** `git push` funciona, pero GitHub avisa de que el repositorio se movió; conviene actualizar el remoto cuando se pueda.
 - **Pendiente de U4**: el panel de Spotify debe aceptar `melodify://spotify-callback` como URI de redirección.

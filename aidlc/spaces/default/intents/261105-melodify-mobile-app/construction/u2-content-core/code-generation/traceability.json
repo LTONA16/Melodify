@@ -395,8 +395,8 @@
     },
     {
       "id": "NFR8.1",
-      "status": "OK",
-      "target": "app/src/bootstrap/instances.ts"
+      "status": "Deferred",
+      "target": "Verificación manual en Expo Go sobre el teléfono Android físico: ninguna prueba automática mide el arranque en frío de 2 s, como declara `unit-test-instructions.md` § Fuera del alcance automático. `app/src/bootstrap/instances.ts` construye las instancias una sola vez y eso es lo que la unidad puede sostener por código; el tiempo se mide en el dispositivo."
     },
     {
       "id": "NFR3.6",

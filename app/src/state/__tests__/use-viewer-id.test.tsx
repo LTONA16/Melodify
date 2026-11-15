@@ -115,4 +115,36 @@ describe("useViewerId", () => {
 
     expect(double.unsubscribe).toHaveBeenCalledTimes(1);
   });
+
+  it("se suscribe una sola vez aunque la pantalla se vuelva a pintar", () => {
+    const double = sessionDouble();
+
+    const { rerender } = renderHook(() => useViewerId(double.session));
+    rerender({});
+    rerender({});
+
+    // Una suscripción por montaje: si cada repintado abriera otra, C3 acumularía
+    // oyentes y la identidad se recalcularía tantas veces como pinturas.
+    expect(double.session.subscribeSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("se suscribe antes de pedir la lectura, para no perder un cambio intermedio", () => {
+    const order: string[] = [];
+    const double = sessionDouble();
+    const getSession = double.session.getSession as jest.Mock;
+    const subscribeSession = double.session.subscribeSession as jest.Mock;
+
+    subscribeSession.mockImplementationOnce(() => {
+      order.push("subscribe");
+      return () => {};
+    });
+    getSession.mockImplementationOnce(() => {
+      order.push("read");
+      return new Promise(() => {});
+    });
+
+    renderHook(() => useViewerId(double.session));
+
+    expect(order).toEqual(["subscribe", "read"]);
+  });
 });

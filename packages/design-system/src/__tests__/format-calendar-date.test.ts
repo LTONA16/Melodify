@@ -22,4 +22,26 @@ describe("formatCalendarDate", () => {
   it("devuelve cadena vacía con una fecha ilegible", () => {
     expect(formatCalendarDate("no es una fecha")).toBe("");
   });
+
+  it("abrevia los doce meses en español, sin depender del locale del teléfono", () => {
+    const expected = [
+      "ene",
+      "feb",
+      "mar",
+      "abr",
+      "may",
+      "jun",
+      "jul",
+      "ago",
+      "sep",
+      "oct",
+      "nov",
+      "dic",
+    ];
+
+    for (const [index, month] of expected.entries()) {
+      const iso = `2026-${String(index + 1).padStart(2, "0")}-15T10:00:00.000Z`;
+      expect(formatCalendarDate(iso)).toBe(`15 ${month} 2026`);
+    }
+  });
 });

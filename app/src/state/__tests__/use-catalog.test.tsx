@@ -75,4 +75,36 @@ describe("useCatalog", () => {
 
     expect(double.unsubscribe).toHaveBeenCalledTimes(1);
   });
+
+  it("cuenta cada emisión, aunque el estado emitido sea el mismo", () => {
+    const double = catalogDouble();
+
+    const { result } = renderHook(() => useCatalog(double.catalog));
+
+    act(() => {
+      double.emit();
+      double.emit();
+      double.emit();
+    });
+
+    // El contador no compara estados: su trabajo es forzar el repintado cuando C5
+    // avisa, y tres avisos son tres oportunidades de repintar (NFR8.5).
+    expect(result.current).toBe(3);
+  });
+
+  it("se suscribe una sola vez aunque el contador cambie", () => {
+    const double = catalogDouble();
+
+    const { result } = renderHook(() => useCatalog(double.catalog));
+
+    act(() => {
+      double.emit();
+    });
+    act(() => {
+      double.emit();
+    });
+
+    expect(result.current).toBe(2);
+    expect(double.catalog.subscribe).toHaveBeenCalledTimes(1);
+  });
 });

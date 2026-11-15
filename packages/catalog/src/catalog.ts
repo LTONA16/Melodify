@@ -232,6 +232,9 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
     },
 
     countOpinions(workId) {
+      // C4 publica el recuento sin identidad (enmienda de U2 al contrato, C4
+      // 1.1.0): contar con `listOpinions` obligaría a inventar un `viewerId`
+      // para un dato que no depende de quién mira.
       return { workId, count: content.countOpinions(workId) };
     },
 

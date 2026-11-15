@@ -6,6 +6,6 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@melodify/connectivity": "1.0.0",
-    "@melodify/content-store": "1.0.0"
+    "@melodify/content-store": "1.1.0"
   }
 }

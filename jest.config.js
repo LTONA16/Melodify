@@ -29,6 +29,11 @@ module.exports = {
     "!**/jest.setup.*",
     "!app/index.ts",
   ],
+  // Las pruebas de pantalla montan el árbol completo con `findBy*`, y con la
+  // instrumentación de cobertura el arranque de la app pasa de los 5 s por defecto.
+  // El límite es de la suite entera, no de una prueba floja: el presupuesto de 2 s
+  // del arranque se mide en el teléfono (NFR8.1), no aquí.
+  testTimeout: 20000,
   // El suelo se mide por árbol: un paquete bien probado no compensa a otro (TS-10).
   coverageThreshold: {
     "./app/src/**": { lines: 80 },

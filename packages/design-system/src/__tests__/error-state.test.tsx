@@ -45,6 +45,12 @@ describe("ErrorState", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it("no reintenta solo al pintarse: el reintento solo ocurre al tocar", () => {
+    const onRetry = renderErrorState();
+
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
   it("da al reintento un área táctil de al menos 44", () => {
     renderErrorState();
 

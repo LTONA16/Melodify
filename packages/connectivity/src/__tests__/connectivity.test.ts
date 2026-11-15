@@ -90,6 +90,12 @@ function newConnectivity(
 }
 
 describe("createConnectivity", () => {
+  it("no se construye sin adaptador: C6 no tiene valor por defecto", () => {
+    expect(() =>
+      createConnectivity({ network: undefined as unknown as NetworkAdapter }),
+    ).toThrow("createConnectivity necesita el adaptador de red");
+  });
+
   it("arranca en línea con `measuredAt` del reloj inyectado, en formato ISO", () => {
     const connectivity = newConnectivity(fakeAdapter());
 

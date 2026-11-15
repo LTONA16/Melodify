@@ -46,4 +46,10 @@ describe("OfflineBanner", () => {
 
     expect(screen.getByTestId("banner-action")).toHaveTextContent("Reintentar");
   });
+
+  it("no reintenta solo al aparecer: el reintento es de la persona", () => {
+    const onRetry = renderBanner();
+
+    expect(onRetry).not.toHaveBeenCalled();
+  });
 });

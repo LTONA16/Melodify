@@ -16,7 +16,7 @@
 ## Comando exacto de esta unidad
 
 ```bash
-npx jest packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
+npx.cmd jest packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
 ```
 
 Los seis argumentos son los árboles que esta unidad crea o modifica: los tres paquetes nuevos, las dos versiones 1.2.0 y la app. Ninguna prueba de `packages/app-session/src` se ejecuta aquí, porque esta unidad no toca C3; sus pruebas siguen corriendo en el `npm test` del CI y en la suite completa.
@@ -24,20 +24,20 @@ Los seis argumentos son los árboles que esta unidad crea o modifica: los tres p
 **Con cobertura** (el mismo alcance, más el informe y los umbrales por árbol):
 
 ```bash
-npx jest --coverage packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
+npx.cmd jest --coverage packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
 ```
 
 ### Comandos por capa, para el ciclo corto
 
 | Capa | Comando |
 |---|---|
-| Modelo y operaciones de C4 | `npx jest packages/content-store/src` |
-| Catálogo | `npx jest packages/catalog/src` |
-| Conectividad | `npx jest packages/connectivity/src` |
-| Sistema de diseño 1.2.0 | `npx jest packages/design-system/src` |
-| Cáscara 1.2.0 | `npx jest packages/app-shell/src` |
-| Estado, componentes y pantallas | `npx jest app/src` |
-| Un archivo concreto | `npx jest app/src/screens/inicio/__tests__/inicio-view.test.tsx` |
+| Modelo y operaciones de C4 | `npx.cmd jest packages/content-store/src` |
+| Catálogo | `npx.cmd jest packages/catalog/src` |
+| Conectividad | `npx.cmd jest packages/connectivity/src` |
+| Sistema de diseño 1.2.0 | `npx.cmd jest packages/design-system/src` |
+| Cáscara 1.2.0 | `npx.cmd jest packages/app-shell/src` |
+| Estado, componentes y pantallas | `npx.cmd jest app/src` |
+| Un archivo concreto | `npx.cmd jest app/src/screens/inicio/__tests__/inicio-view.test.tsx` |
 
 ### El suelo de cobertura no se juzga aquí
 
@@ -45,7 +45,7 @@ El 80 % de líneas **por árbol** —`./app/src/**` y cada `./packages/*/src/**`
 
 ## Configuración
 
-- `jest.config.js` de raíz: `preset: "jest-expo"`, `setupFilesAfterEnv` → `jest.setup.js`, `collectCoverageFrom` sobre `app/src/**/*.{ts,tsx}` y `packages/*/src/**/*.{ts,tsx}`.
+- `jest.config.js` de raíz: `preset: "jest-expo"`, `setupFilesAfterEnv` → `jest.setup.js`, `collectCoverageFrom` sobre `app/src/**/*.{ts,tsx}` y `packages/*/src/**/*.{ts,tsx}`, y `testTimeout: 20000` porque con la instrumentación de cobertura el montaje de las pantallas pasa de los 5 s por defecto.
 - Tres `moduleNameMapper` nuevos: `^@melodify/content-store$`, `^@melodify/catalog$` y `^@melodify/connectivity$` hacia su `src`. Sin el mapeo, el preset resuelve el paquete por el enlace de workspaces a un `.ts` que no transforma y las pruebas no llegan a ejecutarse.
 - Tres `coverageThreshold` nuevos al 80 % de líneas para los tres árboles nuevos, junto a los tres que ya existen.
 - Exclusiones de TS-10 sin cambios: `**/*.d.ts`, `**/__tests__/**`, `**/*.test.{ts,tsx}`, `**/jest.setup.*` y `app/index.ts`. **`app/src/bootstrap/` no se excluye.**

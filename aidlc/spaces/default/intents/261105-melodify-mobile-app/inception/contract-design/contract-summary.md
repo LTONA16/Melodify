@@ -396,7 +396,7 @@ Por qué es aditivo y no incompatible:
 
 ```yaml
 openapi: 3.1.0
-info: { title: ContentStore, version: 1.0.0, x-owner: U2, x-transport: in-process }
+info: { title: ContentStore, version: 1.1.0, x-owner: U2, x-transport: in-process }
 x-identity:
   rule: >
     C4 no depende de C3 y no guarda «quién soy». La identidad viaja como parámetro
@@ -667,6 +667,16 @@ x-read-errors:
     `viewerId`, porque sin él no se pueden calcular `isOwn`, `likedByMe` ni `followedByMe`
     y C4 no los inventa (revisión 12).
 ```
+
+### Enmienda de U2 — `countOpinions` en C4 (2026-11-14)
+
+C4 sube a **1.1.0** por una operación aditiva que el contrato no declaraba y que C5 ya consumía:
+
+- **`countOpinions(workId: string): number`** — cuántas opiniones tiene una obra. Es la única lectura de C4 sin identidad: cuenta y no devuelve ningún campo derivado, así que no necesita `viewerId`. C5 la usa para el «N opiniones» de la tarjeta de obra (BR5.4).
+- **Sin errores propios**: una obra sin opiniones —exista o no en el catálogo— devuelve `0`.
+- La alternativa, contar en C5 sobre `listOpinions`, obligaría a inventar un `viewerId` para un dato que no depende de quién mira, y esa lectura responde `422` sin identidad (`x-read-errors`).
+
+Queda registrada al cerrar U2, a raíz de la revisión de arquitectura de su Code Generation.
 
 ## C5 — Catálogo
 
@@ -1348,3 +1358,13 @@ NFR Requirements de `u2-content-core` encontró la última firma que vivía solo
 | C2 corrige la invariante del aviso de sin conexión | La invariante decía que snackbar y banner de sin conexión se pintaban una sola vez en la cáscara, y el Functional Design de U2 ya había precisado lo contrario: las raíces de pestaña pintan su `AppHeader` dentro de la pantalla, así que un banner en la cáscara quedaría **encima** de la cabecera. El banner lo pinta cada pantalla bajo su propia cabecera; la cáscara solo conserva el snackbar. No cambia ninguna prop, exportación ni la versión de C2 (`1.2.0`). |
 | C3 y C4 no cambian | Los códigos de diagnóstico que U2 necesita (`CONTENT_SUBSCRIBE_FAILED`, `CONTENT_READ_FAILED`, `NETWORK_STATE_UNAVAILABLE`) no entran en `SessionLogCode`: U2 declara en `app/src/bootstrap/logger.ts` un tipo de la aplicación que es un superconjunto y sigue siendo asignable a `SessionLogger`. Ampliar C3 habría metido códigos de contenido en el contrato de la sesión y roto su cierre. |
 | Por qué es aditivo | C6 no tenía consumidor: la app la construye en su punto de composición y la inyecta en `ShellServices`. Añadir `x-construction` no cambia ninguna operación, ningún esquema ni la versión, y ninguna otra unidad depende de la firma anterior porque no existía. |
+
+### Revisión 14 — `countOpinions` en C4 y tope de texto (2026-11-14)
+
+La revisión de arquitectura de Code Generation de `u2-content-core` encontró dos decisiones tomadas en el código que ningún artefacto sostenía. Se cierran aquí.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C4 sube a `1.1.0` con `countOpinions` | `countOpinions(workId: string): number` se suma a la superficie de C4: cuenta las opiniones de una obra y es la única lectura sin identidad, porque no devuelve ningún campo derivado. C5 ya la consumía para el «N opiniones» (BR5.4) sin que el contrato la declarara. Contar en C5 sobre `listOpinions` habría exigido inventar un `viewerId` para un dato que no depende de quién mira. |
+| C4 deja de fijar el tope de longitud | `createOpinion` ya no impone un máximo de caracteres: solo exige texto no vacío. El límite pertenece a las «reglas del formulario» de U3 (`unit-of-work.md` § U3) y sigue abierto en § Open questions (OQ1/A1), así que decidirlo en U2 habría dejado un formulario que acepta lo que el almacén rechaza. |
+| Por qué es aditivo | La operación nueva no cambia ninguna firma existente y ningún esquema; retirar el tope afloja una validación que el contrato nunca fijó. C5 y la app pasan a `@melodify/content-store` `1.1.0` sin ningún otro cambio de superficie. |

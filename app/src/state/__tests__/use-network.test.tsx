@@ -12,16 +12,19 @@ interface NetworkDouble {
   services: ShellServices;
   setOnline: (online: boolean) => void;
   unsubscribe: jest.Mock;
+  subscribeCalls: () => number;
 }
 
 function servicesDouble(initialOnline: boolean): NetworkDouble {
   const listeners = new Set<(online: boolean) => void>();
   const unsubscribe = jest.fn();
+  let subscribeCalls = 0;
 
   const services: ShellServices = {
     network: {
       online: initialOnline,
       subscribe: (listener) => {
+        subscribeCalls += 1;
         listeners.add(listener);
         listener(initialOnline);
         return () => {
@@ -55,6 +58,7 @@ function servicesDouble(initialOnline: boolean): NetworkDouble {
       }
     },
     unsubscribe,
+    subscribeCalls: () => subscribeCalls,
   };
 }
 
@@ -98,5 +102,39 @@ describe("useNetwork", () => {
     unmount();
 
     expect(double.unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("sigue varios cambios seguidos en ambos sentidos", () => {
+    const double = servicesDouble(true);
+
+    const { result } = renderNetwork(double);
+
+    act(() => {
+      double.setOnline(false);
+    });
+    expect(result.current).toBe(false);
+
+    act(() => {
+      double.setOnline(true);
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it("se suscribe una sola vez: los cambios no acumulan oyentes", () => {
+    const double = servicesDouble(true);
+
+    const { result } = renderNetwork(double);
+
+    act(() => {
+      double.setOnline(false);
+    });
+    act(() => {
+      double.setOnline(true);
+    });
+
+    // Si cada cambio reabriera la suscripción, el doble tendría más de un oyente
+    // y este contador lo delataría antes de que la pantalla note nada.
+    expect(double.subscribeCalls()).toBe(1);
+    expect(result.current).toBe(true);
   });
 });

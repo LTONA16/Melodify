@@ -166,7 +166,8 @@ export interface ContentStore {
   /**
    * Recuento de opiniones de una obra, sin `viewerId`: lo consume C5 para el
    * «N opiniones» (BR5.4). Es la única lectura sin identidad porque solo cuenta y
-   * no devuelve ningún campo derivado.
+   * no devuelve ningún campo derivado. Operación publicada en el contrato de C4
+   * por la enmienda de U2 (C4 1.1.0).
    */
   countOpinions(workId: string): number;
   subscribeContent(
@@ -182,9 +183,10 @@ export interface CreateContentStoreOptions {
   seed?: ContentSeed;
 }
 
-/** Guardas de validación de C4; la validación fina del formulario es de U3. */
-const MAX_TEXT_LENGTH = 500;
-
+/**
+ * Guardas de validación de C4: solo lo que el contrato fija. La longitud del
+ * texto la decide y la valida el formulario de U3, que es su dueño (OQ1/A1).
+ */
 function success<T, C extends ContentSuccessCode = 200>(
   code: C,
   value: T,
@@ -201,11 +203,7 @@ function hasViewer(viewerId: string | null | undefined): viewerId is string {
 }
 
 function isValidText(text: unknown): text is string {
-  return (
-    typeof text === "string" &&
-    text.trim().length > 0 &&
-    text.trim().length <= MAX_TEXT_LENGTH
-  );
+  return typeof text === "string" && text.trim().length > 0;
 }
 
 function isValidRating(rating: unknown): rating is number {

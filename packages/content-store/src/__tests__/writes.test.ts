@@ -191,6 +191,24 @@ describe("las escrituras de C4", () => {
       expect(feed()).toHaveLength(10);
     });
 
+    it("acepta un texto largo: el tope de longitud es del formulario, no del almacén", () => {
+      const text = "Una opinión larga. ".repeat(40).trim();
+
+      const created = store.createOpinion({
+        authorId: "demo",
+        workId: AS_IT_WAS,
+        workTitle: "As It Was",
+        workArtist: "Harry Styles",
+        text,
+        rating: 4,
+      });
+
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      expect(created.value.text).toBe(text);
+      expect(created.value.text.length).toBeGreaterThan(500);
+    });
+
     it("responde 422 si quien publica no existe y no crea la obra", () => {
       const result = store.createOpinion({
         authorId: "fantasma",

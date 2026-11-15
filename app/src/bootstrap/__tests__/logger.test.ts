@@ -11,15 +11,21 @@ const originalDev = __DEV__;
 
 let warnSpy: jest.SpyInstance;
 let errorSpy: jest.SpyInstance;
+let logSpy: jest.SpyInstance;
+let infoSpy: jest.SpyInstance;
 
 beforeEach(() => {
   warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
   errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  infoSpy = jest.spyOn(console, "info").mockImplementation(() => {});
 });
 
 afterEach(() => {
   warnSpy.mockRestore();
   errorSpy.mockRestore();
+  logSpy.mockRestore();
+  infoSpy.mockRestore();
   (globalThis as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
 });
 
@@ -75,5 +81,15 @@ describe("logger del proyecto", () => {
 
     expect(typeof asSession.warn).toBe("function");
     expect(typeof asSession.error).toBe("function");
+  });
+
+  it("no escribe por `console.log` ni `console.info`: solo avisa y falla (NFR9.1)", () => {
+    (globalThis as unknown as { __DEV__: boolean }).__DEV__ = true;
+
+    logger.warn("CONTENT_READ_FAILED", "no se pudo leer el contenido");
+    logger.error("CONTENT_READ_FAILED", "no se pudo leer el contenido");
+
+    expect(logSpy).not.toHaveBeenCalled();
+    expect(infoSpy).not.toHaveBeenCalled();
   });
 });
