@@ -82,7 +82,7 @@ melodify/
 ```yaml
 shared-schema:
   package: '@melodify/design-system'
-  version: 1.1.0
+  version: 1.3.0
   owner: U1
   transport: import en proceso
   exports:
@@ -99,7 +99,7 @@ shared-schema:
       radius: { sm, md, lg, xl, pill }
       size: { header, tabBar, touch, cover, field, button, avatar, icon }
     components:
-      AppHeader:            { title: string, rightSlot?: ReactNode }
+      AppHeader:            { title: string, leftSlot?: ReactNode, rightSlot?: ReactNode }
       BottomTabBar:         { items: "TabItem[]", activeIndex: number, onSelect: "(index: number) => void" }
       OpinionCard:          { opinion: OpinionCardModel, variant: "feed | compact | detail",
                               isOwn: boolean, onPress?: "() => void", onLike?: "() => void",
@@ -109,6 +109,7 @@ shared-schema:
       RatingInput:          { value: number, onChange: "(value: number) => void", disabled?: boolean }
       Avatar:               { author: AuthorSummary, size?: "small | medium | large" }
       SocialActionBar:      { likeCount: number, commentCount: number, likedByMe: boolean,
+                              showLike?: boolean,
                               onLike?: "() => void", onComment?: "() => void" }
       ConnectionCard:       { title: string, body: string, actionLabel: string, onAction: "() => void" }
       SpotifyCard:          { status: "disconnected | connecting | connected | connectionError | invalidToken | notConfigured",
@@ -118,15 +119,20 @@ shared-schema:
       Skeleton:             { shape: "card | row | header", count: number }
       Snackbar:             { message: string, visible: boolean, onDismiss: "() => void" }
       CommentSheet:         { opinionId: string, comments: "CommentModel[]", status: "loading | ready | empty | error",
+                              failed?: boolean, maxLength?: number,
                               onRetry: "() => void", onSubmit: "(text: string) => void", onClose: "() => void" }
-      SearchField:          { value: string, placeholder: string, onChange: "(text: string) => void" }
+      SearchField:          { value: string, placeholder?: string, onChangeText: "(text: string) => void",
+                              autoFocus?: boolean, disabled?: boolean, loading?: boolean,
+                              onClear?: "() => void" }
       TextField:            { label: string, value: string, onChange: "(text: string) => void",
                               error?: string, maxLength?: number, placeholder?: string,
                               secureTextEntry?: boolean,
                               autoCapitalize?: "none | sentences | words | characters",
                               autoFocus?: boolean, testID?: string }
-      MultilineField:       { label: string, value: string, onChange: "(text: string) => void",
-                              error?: string, maxLength?: number }
+      MultilineField:       { label: string, value: string, onChangeText: "(text: string) => void",
+                              placeholder?: string, error?: string, maxLength?: number,
+                              counterFrom?: number, editable?: boolean,
+                              minHeight?: number, testID?: string }
       PrimaryButton:        { label: string, onPress: "() => void", disabled?: boolean, loading?: boolean,
                               testID?: string }
       SecondaryButton:      { label: string, onPress: "() => void", disabled?: boolean }
@@ -188,8 +194,8 @@ La 1.0.0 —la versión que U1 publica— exporta los **tokens completos** (`col
 | 1.0.0 | — (borrador de la revisión 9) | tokens, `ThemeProvider` y las doce piezas del esqueleto | Base planificada antes de construir U1; ninguna unidad la consumió. |
 | 1.1.0 | U1 | la base más las props aditivas y las utilidades de la § Revisión 11 | Es lo que el tramo mínimo pinta y prueba de verdad. |
 | 1.2.0 | U2 | `ErrorState`, `TextButton`; y, en la misma versión, tres adiciones opcionales de la revisión 12: `AppHeader.leftSlot?`, `EmptyState.body?` y el estado `own` de `OpinionCard` con `formatCalendarDate` | Los estados de error del feed y de Perfil (FR11.1, FR11.2); el botón de reintento es el `TextButton` de `ErrorState`. Las tres adiciones son las que hacen falta para el «‹ Volver» del detalle, el vacío de Perfil y la opinión propia «destacada» (AC2.3.2, AC9.1.5, AC4.2.1, AC4.2.4). |
-| 1.3.0 | U4 | `SearchField`, `ConnectionCard`, `SpotifyCard`, `WorkResultRow` | Explorar busca, conecta y lista resultados (FR4.1, FR4.5); U4 se construye antes que U3 en la secuencia acordada. |
-| 1.4.0 | U3 | `RatingInput`, `MultilineField`, `SecondaryButton`, `CommentSheet`, `Snackbar` | El formulario de Crear, la hoja de comentarios y los avisos que la acompañan (FR5.1, FR5.4, FR7.x). `SecondaryButton` aparece con el «Cancelar» de Crear; `SearchField` de Crear se reutiliza de la 1.3.0. |
+| 1.3.0 | U3 | `SearchField`, `ConnectionCard`, `WorkResultRow` (las tres que la tabla asignaba a U4), más `RatingInput`, `MultilineField`, `SecondaryButton`, `CommentSheet` y `Snackbar` | El formulario de Crear, su buscador, el selector de ejemplo y la hoja de comentarios (FR5.1, FR5.4, FR5.5, FR7.x). U3 se construye antes que U4 en la secuencia **unit-major** de `unit-of-work.md`, así que necesita ya las tres piezas que se habían planificado para U4 (revisión 15). |
+| 1.4.0 | U4 | `SpotifyCard` | La tarjeta de conexión de Perfil (FR9.2, AC9.1.8); el resto de lo que U4 usa ya llegó en la 1.3.0. |
 | 1.5.0 | U5 | `ActivityRow`, `DayHeader` | La lista de Actividad y sus encabezados por día (FR8.x). |
 
 Cada fila es un cambio **aditivo**: añade exportaciones y sube la versión menor; las props de una pieza existente solo cambian cuando lo añadido es opcional, como `AppHeader.leftSlot?`, `EmptyState.body?` y el estado `own` de `OpinionCard` de la revisión 12, que dejan compilando a quien use la forma anterior. Un consumidor que importe una pieza antes de su versión no compila, y eso es deliberado: obliga a que la unidad que la necesita la haya entregado antes. `Snackbar` y `CommentSheet` siguen siendo de U3 aunque la cáscara de U1 ya declare sus puntos de montaje: en U1 ninguno de los dos llega a pintarse, porque el aviso nunca se dispara y la hoja solo se pinta con un `opinionId` que en el esqueleto nunca existe.
@@ -199,7 +205,7 @@ Cada fila es un cambio **aditivo**: añade exportaciones y sube la versión meno
 ```yaml
 shared-schema:
   package: '@melodify/app-shell'
-  version: 1.2.0
+  version: 1.3.0
   owner: U1
   transport: import en proceso
   exports:
@@ -232,7 +238,7 @@ shared-schema:
         U1 arranca con `{ network: { online: true, subscribe: () => noop } }`,
         `{ spotify: { status: 'disconnected', subscribe: () => noop, connect: noop,
         disconnect: noop, retry: noop } }` y una hoja de comentarios vacía
-        (`{ state: { opinionId: null, comments: [], status: 'empty' }, subscribe: () => noop,
+        (`{ state: { opinionId: null, comments: [], status: 'empty', failed: false }, subscribe: () => noop,
         open: noop, close: noop, retry: noop, submit: noop }`) desde
         `app/src/bootstrap/shell-services.ts`. U2 y U4 sustituyen las implementaciones de red y
         de Spotify en el punto de composición; U3 sustituye el controlador de comentarios por el
@@ -240,7 +246,8 @@ shared-schema:
         `app/src/comments/`: `content` es C4 (`listComments`, `addComment`) y `session` es C3, de
         donde toma el `authorId` que exige `addComment`. La cáscara y las pantallas no cambian.
     CommentSheetState:
-      fields: { opinionId: "string | null", comments: "CommentModel[]", status: "loading | ready | empty | error" }
+      fields: { opinionId: "string | null", comments: "CommentModel[]", status: "loading | ready | empty | error",
+                failed: boolean }
     ScreenModule:
       shape:
         name: string
@@ -268,6 +275,7 @@ shared-schema:
         preselectedWorkId: "string | null"
         editingOpinionId: "string | null"
         returnTo: "string | null"
+        formKey: number   # sube en cada apertura; la pantalla reinicia su borrador cuando cambia
       hook: 'useCreateEntry(): CreateEntry — Crear y Editar leen aquí el modo, la obra, la opinión y el origen'
     GlobalServices:
       shape:
@@ -284,8 +292,8 @@ shared-schema:
   invariants:
     - "Login vive fuera de la barra de pestañas; las cinco pestañas son Inicio, Explorar, Crear, Actividad y Perfil."
     - "La hoja de comentarios es un modal sobre la pantalla actual: no cambia de pestaña ni desmonta lo de abajo. La pinta una sola vez la cáscara con lo que le da `useShellServices().comments`; U1 trae el controlador vacío y U3 lo sustituye por `createCommentsController({ content, session })`, que vive en `app/src/comments/`, lee `listComments` de C4, envía con `addComment` tomando el `authorId` de C3 y entrega ya `CommentModel` a la hoja, mapeando desde `CommentView`. `@melodify/app-shell` no importa `@melodify/content` ni la hoja de U3."
-    - "«Crear» y «Editar» son dos modos del mismo `ScreenModule` de U3, con dos entradas cada uno: la pestaña con el formulario vacío y el tercer nivel apilado sobre el detalle (`mockups.md` § Navegación). `openCreate({ workId })` apila el formulario de publicación con la obra preseleccionada; `openEdit({ opinionId })` apila el mismo formulario en modo edición con la opinión de origen, y `CreateEntry.returnTo` guarda desde dónde se abrió."
-    - "El ciclo de `CreateEntry` está cerrado. `openCreate({ workId })` deja `mode: 'create'` y `openEdit({ opinionId })` deja `mode: 'edit'` con `editingOpinionId` y los campos rellenos desde `getOpinion` de C4. «Guardar» en modo edición actualiza con `updateOpinion` y llama a `closeCreate()`, que desapila y vuelve a `returnTo` (FR6.3); «Cancelar» llama a `closeCreate()` sin guardar (FR5.4, FR6.2). Publicar llama a `goToTab({ name: 'inicio' })` (FR5.3), que desapila y limpia `CreateEntry`. Tocar la pestaña Crear en `BottomTabBar.onSelect` selecciona esa pestaña con formulario vacío y reescribe `CreateEntry` como `{ mode: 'create', preselectedWorkId: null, editingOpinionId: null, returnTo: <la pestaña que estaba activa> }`: una visita nueva nunca arrastra la obra ni la opinión de la anterior, y «Cancelar» desde ahí vuelve a la pestaña anterior."
+    - "«Crear» y «Editar» son dos modos del mismo `ScreenModule` de U3 y viven en la **pestaña** Crear, sembrada por `CreateEntry`, no en un tercer nivel apilado sobre el detalle (revisión 15; `mockups.md` § Navegación describe el tercer nivel y esta es la divergencia registrada). `openCreate({ workId })` siembra el formulario de publicación con la obra preseleccionada; `openEdit({ opinionId })` siembra el mismo formulario en modo edición con la opinión de origen; en los dos, `CreateEntry.returnTo` guarda la pestaña desde la que se abrió y `formKey` marca la apertura para que el formulario arranque limpio."
+    - "El ciclo de `CreateEntry` está cerrado. `openCreate({ workId })` deja `mode: 'create'` y `openEdit({ opinionId })` deja `mode: 'edit'` con `editingOpinionId` y los campos rellenos desde `getOpinion` de C4. «Guardar» en modo edición actualiza con `updateOpinion` y llama a `closeCreate()`, que vuelve a `returnTo` **conservando su pila** (el detalle desde el que se abrió sigue ahí, con su estado y su desplazamiento) y deja la pestaña Crear con el formulario limpio (FR6.3); «Cancelar» y el atrás del sistema en Crear hacen lo mismo sin guardar (FR5.4, FR6.2). Publicar llama a `goToTab({ name: 'inicio' })` (FR5.3), que limpia `CreateEntry` y el snackbar pendiente; la pantalla pide la confirmación **después** del cambio de pestaña, porque el cambio de pestaña limpia el aviso. Tocar la pestaña Crear en `BottomTabBar.onSelect` selecciona esa pestaña con formulario vacío y reescribe `CreateEntry` como `{ mode: 'create', preselectedWorkId: null, editingOpinionId: null, returnTo: <la pestaña que estaba activa>, formKey: <uno nuevo> }`: una visita nueva nunca arrastra la obra ni la opinión de la anterior, y «Cancelar» desde ahí vuelve a la pestaña anterior."
     - "`DetailScreenProps` va con la forma de su `kind`: el detalle de obra recibe `{ workId }` y el de opinión `{ opinionId }`."
     - "El snackbar se pinta una sola vez, en la cáscara. El banner de sin conexión lo pinta **cada pantalla** bajo su propia cabecera con la pieza `Banner` y el texto único de `interaction-spec.md`, y la cáscara **no** lo pinta: las raíces de pestaña llevan su `AppHeader` dentro de la pantalla, así que un banner en la cáscara quedaría por encima de la cabecera, al revés que el mockup. Se conserva la invariante de fondo —una sola pieza y un solo texto, sin duplicar el aviso— (revisión 13; `functional-spec.md` § Precisión a C2)."
     - "La cáscara no importa `@melodify/connectivity` ni `@melodify/spotify`: el estado de red y el de Spotify le llegan en `services`, inyectado por `@melodify/app` desde `bootstrap/`. Con el valor por defecto de U1, U1 funciona sola."
@@ -396,7 +404,7 @@ Por qué es aditivo y no incompatible:
 
 ```yaml
 openapi: 3.1.0
-info: { title: ContentStore, version: 1.1.0, x-owner: U2, x-transport: in-process }
+info: { title: ContentStore, version: 1.2.0, x-owner: U2, x-transport: in-process }
 x-identity:
   rule: >
     C4 no depende de C3 y no guarda «quién soy». La identidad viaja como parámetro
@@ -437,7 +445,11 @@ paths:
                 workId: { type: string }
                 workTitle: { type: string }
                 workArtist: { type: string }
-                text: { type: string }
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: recortado en los extremos; más de 500 responde 422 (Q1 = B, revisión 15)
                 rating: { type: integer, minimum: 1, maximum: 5 }
       responses:
         '201':
@@ -445,7 +457,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/OpinionView' }
         '409': { description: ya existe una opinión de esta persona sobre esta obra (FR6.1) }
-        '422': { description: texto o valoración fuera de las reglas del formulario }
+        '422': { description: texto vacío o de más de 500 caracteres, o valoración fuera de 1–5 }
   /opinions/{opinionId}:
     get:
       operationId: getOpinion
@@ -471,8 +483,12 @@ paths:
               required: [authorId]
               properties:
                 authorId: { type: string, description: quién edita; debe ser el autor }
-                text: { type: string }
-                rating: { type: integer }
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: recortado en los extremos; más de 500 responde 422 (Q1 = B, revisión 15)
+                rating: { type: integer, minimum: 1, maximum: 5 }
       responses:
         '200':
           content:
@@ -480,7 +496,7 @@ paths:
               schema: { $ref: '#/components/schemas/OpinionView' }
         '403': { description: solo se edita la propia }
         '404': { description: la opinión no existe }
-        '422': { description: fuera de las reglas del formulario }
+        '422': { description: texto vacío o de más de 500 caracteres, o valoración fuera de 1–5; la edición comparte las reglas de la publicación }
   /opinions/{opinionId}/likes:
     get:
       operationId: listLikes
@@ -530,13 +546,19 @@ paths:
             schema:
               type: object
               required: [authorId, text]
-              properties: { authorId: { type: string }, text: { type: string } }
+              properties:
+                authorId: { type: string }
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 300
+                  description: recortado en los extremos; más de 300 responde 422 (Q2 = A, revisión 15)
       responses:
         '201':
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CommentView' }
-        '422': { description: texto vacío o fuera de límite }
+        '422': { description: texto vacío o de más de 300 caracteres }
   /authors/{authorId}/follow:
     post:
       operationId: toggleFollow
@@ -1195,7 +1217,7 @@ x-timeouts:
 | Contrato | Pregunta | Bloquea |
 |---|---|---|
 | C7, C9 | El redirect URI exacto de PKCE (A6) y el esquema de enlaces de React Navigation. | U4 completa (la conexión real), no su forma |
-| C4 | Límite de texto de la opinión y obligatoriedad de la valoración (OQ1, A1). | La validación de U3 |
+| C4 | Límite de texto de la opinión y obligatoriedad de la valoración (OQ1, A1) — **cerrada en la revisión 15**: 500 caracteres para una opinión, 300 para un comentario y valoración 1–5 obligatoria. | Ya no bloquea nada |
 | C10 | Límite de resultados por búsqueda y si se pagina. | Nada: hoy se pide una página de 20 |
 
 ## Assumptions & Open Questions
@@ -1368,3 +1390,21 @@ La revisión de arquitectura de Code Generation de `u2-content-core` encontró d
 | C4 sube a `1.1.0` con `countOpinions` | `countOpinions(workId: string): number` se suma a la superficie de C4: cuenta las opiniones de una obra y es la única lectura sin identidad, porque no devuelve ningún campo derivado. C5 ya la consumía para el «N opiniones» (BR5.4) sin que el contrato la declarara. Contar en C5 sobre `listOpinions` habría exigido inventar un `viewerId` para un dato que no depende de quién mira. |
 | C4 deja de fijar el tope de longitud | `createOpinion` ya no impone un máximo de caracteres: solo exige texto no vacío. El límite pertenece a las «reglas del formulario» de U3 (`unit-of-work.md` § U3) y sigue abierto en § Open questions (OQ1/A1), así que decidirlo en U2 habría dejado un formulario que acepta lo que el almacén rechaza. |
 | Por qué es aditivo | La operación nueva no cambia ninguna firma existente y ningún esquema; retirar el tope afloja una validación que el contrato nunca fijó. C5 y la app pasan a `@melodify/content-store` `1.1.0` sin ningún otro cambio de superficie. |
+
+### Revisión 15 — U3 escribe: C1 y C2 a `1.3.0`, C4 a `1.2.0` (2026-11-14)
+
+El Functional Design de `u3-create-react` cruzó cuatro fronteras: el reparto de piezas de C1 estaba planificado para un orden de construcción que no es el real, el ciclo de Crear tenía un fallo de comportamiento, el formulario necesitaba dos montajes que existían como marcadores vacíos, y las dos preguntas que Requirements dejó abiertas (OQ1/A1) se cerraron con número. Todo lo añadido a las props es **opcional**; el único cambio de comportamiento es el cierre de Crear, que no cambia ninguna firma.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C1 sube a `1.3.0` con las ocho piezas de U3 | `SearchField`, `ConnectionCard`, `WorkResultRow`, `RatingInput`, `MultilineField`, `SecondaryButton`, `CommentSheet` y `Snackbar`. La tabla de § «Enmienda de la revisión 9» tenía `SearchField`, `ConnectionCard` y `WorkResultRow` en la `1.3.0` de U4 y las cinco restantes en la `1.4.0` de U3, dando por hecho que U4 se construiría antes; `unit-of-work.md` las ordena **unit-major**, así que U3 llega primero y necesita las ocho. U4 baja a `1.4.0` con `SpotifyCard` —lo único suyo que ninguna otra unidad usa— y U5 sigue en `1.5.0`. Ningún consumidor cambia por el reparto: es la misma entrega total. |
+| C1 corrige la forma de cuatro piezas al declararlas | `SearchField` pasa a `{ value, placeholder?, onChangeText, autoFocus?, disabled?, loading?, onClear? }` —su `onChange` y su `placeholder` obligatorio no coincidían con `interaction-spec.md`, y la pieza no tenía consumidor porque nunca se publicó—. `MultilineField` gana `placeholder?`, `counterFrom?`, `editable?`, `minHeight?` y `testID?`, y su `onChange` pasa a `onChangeText`, que es el nombre que usa React Native y el que el formulario necesita para el contador. `CommentSheet` gana `failed?` y `maxLength?`. Son piezas nuevas de la misma versión: ninguna forma anterior deja de compilar porque ninguna se había publicado. |
+| `SocialActionBar` gana `showLike?` y `OpinionCard` cambia la etiqueta de seguir | `showLike` (por defecto `true`) permite pintar el corazón y el contador como texto no pulsable en la opinión propia (Q3 = A), de modo que un me gusta propio no aparezca como «me gusta recibido» en Actividad. La etiqueta de seguir pasa de «Seguir» a «Seguir autor» y alterna con «Siguiendo» según `followedByMe`, que el modelo ya llevaba: es la open question que U2 dejó para U3 (FR7.4, AC7.3.1). Las dos son aditivas y opcionales salvo el texto, que no cambia ninguna firma. |
+| C2 sube a `1.3.0` por comportamiento, con dos campos aditivos | `CreateEntry` gana `formKey: number`, que sube en cada `openCreate`, `openEdit` y visita a la pestaña, y es lo que permite que el contenedor descarte el borrador de la visita anterior sin duplicar estado en la cáscara. `CommentSheetState` gana `failed: boolean`, que separa «no se pudieron cargar los comentarios» (estado `error` de la lista) de «no se pudo enviar el último» (sin borrar la lista ya leída). |
+| `closeCreate` conserva la pila y el atrás de Crear cancela | Hasta ahora `closeCreate()` reiniciaba la pila de `returnTo`, así que volver desde Editar aterrizaba en la raíz de la pestaña y el detalle desaparecía: AC6.1.3 (volver al detalle con la opinión actualizada) y AC5.3.3 (volver a la pantalla anterior) no se podían cumplir. Ahora vuelve a `returnTo` sin tocar su pila y deja Crear limpio; el atrás del sistema en Crear se comporta como «Cancelar» y consume el evento. No cambia ninguna prop ni exportación. |
+| La cáscara monta de verdad el snackbar y la hoja | `snackbar-mount` y `comment-sheet-mount` dejan de ser marcadores vacíos: la cáscara pinta `Snackbar` con el mensaje de `showSnackbar` y `CommentSheet` cuando `services.comments.state.opinionId` no es nulo, y limpia el mensaje al cambiar de pestaña. Sin este montaje, publicar no confirmaba nada (AC5.1.4, BR15.1) y la hoja no existía como superficie (BR14.3). |
+| C2 corrige la invariante de Crear | Decía que Crear y Editar eran «un tercer nivel apilado sobre el detalle»; lo que U1 construyó y probó —y lo que C2 congeló— es una **pestaña sembrada por `CreateEntry`**. La invariante pasa a describir eso y `mockups.md` § Navegación queda como la divergencia registrada. El resultado observable es el del mockup: «Cancelar» devuelve al detalle, en su sitio. |
+| C4 sube a `1.2.0` con los dos topes | `createOpinion` y `updateOpinion` exigen `text` recortado, no vacío y de **hasta 500 caracteres**; `addComment`, de **hasta 300**; por encima, `422`. La revisión 14 había retirado el tope a propósito porque OQ1/A1 seguían abiertas; U3 las cierra (Q1 = B, Q2 = A) y el número se escribe donde también lo ve una prueba que llama a C4 sin pasar por la pantalla. `updateOpinion` declara además `rating` entre 1 y 5, que ya era la regla y no estaba escrito. Ninguna vista ni operación cambia de forma. |
+| § Open questions, fila de C4 cerrada | OQ1/A1 quedan resueltas: 500 caracteres para una opinión, 300 para un comentario, valoración 1–5 obligatoria y «Quitar valoración» como única forma de volver a cero. |
+| Por qué es aditivo | Todo lo añadido a las props es opcional o pertenece a una pieza que se publica por primera vez en esta versión; el único cambio de comportamiento (`closeCreate`) conserva la pila de origen en lugar de destruirla y no puede romper a nadie que hoy dependa de la raíz, porque ninguna pantalla de U1 ni de U2 llama a `closeCreate`. Las dos validaciones nuevas de C4 estrechan lo que el contrato acepta, que es justo lo que la revisión 14 dejó pendiente de decidir. |
+
