@@ -58,15 +58,16 @@ graph TD
 | `SecondaryButton` | `label`, `onPress`, `disabled?` | La jerarquía secundaria, con borde y sin fondo. |
 | `ConnectionCard` | `title`, `body`, `actionLabel`, `onAction` | La invitación a conectar de Crear sin sesión. |
 | `WorkResultRow` | `work: WorkSummary`, `opinionCount`, `onPress` | Con opiniones («N opiniones»), sin opiniones («Sé el primero en opinar»), pulsado y esqueleto. |
-| `CommentSheet` | `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `onSubmit`, `onRetry`, `onClose` | Cargando, vacía, con lista, error de carga, error de envío y cerrada. Guarda su borrador. |
+| `CommentSheet` | `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `snackbar?`, `onSubmit`, `onRetry`, `onClose` | Cargando, vacía, con lista, error de carga, error de envío y cerrada. Guarda su borrador y pinta dentro del modal el aviso que le llega en `snackbar`. |
 | `Snackbar` | `message`, `visible`, `onDismiss` | Oculto, visible y saliendo; 4 s; sin acciones. |
 
-**Adiciones a piezas existentes**
+**Adiciones a piezas existentes y a la hoja**
 
 | Pieza | Cambio | Efecto visible |
 |---|---|---|
 | `SocialActionBar` | `showLike?: boolean` (por defecto `true`). Con `false`, glifo y contador se pintan como texto sin `Pressable` ni rol. | La opinión propia conserva el número de me gusta pero no se lo puede dar. |
 | `OpinionCard` | Pasa `showLike={!isOwn}` a la barra; la etiqueta de seguir es «Seguir autor» / «Siguiendo» según `opinion.followedByMe`; sigue ocultándose en la propia. | AC7.3.1 y AC7.3.2 tienen un texto que cambia y un `accessibilityLabel` coherente («Seguir a {autor}» / «Dejar de seguir a {autor}»). |
+| `CommentSheet` | Admite `failed?` (envío anterior fallido sin borrar la lista) y `snackbar?` (el aviso de la cáscara, que se pinta dentro del modal). | AC7.2.5 conserva el texto y la lista; «Comentario publicado» se ve con la hoja abierta (BR14.6). |
 
 **Reglas de uso**: ninguna pantalla pinta una opinión, una fila de obra ni un campo de texto por su cuenta; todas usan las piezas. `CrearView` no construye estilos de formulario fuera de `MultilineField` y `RatingInput`, y la hoja no se pinta desde una pantalla.
 
@@ -74,7 +75,7 @@ graph TD
 
 | Archivo | Responsabilidad |
 |---|---|
-| `createCommentsController.ts` | `createCommentsController({ content, session })`: dueño del estado de la hoja y de las cuatro acciones de `ShellServices.comments`. |
+| `createCommentsController.ts` | `createCommentsController({ content, session })`: dueño del estado de la hoja y de las cuatro acciones de `ShellServices.comments`. `submit(text)` devuelve si la escritura salió bien; la cáscara usa ese resultado para pedir el snackbar, y el controlador no conoce ni el aviso ni la navegación. |
 | `toCommentModel.ts` | `toCommentModel(view: CommentView): CommentModel` — el único mapeo de C4 a C1; toma `author.displayName` y `author.handle`. |
 | `index.ts` | Superficie del módulo. |
 
@@ -92,8 +93,9 @@ graph TD
 - `subscribe(listener)` emite el estado vigente al establecerse y en cada cambio; devuelve la baja. La cáscara lo lee con `useSyncExternalStore` y el objeto de estado solo cambia cuando cambia algo.
 - `open(opinionId)` fija la opinión, pone `status: loading` y lee `content.listComments({ opinionId })`. Si responde error, `status: error`; si la lista está vacía, `empty`; si no, `ready`.
 - `close()` vuelve al estado cerrado (`opinionId: null`, lista vacía, `failed: false`) y descarta el borrador de la hoja, que vive en la pieza.
-- `retry()` repite la lectura de la opinión abierta; si la hoja está cerrada, no hace nada.
-- `submit(text)` recorta; si queda vacío no hace nada. Llama a `content.addComment({ opinionId, authorId, text })` con el `authorId` de `session.getSession()`. Con `201`, añade el comentario mapeado al final, limpia `failed` y deja `status: ready`. Con error, pone `failed: true` y no toca la lista.
+- `retry()` repite la lectura de la opinión abierta; si la hoja está cerrada, no hace nada. Es el reintento de la **lista**, distinto del de un envío fallido.
+- `submit(text)` recorta; si queda vacío no hace nada y devuelve `false`. Llama a `content.addComment({ opinionId, authorId, text })` con el `authorId` de `session.getSession()`. Con `201`, añade el comentario mapeado al final, limpia `failed`, deja `status: ready` y devuelve `true`, y la cáscara pide «Comentario publicado». Con error, pone `failed: true`, no toca la lista y devuelve `false`.
+- **Dos reintentos distintos**: con `failed`, la hoja reenvía con `submit(texto)` y conserva el texto; con `status: error`, la hoja relee con `retry()`. La hoja elige cuál ofrecer según su estado.
 - **Sin estado «enviando»**: el almacén es síncrono; la hoja no muestra un indicador que duraría un fotograma.
 - El controlador no importa `@melodify/design-system` salvo por el tipo `CommentModel`, y no conoce la navegación ni la pestaña activa.
 
@@ -102,7 +104,7 @@ graph TD
 | Archivo | Responsabilidad |
 |---|---|
 | `useCardActions.ts` | Devuelve `actionsFor(opinion: OpinionView)`: `{ onLike?, onComment?, onFollow?, onEdit? }`. Cablea `toggleLike` y `toggleFollow` contra C4 con el `viewerId`, abre la hoja con `comments.open`, pide «Editar» con `openEdit` y muestra los snackbars de confirmación y de fallo. En una opinión propia devuelve solo `onComment` y `onEdit`. Sin `viewerId`, devuelve objetos vacíos y los controles quedan sin efecto. |
-| `useWorkSearch.ts` | `useWorkSearch(catalog, enabled)` → `{ query, status, results, setQuery, clear, retry }`. Aplica los 2 caracteres y los 400 ms, cancela el temporizador anterior, descarta respuestas tardías y traduce `SearchResult` a `idle`, `short`, `searching`, `results`, `empty` o `error`. Con `enabled` falso no monta temporizadores ni llamadas. |
+| `useWorkSearch.ts` | `useWorkSearch(catalog, enabled)` → `{ query, status, results, setQuery, clear, retry }`. Aplica los 2 caracteres y los 400 ms, cancela el temporizador anterior, descarta respuestas tardías y traduce `SearchResult` a `idle`, `short`, `searching`, `results`, `empty` o `error`. `offline` y `error` de C5 caen los dos en `error` con el texto y el «Reintentar» de BR13.2: un fallo de red no puede parecer una lista vacía. Con `enabled` falso no monta temporizadores ni llamadas. |
 
 `useCardActions` es lo que evita cuatro copias del mismo cableado: Inicio, los dos detalles y Perfil solo deciden qué variante de tarjeta pintan y le pasan el paquete. La confirmación se pide con `showSnackbar` y el texto exacto de `functional-spec.md` § Textos exactos.
 
@@ -131,7 +133,7 @@ graph TD
 - La vista nunca lee C4, C5 ni la sesión: todo llega por props.
 - El botón principal dice «Publicar» o «Guardar», y se sustituye por «Editar mi opinión» cuando `alreadyOpined`.
 - En modo edición no se pinta `SearchField` ni el selector de ejemplo, y la fila de obra no tiene «Cambiar» (BR12.2).
-- El aviso de sin conexión va bajo `CrearHeader` con `OfflineBanner` y el texto propio de cada modo (BR15.4).
+- El aviso de sin conexión va bajo `CrearHeader` con `OfflineBanner` y el texto propio de cada modo (BR15.4). `OfflineBanner` gana `message?: string` (el texto de U2 sigue siendo el valor por defecto) y `onRetry?`; en Crear se pinta **sin acción**, porque no hay nada que reintentar: el catálogo de ejemplo es local y el formulario funciona.
 - El error de envío se pinta **sobre** el botón principal, no en un diálogo ni en la cabecera, y no oculta los campos.
 - La pantalla no pinta el snackbar: solo llama a `showSnackbar`.
 
@@ -146,16 +148,17 @@ graph TD
 
 **Nota sobre el comentario en la opinión propia**: se permite comentar la propia opinión. Ninguna historia lo prohíbe y el contador de la tarjeta existe; lo que se oculta es el me gusta y el seguir (Q3 = A).
 
-## `@melodify/app-shell` — los cuatro cambios de comportamiento
+## `@melodify/app-shell` — los cinco cambios de comportamiento
 
 | Punto | Cómo queda | Dónde se nota |
 |---|---|---|
 | `CreateEntry.formKey` | Entero que sube en `openCreate`, `openEdit` y al tocar la pestaña Crear. | Crear reinicia su borrador; una visita nueva no arrastra texto ni obra. |
 | `closeCreate` | Vuelve a `returnTo` sin tocar su pila y deja Crear limpio. | «Cancelar» y «Guardar» devuelven al detalle, con su desplazamiento y su estado. |
+| `openEdit` desde Crear | Conserva el `returnTo` de la entrada vigente y solo emite un `formKey` nuevo; no fija `returnTo: activeName` como `openCreateTab`. | «Editar mi opinión» desde `YaOpinada` vuelve al detalle al guardar, no a la pestaña Crear (BR12.3, AC6.1.3). |
 | Atrás del sistema en Crear | Llama a `closeCreate()` y consume el evento. | El atrás no cierra la app con un borrador a medias. |
-| Montajes | La cáscara se suscribe a `services.comments` y pinta `CommentSheet` cuando hay `opinionId`; pinta `Snackbar` con el mensaje vigente; cualquier cambio de pestaña limpia el mensaje. | La hoja y el aviso dejan de ser marcadores vacíos. |
+| Montajes | La cáscara se suscribe a `services.comments` y pinta `CommentSheet` cuando hay `opinionId`; pinta `Snackbar` con el mensaje vigente y, mientras la hoja está abierta, se lo pasa a `CommentSheet` para que lo pinte dentro del modal; cualquier cambio de pestaña limpia el mensaje. | La hoja y el aviso dejan de ser marcadores vacíos, y «Comentario publicado» se ve con la hoja abierta. |
 
-No cambia ninguna exportación, ni la forma de `ShellServices` salvo `CommentSheetState.failed`, ni la de `GlobalServices`.
+No cambia ninguna exportación, ni la forma de `GlobalServices`; `ShellServices` gana `CommentSheetState.failed` y amplía el retorno de `submit` de `void` a `boolean` (compatible con quien lo llamaba por su efecto).
 
 ## `app/src/bootstrap/` — composición
 
@@ -182,9 +185,9 @@ No cambia ninguna exportación, ni la forma de `ShellServices` salvo `CommentShe
 | Acción | Qué hace la vista | Qué hace el contenedor o la cáscara |
 |---|---|---|
 | Tocar «Publicar» | Llama a `onPublish()` | `useCrear` valida y llama a `createOpinion`; con `201`, `goToTab({name:'inicio'})` y después `showSnackbar({message:'Opinión publicada'})` |
-| Tocar «Guardar» con cambios | Llama a `onSave()` | `updateOpinion`; con `200`, `showSnackbar` y `closeCreate()` |
+| Tocar «Guardar» con cambios | Llama a `onSave()` | `updateOpinion`; con `200`, `closeCreate()` y después `showSnackbar` (el cambio de pestaña no borra el aviso) |
 | Tocar «Guardar» sin cambios | Llama a `onSave()` | No escribe, no confirma y `closeCreate()` |
-| Tocar «Editar mi opinión» | Llama a `onEditExisting()` | `openEdit({ opinionId })` |
+| Tocar «Editar mi opinión» | Llama a `onEditExisting()` | `openEdit({ opinionId })` conservando el `returnTo` de la entrada vigente |
 | Tocar «Cancelar» | Llama a `onCancel()` | `closeCreate()` |
 | Atrás del sistema en Crear | — | `closeCreate()` y consume el evento |
 | Escribir en el buscador | `onChangeQuery(text)` | `useWorkSearch` aplica 2 caracteres y 400 ms |
@@ -196,8 +199,8 @@ No cambia ninguna exportación, ni la forma de `ShellServices` salvo `CommentShe
 | Tocar «💬» | `onComment` de la tarjeta | `comments.open(opinionId)` |
 | Tocar «Seguir autor» / «Siguiendo» | `onFollow` de la tarjeta | `toggleFollow` y snackbar con el handle |
 | Tocar «Editar» de la propia | `onEdit` de la tarjeta | `openEdit({ opinionId })` |
-| Enviar un comentario | `onSubmit` de la hoja | `comments.submit(text)` |
-| «Reintentar» en la hoja | `onRetry` | Reenvía o relee según el estado |
+| Enviar un comentario | `onSubmit` de la hoja | `comments.submit(text)`; si devuelve `true`, `showSnackbar('Comentario publicado')`, que se pinta dentro de la hoja |
+| «Reintentar» en la hoja | `onRetry` | Con `failed`, reenvía con `submit(texto)`; con la lista en `error`, relee con `retry()` |
 | Cerrar la hoja | `onClose` | `comments.close()` |
 
 ## Puntos de integración de la interfaz

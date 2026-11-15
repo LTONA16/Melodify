@@ -107,8 +107,10 @@ rules:
       IF `listOpinions({ workId, viewerId })` ya trae una opinión propia sobre esa obra
       THEN pintar «Ya opinaste sobre esta obra.» bajo la fila de obra, sustituir
       «Publicar» por «Editar mi opinión» y no enviar nada. «Editar mi opinión» llama a
-      `openEdit({ opinionId })`. IF C4 respondiera `409` por una carrera, tratarlo como
-      este mismo estado y no como error genérico.
+      `openEdit({ opinionId })` conservando el `returnTo` de la entrada vigente y con un
+      `formKey` nuevo, de modo que al guardar o cancelar se vuelve al origen del que se
+      abrió Crear. IF C4 respondiera `409` por una carrera, tratarlo como este mismo
+      estado y no como error genérico.
     violation: >
       Dejar publicar una segunda opinión rompe FR6.1 y duplica la tarjeta propia que el
       detalle de obra ya pinta.
@@ -242,9 +244,10 @@ rules:
     logic: >
       IF el texto recortado o la valoración difieren de los cargados THEN llamar a
       `updateOpinion({ opinionId, authorId, viewerId, text, rating })`. IF responde
-      `200` THEN mostrar el snackbar «Opinión actualizada» y llamar a `closeCreate()`,
-      que devuelve al detalle de origen, donde la tarjeta ya muestra la versión nueva y
-      «Editada el …», que U2 pinta cuando `updatedAt` es posterior a `createdAt`.
+      `200` THEN llamar primero a `closeCreate()` —que devuelve al detalle de origen— y
+      después mostrar el snackbar «Opinión actualizada», en ese orden para que el cambio
+      de pestaña no borre el aviso; el detalle ya muestra la versión nueva y «Editada el
+      …», que U2 pinta cuando `updatedAt` es posterior a `createdAt`.
     violation: >
       Crear una opinión nueva al guardar duplica el contenido; no volver al detalle
       incumple AC6.1.3 y AC6.1.4.
@@ -274,10 +277,11 @@ rules:
     applies_to: "CrearScreen (modo edición)"
     trigger: "`updateOpinion` responde un código distinto de `200`."
     logic: >
-      IF el código es `403` o `404` THEN el error es el de carga («No pudimos cargar tu
+      IF el código es `404` THEN el error es el de carga («No pudimos cargar tu
       opinión.»). ELSE pintar «No pudimos guardar los cambios.» con «Reintentar», que
       repite el envío con los mismos valores, sin limpiar los campos y sin salir de la
-      pantalla.
+      pantalla. Editar la opinión de otra persona no llega aquí: la acción «Editar» solo
+      se pinta con `isOwn`.
     violation: >
       Salir de la pantalla ante un error pierde la edición; mostrar el código incumple
       FR11.2.
@@ -340,7 +344,8 @@ rules:
       resultados: hasta 5 `WorkResultRow` visibles con scroll interno; sin resultados:
       «No encontramos esa obra. Prueba con otro nombre.»; error: «No pudimos buscar en
       Spotify.» con «Reintentar», que repite la última consulta escrita y conserva el
-      texto del campo.
+      texto del campo. Los resultados `offline` y `error` de `searchWorks` se pintan los
+      dos como error con «Reintentar»: un fallo de red no puede parecer una lista vacía.
     violation: >
       Una búsqueda sin estado de error deja la pantalla en blanco sin acción posible y
       rompe FR5.7 y AC5.1.5.
@@ -490,7 +495,10 @@ rules:
     logic: >
       IF `addComment` responde `201` THEN la hoja añade el comentario al final, limpia
       el campo, la tarjeta de la opinión sube su contador porque C4 emitió el cambio, y
-      la cáscara muestra «Comentario publicado». La hoja sigue abierta.
+      la cáscara muestra «Comentario publicado» **dentro de la propia hoja** —el aviso se
+      monta en el modal mientras la hoja está abierta, porque fuera quedaría detrás del
+      velo—. La hoja sigue abierta. El controlador devuelve si la escritura salió bien y
+      es la cáscara quien pide `showSnackbar` con ese resultado.
     violation: >
       Cerrar la hoja al enviar impide ver el comentario publicado y rompe AC7.2.4.
     source: "FR7.3, AC7.2.4"
@@ -504,8 +512,10 @@ rules:
     trigger: "`addComment` responde un código distinto de `201`."
     logic: >
       Pintar «No pudimos enviar tu comentario.» sobre el campo con «Reintentar», que
-      reenvía el texto que sigue escrito. El comentario no aparece en la lista y el
-      contador no sube.
+      reenvía el texto que sigue escrito llamando otra vez a `submit(text)`. El
+      «Reintentar» de la lectura (`retry()`) solo aparece cuando el estado de la lista es
+      `error` y relee los comentarios; son dos acciones distintas. El comentario no
+      aparece en la lista y el contador no sube.
     violation: >
       Perder el texto obliga a reescribirlo y rompe AC7.2.5; subir el contador sin
       comentario deja un número que no se puede explicar.
@@ -602,8 +612,10 @@ rules:
     trigger: "Una lectura o escritura falla."
     logic: >
       Cada error tiene su texto de § Textos exactos de `functional-spec.md` y, cuando
-      hay algo que repetir, «Reintentar». El único error sin reintento es el de carga de
-      la opinión que se edita cuando la opinión ya no existe.
+      hay algo que repetir, «Reintentar»: también el error de carga de la opinión que se
+      edita. Los fallos de me gusta y de seguimiento son la única excepción y llevan su
+      desviación registrada: el snackbar no admite acciones y el propio control que falló
+      sigue en pantalla y se puede volver a tocar.
     violation: >
       Mostrar `422` o un mensaje en inglés incumple FR11.2 y FR11.5.
     source: "FR11.2, FR11.5, NFR2"
@@ -615,10 +627,12 @@ rules:
     applies_to: "CrearScreen"
     trigger: "La red se pierde mientras se publica o se edita."
     logic: >
-      En Crear, el aviso es «Sin conexión. Puedes opinar sobre las obras de ejemplo.»;
-      en Editar, el aviso único de U2 («Sin conexión. Estás viendo lo último que
-      cargamos.»). En los dos casos se pinta bajo la cabecera de la pantalla, no en la
-      cáscara, y no bloquea el formulario.
+      En Crear, el aviso es «Sin conexión. Puedes opinar sobre las obras de ejemplo.» y
+      se pinta **sin acción**, porque no hay nada que reintentar: el catálogo de ejemplo
+      es local y el formulario funciona; desaparece cuando la red vuelve. En Editar, el
+      aviso único de U2 («Sin conexión. Estás viendo lo último que cargamos.»), que
+      conserva su «Reintentar» de portadas. En los dos casos se pinta bajo la cabecera de
+      la pantalla, no en la cáscara, y no bloquea el formulario.
     violation: >
       Un aviso de la cáscara quedaría por encima de la cabecera de Crear y taparía el
       botón «Cancelar».
@@ -664,7 +678,7 @@ rules:
 | **BR14.10** | constraint | Comentar y seguir funcionan sin red y se pierden al cerrar. | AC7.2.6, AC7.3.4 |
 | **BR15.1** | policy | Un solo snackbar en la cáscara, 4 s, se limpia al cambiar de pestaña. | mockups § Snackbar |
 | **BR15.2** | policy | Textos exactos de las cinco confirmaciones. | interaction-spec § Copy |
-| **BR15.3** | constraint | Todo error en español, llano y con acción. | FR11.2, FR11.5 |
+| **BR15.3** | constraint | Todo error en español, llano y con acción; la reacción es la excepción registrada. | FR11.2, FR11.5 |
 | **BR15.4** | policy | Aviso de sin conexión propio de Crear y Editar, bajo su cabecera. | FR11.4 |
 
 ## Assumptions & Open Questions

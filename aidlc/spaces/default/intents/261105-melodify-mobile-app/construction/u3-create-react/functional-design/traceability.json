@@ -60,7 +60,7 @@
     {
       "id": "AC5.1.5",
       "status": "Deferred",
-      "target": "BR13.2 se entrega y se prueba con un catálogo de puerto doble; sin sesión de Spotify el buscador no se monta (BR13.5) y el estado de búsqueda en curso solo es observable cuando u4-spotify-explore conecte el puerto"
+      "target": "los estados de búsqueda se entregan y se prueban con un catálogo de puerto doble, pero el criterio exige sesión de Spotify y `SpotifySearchPort`, que son de u4-spotify-explore (C5 responde `offline` sin puerto); U4 lo cierra en el teléfono y la regla que describe los estados queda en `reverse` hasta entonces"
     },
     {
       "id": "AC5.1.6",
@@ -215,11 +215,6 @@
       "target": "el tope de 500 caracteres lo fija Q1 = B, que no nació de una AC; se prueba con las pruebas de la unidad y se recorre en el teléfono"
     },
     {
-      "id": "BR11.4",
-      "status": "N/A",
-      "target": "la acción «Quitar valoración» viene de Q1 = B y de los mockups; ninguna AC nombra el gesto de volver a cero"
-    },
-    {
       "id": "BR12.5",
       "status": "N/A",
       "target": "el error al guardar es una ruta defensiva que fija la matriz de estados; ninguna AC de US6.1 la enumera"
@@ -237,7 +232,7 @@
     {
       "id": "BR13.2",
       "status": "N/A",
-      "target": "su única historia es AC5.1.5, que queda Deferred a u4-spotify-explore porque sin sesión de Spotify el buscador no se monta; los estados se entregan y se prueban con un catálogo de puerto doble"
+      "target": "los estados de búsqueda se entregan y se prueban con un catálogo de puerto doble; su única AC (AC5.1.5) está Deferred y no la observa hasta que u4-spotify-explore conecte la sesión de Spotify y el `SpotifySearchPort`, porque sin puerto el buscador ni se monta"
     },
     {
       "id": "BR13.4",
@@ -253,11 +248,6 @@
       "id": "BR15.1",
       "status": "N/A",
       "target": "la duración de 4 s y el límite de un snackbar por cáscara vienen de los mockups; las AC observan la confirmación, no el temporizador"
-    },
-    {
-      "id": "BR15.4",
-      "status": "N/A",
-      "target": "el texto del aviso de sin conexión está en la matriz de estados; AC5.2.3 observa que se pueda publicar sin red, no el aviso"
     }
   ]
 }

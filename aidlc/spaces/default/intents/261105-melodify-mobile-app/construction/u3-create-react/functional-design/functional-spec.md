@@ -31,7 +31,7 @@ Las cuatro pantallas de U2 cambian solo en el cableado de las acciones de la tar
 | `OpinionCard` (estado `own`, fechas, «Editar» pintado) | Se le pasan `onLike`, `onComment`, `onFollow` y `onEdit`; no se reimplementa. |
 | `DetalleOpinionScreen` y `DetalleObraScreen` | Ya existen y están registrados; U3 solo cablea «Editar» y las acciones de tarjeta. |
 | `useContent`, `useViewerId`, `useNetwork`, `useCatalog`, `opinionCardModel` | Se reutilizan tal cual; se añade un hook de acciones y otro de búsqueda. |
-| `OfflineBanner` | Se reutiliza en Crear y Editar con el texto que fija la matriz de estados. |
+| `OfflineBanner` | Se reutiliza en Crear y Editar; gana `message?` para que Crear pinte su texto (el de U2 queda por defecto) y, en Crear, se pinta sin acción porque no hay nada que reintentar: el catálogo de ejemplo es local. |
 | `Material de la siembra` | No cambia: 10 opiniones, 5 autores, 8 obras, 2 seguidos, 4 me gusta y 3 comentarios. |
 | Cáscara con pila que conserva la raíz | Se conserva; cambia el cierre de Crear (abajo) para volver al detalle de origen. |
 | Puntos de montaje `snackbar-mount` y `comment-sheet-mount` | Dejan de ser marcadores vacíos: la cáscara pinta `Snackbar` y `CommentSheet`. |
@@ -45,7 +45,7 @@ Las cuatro pantallas de U2 cambian solo en el cableado de las acciones de la tar
 | `mode` | `openCreate` → `create`; `openEdit` → `edit` | El formulario publica o edita. |
 | `preselectedWorkId` | `openCreate({ workId })` | Obra con la que se abre, si se vino del detalle. |
 | `editingOpinionId` | `openEdit({ opinionId })` | Opinión que se carga y se actualiza. |
-| `returnTo` | La cáscara, con la pestaña activa | A dónde vuelve «Cancelar» y a dónde vuelve «Guardar». |
+| `returnTo` | La cáscara: la pestaña activa al abrir por la barra o por `openCreate`; `openEdit` desde Crear conserva el vigente | A dónde vuelve «Cancelar» y «Guardar»: al detalle de origen, o a la raíz de la pestaña si Crear se abrió desde la barra. |
 | `formKey` | La cáscara, incrementándolo | Cambia en cada apertura; el contenedor reinicia el borrador cuando cambia. |
 
 **Cómo se entra y cómo se sale**
@@ -59,7 +59,7 @@ Las cuatro pantallas de U2 cambian solo en el cableado de las acciones de la tar
 | «Publicar» | `goToTab({ name: 'inicio' })` y después `showSnackbar` | La opinión queda arriba del feed. |
 | «Guardar» con cambios | `closeCreate()` y `showSnackbar` | Vuelve al detalle, que ya lee la versión nueva. |
 | «Guardar» sin cambios | `closeCreate()`, sin snackbar | Vuelve al detalle sin escribir. |
-| «Editar mi opinión» (obra ya opinada) | `openEdit({ opinionId })` | Pasa al modo edición de esa opinión. |
+| «Editar mi opinión» (obra ya opinada) | `openEdit({ opinionId })` **conservando el `returnTo` de la entrada vigente** y con un `formKey` nuevo | Pasa al modo edición de esa opinión y, al guardar o cancelar, vuelve al origen del que se abrió Crear, no a la pestaña Crear. |
 
 **Divergencia registrada con los mockups**: `mockups.md` § Navegación describe Crear y Editar como un **tercer nivel apilado** sobre el detalle; la cáscara de U1 los resolvió como una **pestaña** sembrada por `CreateEntry`. U3 conserva la pestaña —es lo que C2 congeló y lo que U1 ya probó— y arregla la consecuencia: `closeCreate` deja de reiniciar la pila de la pestaña de origen, de modo que volver devuelve al detalle con su estado y su desplazamiento, como pide el mockup. Se registra en § Assumptions y en `contract-summary.md` § Revisión 15.
 
@@ -74,11 +74,13 @@ stateDiagram-v2
     Vacio --> Buscando: se toca el buscador
     Vacio --> ConObra: se elige una obra
     Buscando --> Buscando: se escribe
+    Buscando --> Vacio: ✕ limpia el campo
     Buscando --> ConObra: se elige una obra
     Buscando --> Buscando: sin resultados o error de búsqueda
     ConObra --> Buscando: «Cambiar»
     ConObra --> YaOpinada: la obra tiene opinión propia
     YaOpinada --> Editando: «Editar mi opinión»
+    YaOpinada --> Buscando: «Cambiar» y se elige otra obra
     ConObra --> ConObra: texto y valoración
     Editando --> Editando: texto y valoración
     ConObra --> ErrorEnvio: falla la publicación
@@ -87,6 +89,7 @@ stateDiagram-v2
     ErrorGuardado --> Editando: «Reintentar»
     ConObra --> Publicado: 201
     Editando --> Guardado: 200 de updateOpinion
+    Editando --> ErrorCarga: 404 al guardar
     Publicado --> [*]
     Guardado --> [*]
     ErrorCarga --> Cargando: «Reintentar»
@@ -98,11 +101,11 @@ stateDiagram-v2
 |---|---|---|---|
 | `Cargando` | La pantalla monta y aún no hay `viewerId` o, en edición, no se ha leído la opinión. | Esqueletos con la forma del formulario; la cabecera ya está. | A `Vacio`/`Editando` con los datos; a `ErrorCarga` si la opinión falla. |
 | `Vacio` | Modo publicar sin obra elegida. | Buscador abierto (o tarjeta de conexión y selector sin Spotify), texto vacío, valoración a 0, «Publicar» deshabilitado. | A `ConObra` al elegir; a `Buscando` al escribir. |
-| `Buscando` | Hay consulta y la lista está en curso, vacía o con error. | Ayuda, esqueletos, resultados, «No encontramos esa obra…» o error con «Reintentar». | A `ConObra` al elegir; sigue en `Buscando` al cambiar el texto. |
+| `Buscando` | Hay consulta y la lista está en curso, vacía o con error. | Ayuda, esqueletos, resultados, «No encontramos esa obra…» o error con «Reintentar». | A `ConObra` al elegir; a `Vacio` al tocar la ✕; sigue en `Buscando` al cambiar el texto. |
 | `ConObra` | Hay obra seleccionada y no hay opinión propia sobre ella. | Fila de obra, texto, valoración y «Publicar» (habilitado o no). | A `YaOpinada`, a `Publicado`, a `ErrorEnvio`, a `Buscando` con «Cambiar». |
-| `YaOpinada` | La obra elegida ya tiene opinión propia. | «Ya opinaste sobre esta obra.» y «Editar mi opinión» en lugar de «Publicar». | A `Editando` con esa opinión. |
+| `YaOpinada` | La obra elegida ya tiene opinión propia. | «Ya opinaste sobre esta obra.» y «Editar mi opinión» en lugar de «Publicar». | A `Editando` con esa opinión; a `Buscando` con «Cambiar» para elegir otra obra, que se comprueba igual. |
 | `Editando` | Modo edición con la opinión cargada. | Obra fija, texto y valoración rellenos, «Guardar». | A `Guardado`, a `ErrorGuardado`; «Cancelar» sale sin escribir. |
-| `ErrorCarga` | `getOpinion` falla, la opinión no es propia o no existe. | «No pudimos cargar tu opinión.» con «Reintentar». | A `Cargando` al reintentar. |
+| `ErrorCarga` | `getOpinion` falla o la opinión no existe, o `updateOpinion` responde `404` al guardar. | «No pudimos cargar tu opinión.» con «Reintentar». | A `Cargando` al reintentar. |
 | `ErrorEnvio` | `createOpinion` responde algo distinto de `201` y de `409`. | «No pudimos publicar tu opinión.» sobre el botón, con todo conservado. | A `ConObra` al reintentar o editar. |
 | `ErrorGuardado` | `updateOpinion` responde algo distinto de `200`. | «No pudimos guardar los cambios.» con todo conservado. | A `Editando` al reintentar. |
 | `Publicado` / `Guardado` | La escritura terminó bien. | Navegación y snackbar. | Fin. |
@@ -157,7 +160,7 @@ Este flujo **no es alcanzable en el teléfono hasta U4**, porque no hay sesión 
 
 1. Al elegir una obra, Crear comprueba `listOpinions({ workId, viewerId })` y encuentra una opinión propia.
 2. Bajo la fila de obra aparece «Ya opinaste sobre esta obra.» y el botón deja de ser «Publicar»: es «Editar mi opinión» (AC5.1.6).
-3. Tocar «Editar mi opinión» llama a `openEdit({ opinionId })` con la opinión encontrada; la pantalla pasa a modo edición con el texto y la valoración de esa opinión.
+3. Tocar «Editar mi opinión» llama a `openEdit({ opinionId })` con la opinión encontrada; la pantalla pasa a modo edición con el texto y la valoración de esa opinión. La cáscara **no reescribe `returnTo`** con la pestaña activa en este camino: conserva el `returnTo` de la entrada de Crear vigente y solo emite un `formKey` nuevo, de modo que «Guardar» y «Cancelar» vuelven al origen del que se abrió Crear —el detalle si se vino de uno, la raíz de la pestaña si se abrió desde la barra— y no a la pestaña Crear (BR12.3, AC6.1.3).
 4. Si la comprobación no vio la opinión pero C4 responde `409` al publicar, se cae en este mismo estado; no se muestra el error de envío.
 
 ## Flujo F17 — Editar mi opinión
@@ -166,11 +169,11 @@ Este flujo **no es alcanzable en el teléfono hasta U4**, porque no hay sesión 
 2. La cáscara escribe `mode: edit`, `editingOpinionId`, `returnTo` = la pestaña del detalle y un `formKey` nuevo.
 3. Crear pinta la cabecera «Editar opinión» y, mientras lee, esqueletos. Lee la opinión con `getOpinion({ opinionId, viewerId })` y rellena obra, texto y valoración; la obra queda **fija** (AC6.1.1, AC6.1.2).
 4. La persona cambia el texto o la valoración. «Guardar» se habilita con las mismas reglas que «Publicar».
-5. «Guardar» con cambios: `updateOpinion({ opinionId, authorId: viewerId, viewerId, text: text.trim(), rating })`. Con `200`, la cáscara muestra «Opinión actualizada» y llama a `closeCreate()`, que devuelve al detalle de origen; allí la tarjeta ya muestra el texto nuevo y «Editada el …» con la fecha de modificación (AC6.1.3, AC6.1.4). No se crea ninguna opinión.
+5. «Guardar» con cambios: `updateOpinion({ opinionId, authorId: viewerId, viewerId, text: text.trim(), rating })`. Con `200`, la cáscara llama primero a `closeCreate()` —que devuelve al detalle de origen— y después a `showSnackbar({ message: 'Opinión actualizada' })`, en ese orden para que el cambio de pestaña no borre el aviso; allí la tarjeta ya muestra el texto nuevo y «Editada el …» con la fecha de modificación (AC6.1.3, AC6.1.4). No se crea ninguna opinión.
 6. «Guardar» sin cambios (mismo texto recortado y misma valoración): no se llama a C4, no se mueve `updatedAt`, no hay snackbar y se vuelve al detalle (AC6.1.5).
 7. «Cancelar» o atrás: `closeCreate()` sin escribir; el detalle sigue mostrando la versión anterior (AC5.3.3, BR12.6).
 8. Si `getOpinion` falla, no es propia o no existe: «No pudimos cargar tu opinión.» con «Reintentar».
-9. Si `updateOpinion` falla con `403` o `404`: se pasa al error de carga. Con cualquier otro código: «No pudimos guardar los cambios.» con «Reintentar» y todo lo escrito conservado.
+9. Si `updateOpinion` falla con `404`: se pasa al error de carga. Con cualquier otro código: «No pudimos guardar los cambios.» con «Reintentar» y todo lo escrito conservado. Editar la opinión de otra persona no llega aquí: la acción «Editar» solo se pinta con `isOwn`.
 
 ## Flujo F18 — Comentar una opinión
 
@@ -179,7 +182,7 @@ Este flujo **no es alcanzable en el teléfono hasta U4**, porque no hay sesión 
 3. Con comentarios: la lista los muestra del más antiguo al más reciente, con avatar, handle, tiempo relativo y texto. Sin comentarios: «Sé el primero en comentar» (AC7.2.2, AC7.2.3).
 4. La persona escribe en «Escribe un comentario…». El botón de enviar se habilita con texto no vacío; el campo admite hasta 300 caracteres y muestra «N/300» desde 250.
 5. Al enviar, el controlador llama a `addComment({ opinionId, authorId: viewerId, text: text.trim() })`.
-6. Con `201`: el comentario aparece al final de la lista, el campo se limpia, la tarjeta sube su contador porque C4 emitió y la cáscara muestra «Comentario publicado». La hoja sigue abierta (AC7.2.4).
+6. Con `201`: el comentario aparece al final de la lista, el campo se limpia, la tarjeta sube su contador porque C4 emitió y la cáscara muestra «Comentario publicado» **dentro de la propia hoja** —el aviso se monta en el modal mientras la hoja está abierta, porque un snackbar del cuerpo de la cáscara quedaría detrás del velo—. La hoja sigue abierta (AC7.2.4).
 7. Con error: «No pudimos enviar tu comentario.» con «Reintentar», el texto sigue escrito y el contador no cambia (AC7.2.5).
 8. La hoja se cierra con ✕, con arrastre o tocando el velo; al cerrarse descarta el borrador del campo y no cambia de pestaña.
 9. Sin conexión, el comentario se guarda igual porque C4 es local y no hace ninguna petición (AC7.2.6).
@@ -217,7 +220,9 @@ Este flujo **no es alcanzable en el teléfono hasta U4**, porque no hay sesión 
 
 **Comportamiento**: alto máximo 70 % de la pantalla con scroll interno en la lista; el campo queda siempre visible por encima del teclado; el foco entra en el campo al abrir y vuelve al «💬» al cerrar; el envío es síncrono, así que no hay un estado «enviando» visible (BR14.5, § Assumptions).
 
-**Qué guarda el controlador**: `opinionId`, los `CommentModel` ya mapeados, el estado de la lista y si el último envío falló. No guarda el texto del campo: lo posee la hoja, y por eso sobrevive al error. `close()` vuelve al estado cerrado y descarta el borrador.
+**Qué guarda el controlador**: `opinionId`, los `CommentModel` ya mapeados, el estado de la lista y si el último envío falló. No guarda el texto del campo: lo posee la hoja, y por eso sobrevive al error. `submit(text)` devuelve si la escritura salió bien, y es la cáscara quien, con ese resultado, pide `showSnackbar`: el controlador no conoce el snackbar ni la navegación. `close()` vuelve al estado cerrado y descarta el borrador.
+
+**Dos reintentos distintos**: con `failed` activo, «Reintentar» **reenvía** el texto que sigue escrito y llama otra vez a `submit`; con el estado de la lista en `error`, «Reintentar» **relee** los comentarios y llama a `retry()`. La hoja decide cuál de los dos ofrece según su estado, y el texto de la hoja nunca se pierde en el camino de envío.
 
 ## Textos exactos de la interfaz
 
@@ -254,7 +259,7 @@ Este flujo **no es alcanzable en el teléfono hasta U4**, porque no hay sesión 
 | Tarjeta, editar | «Editar» | Solo en la opinión propia. |
 | Fila de obra | «3 opiniones» / «Sé el primero en opinar» | Singular «1 opinión». |
 | Confirmaciones | «Opinión publicada» · «Opinión actualizada» · «Comentario publicado» · «Ahora sigues a @ana» · «Ya no sigues a @ana» | Snackbar de 4 s. |
-| Fallo de reacción | «No pudimos guardar tu me gusta» · «No pudimos guardar tu seguimiento» | Snackbar; el estado no cambia. |
+| Fallo de reacción | «No pudimos guardar tu me gusta» · «No pudimos guardar tu seguimiento» | Snackbar sin acción: el estado no cambia y el propio control sigue en pantalla (desviación registrada de FR11.2). |
 | Botón de reintento | «Reintentar» | Único texto de acción de los errores. |
 
 Ningún texto visible se escribe en inglés ni muestra códigos técnicos. Los textos de error que no vienen de `interaction-spec.md` § Copy (carga de la edición, carga de comentarios, fallo de reacción) se añaden aquí porque FR11.2 exige que todo error tenga mensaje y acción; se registran en § Assumptions.
@@ -275,10 +280,10 @@ Esta tabla es la vista de lectura de `rules.md`; la fuente de verdad es ese arch
 
 | Contrato | Papel de U3 | Qué se entrega |
 |---|---|---|
-| **C1** `@melodify/design-system` | Consumidor y publicador de la **1.3.0** | Ocho piezas nuevas y cuatro adiciones opcionales (abajo). |
+| **C1** `@melodify/design-system` | Consumidor y publicador de la **1.3.0** | Ocho piezas nuevas y tres adiciones opcionales (abajo). |
 | **C2** `@melodify/app-shell` | Consumidor y publicador de la **1.3.0** | `CreateEntry.formKey`, `CommentSheetState.failed`, el cierre de Crear que conserva la pila, el atrás que cancela y el montaje real de `Snackbar` y `CommentSheet`. |
 | **C3** `@melodify/app-session` | Consumidor | El `authorId` de cada escritura y el `viewerId` que ya usa U2. |
-| **C4** `@melodify/content-store` | Consumidor; **U2 lo publica en 1.2.0** | Los dos topes de longitud (500 y 300) que hoy no aplica. |
+| **C4** `@melodify/content-store` | Consumidor y **publicador de la 1.2.0** | Los dos topes de longitud (500 y 300) que hoy no aplica; esta unidad añade las validaciones y sus pruebas. |
 | **C5** `@melodify/catalog` | Consumidor | `listSampleWorks`, `getWork`, `countOpinions`, `coverFor` y `searchWorks`; no cambia. |
 | **C7, C8** | Consumidor futuro | No se importan en U3. |
 
@@ -304,29 +309,31 @@ Es la misma entrega total, repartida por quien llega primero; ningún consumidor
 | `RatingInput` | `value` 0–5, `onChange`, `disabled?` | Cinco objetivos de 44×44, «n de 5» o «Sin valorar», `radiogroup` lógico. Repetir el toque no borra (BR11.4). |
 | `MultilineField` | `label`, `value`, `onChangeText`, `placeholder?`, `error?`, `maxLength?`, `counterFrom?`, `editable?`, `minHeight?`, `testID?` | Altura mínima 120 y máxima 240 con scroll, borde de error y contador «N/max» desde `counterFrom` (BR11.3). |
 | `SecondaryButton` | `label`, `onPress`, `disabled?` | La jerarquía de acción secundaria, que hoy no existe. |
-| `CommentSheet` | `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `onSubmit`, `onRetry`, `onClose` | Hoja modal con lista, vacío, error, campo y botón de enviar. Guarda su propio borrador (BR14.4–BR14.7). |
+| `CommentSheet` | `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `snackbar?`, `onSubmit`, `onRetry`, `onClose` | Hoja modal con lista, vacío, error, campo y botón de enviar. Guarda su propio borrador (BR14.4–BR14.7). Con `snackbar`, pinta el aviso dentro del modal, por encima del campo. |
 | `Snackbar` | `message`, `visible`, `onDismiss` | Franja sobre la barra, 4 s, sin acciones (BR15.1). |
 
-**Adiciones a piezas existentes**:
+**Adiciones a piezas existentes y a la hoja**:
 
 | Pieza | Adición | Por qué |
 |---|---|---|
 | `SocialActionBar` | `showLike?: boolean` (por defecto `true`). Con `false`, el glifo y el contador se pintan como texto, sin `Pressable` ni rol. | Q3 = A pide ocultar el me gusta en la opinión propia y conservar el contador como texto no pulsable. |
 | `OpinionCard` | La etiqueta de seguir pasa de «Seguir» a **«Seguir autor»** y alterna con **«Siguiendo»** según `opinion.followedByMe`. Sigue ocultándose en la opinión propia. | FR7.4 y AC7.3.1 nombran «Seguir autor» y «Siguiendo», y el modelo ya lleva `followedByMe`; es la «open question para U3» que dejó U2 (§ Assumptions). |
-| `CommentSheet` | `failed?: boolean` en lugar de un estado `error` que borraría la lista ya cargada. | Un error de envío no debe ocultar los comentarios que sí se leyeron. |
+| `CommentSheet` | `failed?: boolean` en lugar de un estado `error` que borraría la lista ya cargada; `snackbar?` para pintar la confirmación dentro del modal mientras la hoja está abierta. | Un error de envío no debe ocultar los comentarios que sí se leyeron, y un aviso de la cáscara quedaría detrás del velo. |
 
 ### Enmienda a C2 1.3.0 — el ciclo de Crear y los dos montajes
 
-C2 sube a **1.3.0** por comportamiento, con dos campos aditivos. No cambia ninguna exportación ni la forma de `GlobalServices` más allá de lo que ya declaraba.
+C2 sube a **1.3.0** por comportamiento, con dos campos aditivos (`formKey` y `failed`) y un retorno ampliado (`submit`). No cambia ninguna exportación ni la forma de `GlobalServices` más allá de lo que ya declaraba.
 
 | Punto | Cómo queda | Por qué |
 |---|---|---|
 | `CreateEntry.formKey` | Entero nuevo, requerido, que sube en cada `openCreate`, `openEdit` y visita a la pestaña. | El borrador vive en la pantalla y la cáscara ya reinicia la pila; sin una marca, React conserva el estado de la raíz de Crear y una visita nueva arrastraría el texto anterior. |
 | `closeCreate` | Vuelve a `returnTo` **sin reiniciar su pila** y deja la pestaña Crear con el formulario limpio. | Hoy reinicia la pila de origen y con eso el detalle desaparece; AC6.1.3 pide volver al detalle y AC5.3.3 a la pantalla anterior. |
+| `openEdit` invocado desde Crear | Conserva el `returnTo` de la entrada vigente y solo emite un `formKey` nuevo, en lugar de fijar `returnTo: activeName` como hace hoy `openCreateTab`. | Sin esta precisión, «Editar mi opinión» desde el estado `YaOpinada` fijaría `returnTo: crear` y «Guardar» devolvería al formulario limpio en vez de al detalle (BR12.3, AC6.1.3). |
 | Atrás del sistema en Crear | Se comporta como «Cancelar»: llama a `closeCreate()` y consume el evento. | Es la única pantalla con un borrador que se pierde; el resto de pestañas conserva el comportamiento del esqueleto. |
-| Snackbar | La cáscara pinta `Snackbar` (C1 1.3.0) con el mensaje de `showSnackbar` y lo limpia con `onDismiss`; cualquier cambio de pestaña limpia el mensaje pendiente. | U1 dejó solo `testID="snackbar-mount"`; sin montaje real, publicar no confirma nada (AC5.1.4, BR15.1). |
+| Snackbar | La cáscara pinta `Snackbar` (C1 1.3.0) con el mensaje de `showSnackbar` y lo limpia con `onDismiss`; cualquier cambio de pestaña limpia el mensaje pendiente. Mientras la hoja de comentarios está abierta, ese mismo `Snackbar` se pinta **dentro del modal** (por la prop `snackbar` de `CommentSheet`), porque el `Modal` de React Native queda por encima de todo lo demás. | U1 dejó solo `testID="snackbar-mount"`; sin montaje real, publicar no confirma nada (AC5.1.4, BR15.1), y el aviso del comentario no se vería detrás del velo (BR14.6). |
 | Hoja de comentarios | La cáscara se suscribe a `services.comments`, pinta `CommentSheet` cuando `state.opinionId` no es nulo y le pasa `state` y las cuatro acciones. | Igual que el snackbar: el punto de montaje existía sin contenido (BR14.3). |
 | `CommentSheetState` | Añade `failed: boolean` (el envío anterior falló). | Separa «no se pudieron cargar los comentarios» de «no se pudo enviar el último», sin borrar la lista. |
+| `ShellServices.comments.submit` | Pasa de `(text: string) => void` a `(text: string) => boolean`: devuelve si la escritura salió bien. | La cáscara necesita saber si el comentario se publicó para pedir la confirmación sin meter el snackbar dentro del controlador; quien lo llamaba por su efecto sigue compilando. |
 
 **Orden de la confirmación al publicar**: la pantalla llama primero a `goToTab({ name: 'inicio' })` —que limpia el snackbar— y después a `showSnackbar({ message: 'Opinión publicada' })`. Si se hiciera al revés, el propio cambio de pestaña borraría el aviso.
 
@@ -390,12 +397,13 @@ Lo que no se puede demostrar con Jest y hay que ver en el dispositivo físico an
 
 - `[assumption]` **El contenido vive en memoria** (CT-02, CT-03): ninguna escritura de esta unidad sobrevive al cierre. Es lo que AC7.1.4 y FR7.6 esperan.
 - `[assumption]` **AC5.1.1 y AC5.1.5 quedan `Deferred`**: exigen una sesión de Spotify que no existe hasta U4, y C5 devuelve `offline` sin puerto. La pantalla se entrega completa y se prueba con un catálogo construido con un `search` doble; U4 los cierra en el teléfono. Es el mismo trato que AC2.2.1 recibió en U2.
-- `[assumption]` **Crear y Editar son una pestaña, no un tercer nivel apilado** (divergencia con `mockups.md` § Navegación). Es lo que C2 congeló en U1 y lo que U1 ya probó; U3 arregla la consecuencia con `closeCreate` conservando la pila de origen y el atrás que cancela, de modo que el resultado observable —volver al detalle en su sitio— es el del mockup. Se registra en `contract-summary.md` § Revisión 15.
+- `[assumption]` **Crear y Editar son una pestaña, no un tercer nivel apilado** (divergencia con `mockups.md` § Navegación y con FR6.3, que pide el formulario de edición «dentro del detalle»). Es lo que C2 congeló en U1 y lo que U1 ya probó; U3 arregla la consecuencia con `closeCreate` conservando la pila de origen y el atrás que cancela, de modo que el resultado observable —volver al detalle en su sitio— es el del mockup. Se registra en `contract-summary.md` § Revisión 15.
 - `[assumption]` **El formulario no muestra un estado «enviando»**: C4 es síncrono y local, así que la escritura termina en el mismo gesto y un «Publicando…» sería un fotograma que nadie ve. Los textos «Publicando…» del mockup no se implementan; el botón solo se deshabilita con el formulario incompleto. Se aparta de `mockups.md` § Estados y se registra aquí.
 - `[assumption]` **El me gusta se oculta en la opinión propia** (Q3 = A), con el contador como texto no pulsable; `interaction-spec.md` § SocialActionBar lo pintaba en todas las tarjetas y solo ocultaba «Seguir autor». La razón es que un me gusta propio aparecería en Actividad como «me gusta recibido» (FR8.1, AC8.1.2).
 - `[assumption]` **La etiqueta de seguir cambia a «Seguir autor»/«Siguiendo»**: C1 pintaba «Seguir» y los requisitos y las historias nombran «Seguir autor» y «Siguiendo». Se resuelve en la tarjeta —que es la única que pinta la acción— con el `followedByMe` que el modelo ya llevaba; cierra la open question que dejó U2.
 - `[assumption]` **`422` no se distingue de un fallo genérico** al publicar o guardar: el formulario ya impide los casos que C4 rechaza, así que si llega un `422` es una discrepancia entre capas y se muestra «No pudimos publicar tu opinión.» o «No pudimos guardar los cambios.» con «Reintentar». `409` sí se distingue: significa «obra ya opinada».
-- `[assumption]` **El error al cargar la edición y el de cargar comentarios son rutas defensivas**: el almacén es local, pero `getOpinion` puede responder `403`/`404` y `listComments` puede fallar con un doble. FR11.1 exige que los estados existan y sus textos se fijan aquí porque `interaction-spec.md` § Copy no los traía.
+- `[assumption]` **El error al cargar la edición y el de cargar comentarios son rutas defensivas**: el almacén es local, pero `getOpinion` puede responder `404` y `listComments` puede fallar con un doble. Lo que impide editar lo ajeno es `isOwn` en la vista —la acción «Editar» no se pinta—, no un código de error. FR11.1 exige que los estados existan y sus textos se fijan aquí porque `interaction-spec.md` § Copy no los traía.
+- `[assumption]` **Los fallos de me gusta y de seguimiento no llevan «Reintentar»**: se avisan con un snackbar sin acción (BR15.1), y la acción es el propio control que sigue en pantalla y se puede volver a tocar. Es una desviación registrada de FR11.2, que pide acción en todo error; se aparta de la regla porque el control no desaparece y el snackbar no admite botones.
 - `[assumption]` **El borrador de la hoja de comentarios vive en la hoja** y no en el controlador: es lo que hace que el texto sobreviva a un error de envío (AC7.2.5) sin que la cáscara guarde estado de un campo.
 - `[assumption]` **`closeCreate` conserva la pila de la pestaña de origen**: es un cambio de comportamiento de C2, no de props. Sin él, volver desde Editar aterrizaba en la raíz de la pestaña y AC6.1.3 no se podía cumplir.
 - `[assumption]` **`CommentSheetState.failed`** separa el fallo de envío del fallo de lectura; el estado `error` de la lista se reserva para «no se pudieron cargar los comentarios».
