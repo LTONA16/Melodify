@@ -27,8 +27,9 @@ const submit = (): void => {
   if (!isComplete(draft)) return;                     // el botón ya estaba deshabilitado
   const result = content.createOpinion({ ...draft, authorId, workTitle, workArtist });
   if (!result.ok) { setStatus({ kind: "errorEnvio", code: result.status }); return; }
-  shell.showSnackbar({ message: "Opinión publicada" });   // después de navegar
-  shell.closeCreate();
+  shell.goToTab({ name: "inicio" });                      // publicar vuelve a Inicio (BR11.5), no a returnTo
+  shell.showSnackbar({ message: "Opinión publicada" });   // después del cambio, o se pierde el aviso
+  // (BR15.1: un cambio de pestaña limpia el mensaje pendiente)
 };
 ```
 
@@ -36,7 +37,7 @@ Cinco decisiones dentro de ese fragmento:
 
 - **No hay estado «enviando».** Ninguno de los cinco caminos de escritura devuelve una promesa que la pantalla espere (NFR8.8), así que no se pinta un estado intermedio ni un esqueleto sobre el botón. Un estado «enviando» que nunca se ve sería código muerto.
 - **El botón se deshabilita por formulario incompleto, no por escritura en curso.** `validateOpinionDraft` (TS-30) decide; el único motivo por el que «Publicar» no responde es que falte obra, texto o valoración (BR11.2, BR11.4).
-- **La confirmación se pide después de navegar.** Primero `closeCreate()` —la cáscara cambia de pestaña— y solo entonces `showSnackbar`. Al revés, el cambio de pestaña limpiaría el mensaje pendiente y el aviso no se vería (BR15.1, BR11.5).
+- **La confirmación se pide después de navegar, y publicar no usa `closeCreate()`.** Publicar vuelve **a Inicio** con `goToTab({ name: "inicio" })` —la opinión queda arriba del feed, BR11.5, AC5.1.4—, aunque se haya abierto desde el detalle de una obra (F15: al publicar se va a Inicio, no al detalle). `closeCreate()` es el cierre de «Guardar» y «Cancelar», que sí vuelven a `returnTo` (BR12.3, BR12.6). En los dos casos el aviso se pide **después** del cambio de pantalla: al revés, el cambio de pestaña limpiaría el mensaje pendiente y la confirmación no se vería (BR15.1).
 - **`errorEnvio` conserva todo el borrador.** El estado no guarda una copia: el borrador sigue en el hook y `errorEnvio` solo añade el aviso. «Reintentar» reenvía los mismos valores (NFR1.10, BR11.7).
 - **El `authorId` se lee una vez, al enviar.** No se guarda en el borrador: si la sesión no está resuelta, Crear sigue en `Cargando` y no se envía nada (NFR3.12, BR11.5).
 
@@ -47,7 +48,7 @@ Cinco decisiones dentro de ese fragmento:
 | Publicar (F13) | `createOpinion` | Cáscara → Inicio; entonces snackbar «Opinión publicada» |
 | Guardar (F17) | `updateOpinion` | Cáscara → detalle; entonces snackbar «Opinión actualizada» |
 | Comentar (F18) | `comments.submit(text)` → `addComment` | La lista ya trae el comentario; la cáscara pide «Comentario publicado» con el `true` que devuelve `submit` |
-| Me gusta y seguir (F19, F20) | `toggleLike`, `toggleFollow` | La tarjeta se repinta con la emisión de C4; el aviso de fallo lo pide `useCardActions` |
+| Me gusta y seguir (F19, F20) | `toggleLike`, `toggleFollow` | La tarjeta se repinta con la emisión de C4; `useCardActions` pide la confirmación de seguimiento («Ahora sigues a @ana» / «Ya no sigues a @ana») o el aviso de fallo, en el mismo gesto |
 
 **Regla que se verifica en revisión**: ninguna de las cinco llamadas se envuelve en `await`, ni en `Promise.resolve`, ni en un `setTimeout` de cortesía. Una prueba que toca «Publicar» ve el resultado **sin avanzar temporizadores**, y eso incluye el snackbar: su temporizador empieza después, no antes.
 
@@ -59,22 +60,29 @@ Cinco decisiones dentro de ese fragmento:
 // Ilustrativo, no implementación. app/src/state/useWorkSearch.ts
 useEffect(() => {
   const query = text.trim();
+  latest.current = query;                             // la consulta vigente
   if (query.length < 2) { setResult({ kind: "idle" }); return; }
-  const handle = setTimeout(() => {
-    if (query !== latest.current) return;              // consulta ya superada
-    setResult({ kind: "loading" });
-    setResult(toSearchResult(search.searchWorks(query)));
+  let discarded = false;                              // el efecto se limpió: nadie pinta esto
+  const handle = setTimeout(async () => {
+    if (query !== latest.current) return;             // superada antes de llamar
+    setResult({ kind: "searching" });
+    const outcome = await search.searchWorks(query);  // C5 devuelve Promise<SearchResult>
+    if (discarded || query !== latest.current) return; // superada mientras respondía
+    setResult(toSearchResult(outcome));
   }, 400);
-  return () => clearTimeout(handle);
+  return () => { discarded = true; clearTimeout(handle); };
 }, [text, search]);
 ```
 
-Cuatro decisiones:
+Cinco decisiones:
 
 - **Dos caracteres y 400 ms antes de llamar** (BR13.1). Cada pulsación limpia el temporizador anterior por el `return` del efecto; no hay `debounce` de librería (TS-29).
-- **El descarte es por comparación, no por cancelación de red.** `latest` guarda la consulta vigente; si una respuesta llega para otra, no se pinta (BR13.4). Con el puerto en memoria la respuesta es síncrona, pero el guardia se escribe igual porque U4 cambiará el puerto y la pantalla no debe cambiar (BR13.5).
+- **`searchWorks` es asíncrona y se espera dentro del temporizador.** `catalog.searchWorks(query): Promise<SearchResult>` (`packages/catalog/src/catalog.ts:77`), así que el hook abre el estado `searching` —con sus esqueletos, F14 paso 4— antes de esperar y escribe el resultado cuando la promesa resuelve. No se pinta un resultado antes de tenerlo ni se finge una respuesta síncrona.
+- **El descarte se decide por la consulta vigente, y se comprueba dos veces: antes de llamar y después de resolver.** La comparación que importa es la de **después** del `await`: si mientras C5 respondía la persona siguió escribiendo, `latest.current` ya es otra consulta y el resultado se tira sin pintarse (BR13.4). El `discarded` cierra el caso del desmontaje o del cambio de pantalla. Con el puerto de U3 en `null` este camino no se alcanza en el teléfono, pero es el que U4 va a usar tal cual (BR13.5).
 - **La caché es de C5, no del hook.** Repetir la misma consulta no produce petición nueva ni indicador de carga (BR13.1); el hook no guarda resultados propios, para no tener dos verdades sobre lo buscado.
 - **Sin puerto, el hook no se monta.** En U3 el buscador no existe si la sesión de Spotify no está conectada (BR13.5): se pinta la tarjeta de conexión y el selector de ejemplo. El hook sabe responder a un puerto ausente o a un `offline` —lo prueba su prueba de unidad—, pero ese estado no se alcanza en el teléfono hasta U4.
+
+**La prueba que distingue este hook de un antirrebote**: un puerto doble cuya `searchWorks` devuelve promesas que la prueba resuelve **a mano y fuera de orden**. Se teclea «ab», se avanza 400 ms (la consulta sale, queda pendiente), se teclea «abc», se avanza 400 ms (sale la segunda), se resuelve primero la segunda y después la primera. La aserción es que la lista pintada es la de «abc» y que la resolución de «ab» **no la sustituye**; una prueba que solo avanzara temporizadores con un doble síncrono pasaría también con el defecto que NFR8.9 prohíbe.
 
 ## NFR8.10 — Un solo snackbar, cuatro segundos, sin bloquear nada
 
@@ -87,8 +95,12 @@ Cuatro decisiones:
 |---|---|---|
 | Publicar o guardar con éxito | Snackbar en la cáscara, tras navegar | 4 s o un toque |
 | Comentar con éxito | Snackbar **dentro** de la hoja | 4 s o un toque |
+| Seguir con éxito | Snackbar en la cáscara: «Ahora sigues a @ana», con el `handle` del autor en lugar de `ana` | 4 s o un toque |
+| Dejar de seguir con éxito | Snackbar en la cáscara: «Ya no sigues a @ana» | 4 s o un toque |
 | Fallo de me gusta o de seguimiento | Snackbar sin acción; el control sigue en pantalla | 4 s o un toque |
 | Cambio de pestaña | Nada: el mensaje pendiente se limpia | — |
+
+- **Las dos confirmaciones de seguimiento se piden en el mismo gesto que la escritura.** `toggleFollow` es síncrona y devuelve el resultado; con `200`, `useCardActions` pide el aviso y la tarjeta se repinta con el `followedByMe` de C4 (F20 pasos 3 y 4, AC7.3.1 y AC7.3.2). Son los dos únicos avisos que interpolan un dato, y el dato es **solo el `handle` del autor**, que ya está a la vista en la tarjeta; el texto de la opinión y el del comentario no se interpolan en ninguno (NFR3.9). Con `409` —seguirse a uno mismo— no hay aviso de éxito: es el defecto que la vista ya impide, y su camino es el genérico de fallo.
 
 ## NFR2.7 — Las acciones de esta unidad, en dos toques
 
@@ -146,7 +158,7 @@ El borrador es del hook, no del resultado. Por eso ningún camino de fallo lo to
 
 - **Abrir Crear, escribir 500 caracteres, tocar estrellas, abrir la hoja y desplazarla** se juzgan con NFR8: no se percibe congelación en el teléfono. No se fija mediana ni percentil, y ninguna prueba automática falla por tiempo.
 - **La lista de comentarios usa `FlatList`** (TS-22, heredado de U2): el scroll de la hoja no monta todos los elementos de golpe.
-- **El arranque no empeora**: U3 añade piezas y un controlador que se construye con el resto de servicios, sin lectura de disco ni petición de red. Si se notara, el controlador se construye de forma perezosa al abrir la hoja; no se sube el presupuesto de 2 s de NFR8.1.
+- **El arranque no empeora**: U3 añade piezas y un controlador que se construye con el resto de servicios, **sin E/S nueva ni petición de red**. La única dependencia del controlador al arrancar es su suscripción a C3, y si la sesión aún no tiene vista guardada lo único que ocurre es la primera lectura de sesión que el arranque ya hace (`packages/app-session/src/app-session.ts:174-180`). Si eso se notara, el controlador se construye de forma perezosa al abrir la hoja; no se sube el presupuesto de 2 s de NFR8.1.
 
 ## NFR2.6, NFR2.5 y NFR1.4 — Lo que U3 no cambia en las cuatro pantallas de U2
 
@@ -163,7 +175,7 @@ Estos tres requisitos son de U2 y U3 los hereda; se les asigna sección para que
 | Ruta | Objetivo | Cómo se comprueba |
 |---|---|---|
 | Publicar, guardar, comentar, me gusta, seguir | Sin número; sin espera artificial y sin estado intermedio | Pruebas de éxito y revisión del código (NFR8.8) |
-| Búsqueda de obra | Una petición por pausa de 400 ms, ninguna por pulsación; respuestas tardías descartadas | Prueba de `useWorkSearch` con temporizadores falsos (NFR8.9) |
+| Búsqueda de obra | Una petición por pausa de 400 ms, ninguna por pulsación; respuestas tardías descartadas **al resolver** | Prueba de `useWorkSearch` con temporizadores falsos y un puerto doble que resuelve dos consultas fuera de orden (NFR8.9) |
 | Snackbar | 4 s, uno solo, sin bloquear; dentro del modal con la hoja abierta | Prueba de la cáscara y de la hoja con temporizadores falsos (NFR8.10) |
 | Lista de comentarios | `FlatList` con scroll interno | Revisión del código y recorrido en el teléfono (NFR8.7) |
 | Recorrido completo | Sin congelación perceptible | Recorrido en Expo Go sobre el teléfono (NFR8.11) |

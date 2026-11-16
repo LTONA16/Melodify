@@ -32,7 +32,12 @@
     "NFR9.1",
     "NFR9.5",
     "NFR4.6",
-    "NFR3.2"
+    "NFR3.2",
+    "NFR5.8",
+    "NFR5.9",
+    "NFR6.7",
+    "NFR6.8",
+    "NFR7.6"
   ],
   "coverage": [
     {
@@ -158,7 +163,7 @@
     {
       "id": "NFR3.16",
       "status": "OK",
-      "target": "security-design.md § NFR3.16 — Nada nuevo se escribe en el teléfono (sin dependencias de almacenamiento; prueba de remontaje con formKey)"
+      "target": "security-design.md § NFR3.16 — Nada nuevo se escribe en el teléfono (sin dependencias de almacenamiento; prueba que monta el árbol una sola vez y cambia `formKey` sin desmontarlo, afirmando texto y obra descartados)"
     },
     {
       "id": "NFR4.7",
@@ -189,6 +194,31 @@
       "id": "NFR3.2",
       "status": "OK",
       "target": "security-design.md § NFR3.15 / NFR3.10 / NFR3.1 — El token de Spotify no existe en U3 (lo guarda U4 en almacenamiento seguro con su propia clave)"
+    },
+    {
+      "id": "NFR5.8",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — los cuatro coverageThreshold que U3 toca siguen a 80 % de líneas y ninguno se compensa con el total del monorepo"
+    },
+    {
+      "id": "NFR5.9",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — cada pieza y cada hook nuevos llegan con su prueba en esta unidad, sin aserciones que siempre pasan"
+    },
+    {
+      "id": "NFR6.7",
+      "status": "OK",
+      "target": "logical-components.md § Sistema de diseño: dónde se cumplen NFR6.7 y NFR6.8 — 44×44 en estrellas, ✕ de la hoja, «Enviar» y ✕ de la búsqueda; el estado se dice con palabras"
+    },
+    {
+      "id": "NFR6.8",
+      "status": "OK",
+      "target": "logical-components.md § Sistema de diseño: dónde se cumplen NFR6.7 y NFR6.8 — el foco entra en el campo al abrir la hoja y vuelve a «💬» al cerrarla"
+    },
+    {
+      "id": "NFR7.6",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — todo corre en Expo Go: ninguna dependencia nueva ni módulo nativo (Modal, KeyboardAvoidingView y setTimeout)"
     }
   ]
 }

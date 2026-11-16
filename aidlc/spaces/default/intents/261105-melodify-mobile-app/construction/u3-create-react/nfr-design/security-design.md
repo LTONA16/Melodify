@@ -25,7 +25,7 @@ graph LR
     classDef future stroke-dasharray: 4 4;
 ```
 
-**Respaldo en texto**: la única entrada nueva es **texto que escribe una persona**. Ese texto no se interpreta, no se convierte en URL y no sale del proceso. La interfaz no conoce el almacén: las pantallas pasan por los hooks y la cáscara, y el controlador de comentarios es el único módulo que habla con C4 en nombre de la hoja. La identidad **no** entra de fuera: se lee de `appSession` en el punto de llamada. El logger no está en el camino de los datos —solo de los fallos—, y `@melodify/spotify` sigue siendo una flecha discontinua que en esta unidad no existe; el buscador no se monta (BR13.5), así que ni siquiera se alcanza C5 con una consulta.
+**Respaldo en texto**: la única entrada nueva es **texto que escribe una persona**. Ese texto no se interpreta, no se convierte en URL y no sale del proceso. La interfaz no conoce el almacén: las pantallas pasan por los hooks y la cáscara, y el controlador de comentarios es el único módulo que habla con C4 en nombre de la hoja. La identidad **no** entra de fuera: se toma de `appSession` en el punto de llamada —los hooks la leen con `useViewerId` y el controlador la guarda desde `subscribeSession`—, nunca de una prop ni de la ruta. El logger no está en el camino de los datos —solo de los fallos—, y `@melodify/spotify` sigue siendo una flecha discontinua que en esta unidad no existe; el buscador no se monta (BR13.5), así que ni siquiera se alcanza C5 con una consulta.
 
 ## NFR3.12 — El autor de toda escritura sale de la sesión, no del formulario
 
@@ -33,7 +33,7 @@ graph LR
 
 ```text
 // Ilustrativo, no implementación. app/src/state/useCardActions.ts
-const viewerId = useViewerId();                     // la suscripción de U2 a appSession
+const viewerId = useViewerId(appSession);           // la sesión llega inyectada al hook
 const toggleLike = (opinion: OpinionView): void => {
   if (viewerId === null) return;                    // sin identidad no se escribe
   const result = content.toggleLike({ opinionId: opinion.id, authorId: viewerId });
@@ -41,27 +41,48 @@ const toggleLike = (opinion: OpinionView): void => {
 };
 ```
 
-- **El `authorId` es la variable `viewerId`, no un campo.** Los cinco caminos lo leen del mismo sitio: `useViewerId()` en los hooks de pantalla y `session.getSession()` en `createCommentsController` —que recibe la sesión inyectada—. No hay campo de formulario, ni parámetro de ruta, ni prop de `CrearView` que lo transporte: si lo hubiera, sería una puerta para escribir «como otra persona».
+- **El `authorId` es la variable `viewerId`, no un campo.** Los cinco caminos leen la misma identidad de dos fuentes, las dos **síncronas en el punto de la escritura**: los hooks de pantalla, que reciben la sesión inyectada y ya tienen el valor resuelto en su estado (`useViewerId(appSession)`), y el controlador de comentarios, que guarda la vista vigente desde `subscribeSession` (abajo). No hay campo de formulario, ni parámetro de ruta, ni prop de `CrearView` que lo transporte: si lo hubiera, sería una puerta para escribir «como otra persona».
+- **La identidad del controlador de comentarios llega por `subscribeSession`, no por `getSession()`.** `getSession()` devuelve `Promise<GetSessionResult>` (`packages/app-session/src/app-session.ts:56`); esperarla desde `submit` rompería el `submit(text): boolean` síncrono de C2 1.3.0 y con él NFR8.8. `createCommentsController` se **suscribe una vez, al construirse**, y guarda la vista emitida: `subscribeSession` entrega la vista en el acto si ya existe y, si no, la primera lectura se la publica a quien se suscribió antes (`app-session.ts:171-180`), así que la identidad está disponible sin promesa en el momento de la escritura.
+
+```text
+// Ilustrativo, no implementación. app/src/comments/comments-controller.ts
+let viewerId: string | null = null;                 // la última vista emitida por C3
+const unsubscribe = session.subscribeSession((view) => {
+  viewerId = view.status === "signedIn" ? view.authorId : null;
+});
+
+const submit = (text: string): boolean => {         // síncrono: no espera a C3 ni a C4
+  if (viewerId === null) return false;              // sin identidad no se escribe; la hoja queda en `failed`
+  const result = content.addComment({ opinionId, authorId: viewerId, text: text.trim() });
+  return result.ok;
+};
+```
+
+- **Una sola suscripción, la de la app.** El controlador se construye una vez en `app/src/bootstrap/comments.ts` (LC-4, TS-27), así que no hay una suscripción por hoja ni por tarjeta; el `unsubscribe` que devuelve C3 lo usa la prueba de montaje y desmontaje, no el camino normal de la app.
+- **El cierre de sesión deja la hoja sin identidad sin código extra**: `signOut()` publica la vista `signedOut` y la suscripción la guarda; el siguiente `submit` devuelve `false` sin tocar C4, igual que el caso de sesión sin resolver.
 - **`updateOpinion` recibe dos veces el mismo valor y lo lee una sola vez.** `{ authorId: viewerId, viewerId }` sale de la misma variable, así que C4 no puede recibir un `authorId` de un sitio y un `viewerId` de otro (los campos derivados y la autorización se calculan contra el mismo sujeto).
 - **Los nombres son los del contrato**: `createOpinion({ authorId })`, `updateOpinion({ authorId, viewerId })`, `addComment({ authorId })`, `toggleLike({ authorId })` y `toggleFollow({ authorId, followerId })`. En el seguimiento el que sigue es `followerId`, porque la ruta es `/authors/{authorId}/follow` y el sujeto de la ruta es el autor seguido; los dos valores salen de la misma lectura.
 - **Sin identidad no hay escritura.** `useViewerId` devuelve `null` mientras la sesión no resuelve; `useCardActions` devuelve acciones vacías y `CrearScreen` sigue en `Cargando` (BR11.5, NFR1.9). Si aun así llegara una llamada sin autor, C4 responde `422` —`«Falta quién publica la opinión.»`, `«Falta quién comenta.»`, `«Falta quién da el me gusta.»`, `«Falta quién sigue.»`—, que no es un estado de la interfaz sino la red de seguridad del contrato.
 - **La frontera es honesta**: C4 acepta la identidad que recibe y no hay cuentas reales en esta versión. Lo que la unidad garantiza es que **la interfaz no puede elegir** con qué identidad escribe; el día que haya servidor, la comprobación tendrá que vivir allí (riesgo asumido, más abajo).
 
-**Cómo se verifica**: prueba de `useCardActions` con sesión y sin ella (con `null`, `toggleLike` no se llama); prueba de `CrearScreen` en modo publicación que comprueba que el `authorId` enviado es el de la sesión aunque el formulario tenga otro valor a mano; prueba de `createCommentsController` con una sesión doble que devuelve `demo` y comprueba el `authorId` de `addComment`.
+**Cómo se verifica**: prueba de `useCardActions` con sesión y sin ella (con `null`, `toggleLike` no se llama); prueba de `CrearScreen` en modo publicación que comprueba que el `authorId` enviado es el de la sesión aunque el formulario tenga otro valor a mano; prueba de `createCommentsController` con una sesión doble que **emite `demo` al suscribirse** y comprueba que `submit` devuelve `true` **sin avanzar temporizadores ni esperar promesas** y que `addComment` recibió `demo`; y la misma prueba con una vista `signedOut` que comprueba que `submit` devuelve `false` y C4 no recibe ninguna llamada. El doble **no miente sobre la firma**: implementa `subscribeSession` como C3, y `getSession` como C3 (una promesa), porque el controlador no lo usa.
 
 ## NFR3.13 — Editar está autorizado en dos capas: la vista no lo ofrece y C4 lo rechaza
 
 | Capa | Qué comprueba | Dónde se materializa | Compuerta |
 |---|---|---|---|
-| Vista | «Editar» solo existe en la opinión propia | `OpinionCard` recibe `isOwn` y solo entonces pasa `onEdit`; `useCardActions` no devuelve `onEdit` para una opinión ajena (BR12.1, BR14.2, TS-26) | Prueba de `OpinionCard` con `isOwn: false`: la acción no está en el árbol. Prueba de `useCardActions`: `actionsFor(ajena).onEdit` es `undefined` |
+| Vista | «Editar» solo existe en la opinión propia | `OpinionCard` recibe `isOwn` y solo con él pinta la acción: en variante `feed` en la fila de acciones inferior (`OpinionCard.tsx:208-220`) y en variante `detail` en la fila de la opinión propia (`OpinionCard.tsx:94-114`). `useCardActions` no devuelve `onEdit` para una opinión ajena (BR12.1, BR14.2, TS-26) | Prueba de `OpinionCard` con `isOwn: false`: la acción no está en el árbol. **Prueba positiva**: tarjeta propia en `detail` con `onEdit`, «Editar» visible y su pulsación llamando al manejador. Prueba de `useCardActions`: `actionsFor(ajena).onEdit` es `undefined` |
 | Contrato | `updateOpinion` responde `403` si el `authorId` no es el autor | `packages/content-store/src/store.ts:605-607` —`failure(403, 'Solo se puede editar la opinión propia.')`, declarado en C4 1.2.0— | Prueba de `content-store`: `updateOpinion` con un `authorId` distinto devuelve `403` **y** el texto de la opinión no cambia |
+
+- **«Editar» en el detalle no exige cambiar C1.** La condición `!isOwnDetail && isOwn && onEdit !== undefined` de la línea 208 es la del **pie**: evita repetir el botón cuando la variante es `detail` y ya lo pinta la fila de la opinión propia (`isOwnDetail`, líneas 94-114), que es la que se ve en las dos pantallas de detalle. El resultado es **un solo «Editar» por tarjeta** y el mismo `testID` (`opinion-edit`) en las dos variantes. Lo que sí es obligatorio en esta unidad es el cableado: `DetalleObraView` y `DetalleOpinionView` pasan `onEdit` en la opinión propia (F17 paso 1, `frontend-components.md` § Flujos); si no lo pasan, la fila propia pinta «Editar» deshabilitado —`disabled={onEdit === undefined}`— y la prueba positiva lo detecta.
+- **Dos capas, y la positiva no es opcional.** La compuerta de la vista se prueba en los dos sentidos: la ajena sin acción y la propia **con** acción accionable en el detalle. Solo la negativa dejaría pasar un cableado roto sin que ninguna prueba se queje.
 
 - **Las dos capas existen y se prueban; ninguna es la única puerta.** Que la vista oculte la acción no autoriza nada: una llamada directa al almacén sigue pasando por el `403`. Que el almacén responda `403` no sustituye a la vista: ofrecer una acción que siempre falla es un defecto de interfaz.
 - **El `403` no es un estado de la pantalla.** El flujo funcional no lo alcanza (F17 paso 9 solo distingue `404` y «cualquier otro código»), así que se trata como el error genérico de guardado —«No pudimos guardar los cambios.» con «Reintentar»— y no se le inventa un texto que sugeriría que la persona hizo algo mal. Si apareciera en el teléfono sería un defecto de la vista, y la prueba de `OpinionCard` es lo que lo impide.
 - **El formulario de edición trabaja sobre la entrada vigente.** `openEdit({ opinionId })` fija el `opinionId`; el hook guarda ese identificador y no uno derivado del texto ni de la obra. Editar desde `YaOpinada` reutiliza el mismo `returnTo` (BR11.6, C2 1.3.0).
 - **Apoyo del contrato en el seguimiento**: `toggleFollow` responde `409`—«No puedes seguirte a ti mismo.»— si el `authorId` es el `followerId`, y `useCardActions` no ofrece `onFollow` en la opinión propia. Es la misma forma de defensa en profundidad, aplicada a la acción que Q3 = A oculta.
 
-**Cómo se verifica**: las tres pruebas de la tabla, más la de `CrearScreen` en modo edición que comprueba que el `opinionId` enviado es el de `openEdit` y no el de una obra elegida por la persona.
+**Cómo se verifica**: las cuatro pruebas de la tabla —las dos del almacén y las dos de la vista, negativa y positiva—, más la de `CrearScreen` en modo edición que comprueba que el `opinionId` enviado es el de `openEdit` y no el de una obra elegida por la persona.
 
 ## NFR3.14 — El texto de la persona se pinta como texto y no se convierte en nada ejecutable
 
@@ -94,25 +115,32 @@ const toggleLike = (opinion: OpinionView): void => {
 | Regla | Cómo la sostiene el diseño | Compuerta |
 |---|---|---|
 | No se añade ningún mecanismo de persistencia | `@melodify/design-system`, `@melodify/app-shell` y `@melodify/content-store` no declaran ni importan `expo-secure-store`, `AsyncStorage` ni `expo-file-system` (RC-03) | Revisión de los `package.json` y de los imports, más `no-restricted-imports` sobre las tres rutas y sobre `app/src/**` |
-| El borrador vive en memoria y muere con la pantalla | Lo posee `useCrear` (LC-11); `formKey` lo descarta al cambiar de entrada (TS-25). La hoja guarda el suyo y `close()` lo tira (BR11.1, BR14.3) | Prueba de remontaje: escribir, desmontar y volver a montar con un `formKey` nuevo deja el campo vacío; cerrar y reabrir la hoja deja el campo de comentario vacío |
+| El borrador vive en memoria y muere con la pantalla | Lo posee `useCrear` (LC-11); `formKey` lo descarta al cambiar de entrada (TS-25). La hoja guarda el suyo y `close()` lo tira (BR11.1, BR14.3) | Prueba de `formKey`: el árbol se monta **una vez** y se le cambia la clave sin desmontarlo; texto **y** obra seleccionada quedan descartados. Cerrar y reabrir la hoja deja el campo de comentario vacío |
 | El texto publicado vive en memoria | C4 lo guarda en el proceso y se pierde al recargar (RC-03, NFR4.7) | Recorrido manual: recargar Metro y ver la siembra otra vez |
 | La única escritura en disco de la app sigue siendo el recuerdo de sesión de C3 | U3 no escribe: envía a C4 y pinta. «Cerrar sesión» **borra** por `appSession.signOut()` | Revisión de `PerfilScreen` y del paquete de contenido, sin cambios respecto a U2 |
 
 ### La prueba que sí puede fallar
 
-«No toca el almacenamiento» no es una prueba: el paquete no declara esa dependencia, así que pasaría siempre y `team.md` § Testing Posture las prohíbe. La prueba que se escribe es la que distingue un borrador de pantalla de una caché compartida:
+«No toca el almacenamiento» no es una prueba: el paquete no declara esa dependencia, así que pasaría siempre y `team.md` § Testing Posture las prohíbe. La prueba que se escribe es la que distingue un borrador de pantalla de una caché compartida, y tiene que **ejercer `formKey` sin desmontar el árbol**: montar, escribir, desmontar y volver a montar con otra clave pasa aunque `useCrear` ignore `formKey` por completo, porque React ya perdió el estado al desmontar.
 
 ```text
 // Ilustrativo, no implementación. app/src/screens/crear/__tests__/CrearScreen.test.tsx
-const view = render(<CrearScreen ... />);
-fireEvent.changeText(view.getByTestId("opinion-text"), "Texto a medias");
-view.unmount();
+const app = render(<AppShell services={services} />);        // el árbol se monta UNA vez
+fireEvent.press(app.getByTestId("tab-crear"));               // entrada 1: formKey = 1
+fireEvent.changeText(app.getByTestId("create-opinion-text"), "Texto a medias");
+fireEvent.press(app.getByTestId("create-work-result-4u7EnebtmKWzUH433Rbtpz"));  // Bohemian Rhapsody, del catálogo de ejemplo
+expect(app.getByTestId("create-opinion-text").props.value).toBe("Texto a medias");
 
-render(<CrearScreen ... formKey={2} />);            // visita nueva
-expect(getByTestId("opinion-text").props.value).toBe("");   // no hay caché
+fireEvent.press(app.getByTestId("tab-crear"));               // entrada 2: formKey = 2, sin salir de Crear
+expect(app.getByTestId("create-opinion-text").props.value).toBe("");  // el texto se descartó
+expect(app.queryByTestId("create-selected-work")).toBeNull();         // y la obra también
 ```
 
-Falla si alguien sube el borrador a la cáscara, lo mete en un módulo compartido o lo rehidrata antes del primer fotograma. **El caso de disco lo cierra la revisión de dependencias, no la prueba**: una lectura asíncrona de `AsyncStorage` no la vería un remontaje síncrono, y por eso la compuerta declarada arriba es el lint y la revisión del PR.
+**Los selectores son parte de la compuerta.** La pestaña se pulsa por `testID` (`tab-crear`, que `BottomTabBar` ya expone como `tab-${item.name}`, `BottomTabBar.tsx:59`) y no por texto: «Crear» también es el título de la cabecera de la pantalla (`functional-spec.md` § Textos exactos), así que `getByText("Crear")` sería ambiguo. La obra se elige por un `workId` **real** del catálogo de ejemplo —`4u7EnebtmKWzUH433Rbtpz` es «Bohemian Rhapsody» en `packages/catalog/src/sample.ts:19-21`—; los identificadores son los de Spotify, no índices inventados, y la prueba los toma de `listSampleWorks()` para no quedar atada a la siembra. Y el campo de Crear lleva un `testID` propio —`create-opinion-text`— porque `opinion-text` ya es el del texto de la tarjeta (`OpinionCard.tsx:144`) y las cinco raíces de pestaña siguen montadas aunque estén ocultas (`AppShell.tsx:361-395`), de modo que un `testID` repetido encontraría dos nodos. Los `testID` los fija esta prueba, no la librería.
+
+**Por qué esta prueba sí falla si el mecanismo falta**: pulsar la pestaña Crear **estando ya en Crear** pasa por `handleSelect`, que escribe una entrada nueva con `formKey` incrementado y deja `activeName` en `crear` (`packages/app-shell/src/AppShell.tsx:290-310`), así que la pantalla no se desmonta y su estado de React sobrevive. Si `useCrear` no reaccionara a `formKey`, el texto y la obra seguirían ahí y las dos aserciones fallarían —que es exactamente el fallo intolerable de LC-11: publicar sobre otra obra el texto de una visita anterior—. **La prueba no se escribe con `unmount()` ni con un segundo `render`**, y esa es la diferencia entre probar el mecanismo y probar el desmontaje. La segunda mitad de la prueba es la obra: sin la aserción de la obra seleccionada, un reset que solo borrase el texto pasaría.
+
+**El caso de disco lo cierra la revisión de dependencias, no la prueba**: una lectura asíncrona de `AsyncStorage` no la vería una prueba síncrona, y por eso la compuerta declarada arriba es el lint y la revisión del PR.
 
 ## NFR3.7 — La lectura sigue sin elegir identidad (heredado)
 
@@ -124,7 +152,7 @@ Falla si alguien sube el borrador a la cáscara, lo mete en un módulo compartid
 
 ## NFR3.9 — Todo se pinta como texto (heredado)
 
-U3 no añade una regla nueva: la extiende al texto que escribe la persona y la deja escrita en NFR3.14. Lo que sí conviene fijar aquí es que **la regla vale también para los textos de confirmación**: los siete avisos de `functional-spec.md` § Textos exactos se pintan como cadenas literales, sin interpolar el texto de la opinión ni el handle completo, y ninguno muestra un código técnico ni una palabra en inglés (NFR2.9).
+U3 no añade una regla nueva: la extiende al texto que escribe la persona y la deja escrita en NFR3.14. Lo que sí conviene fijar aquí es que **la regla vale también para los textos de confirmación**: los siete avisos de `functional-spec.md` § Textos exactos se pintan como cadenas construidas solo con datos de la interfaz. Cinco son literales —«Opinión publicada», «Opinión actualizada», «Comentario publicado», «No pudimos guardar tu me gusta», «No pudimos guardar tu seguimiento»— y **los dos de seguimiento interpolan únicamente el `handle` del autor**: «Ahora sigues a @ana» y «Ya no sigues a @ana», con el `handle` de la tarjeta en lugar de `ana` (F20 pasos 3 y 4, AC7.3.1 y AC7.3.2). Lo que **nunca** se interpola es el texto de la opinión, el del comentario ni el nombre completo del autor; y ningún aviso muestra un código técnico ni una palabra en inglés (NFR2.9).
 
 ## NFR4.7 — Inventario actualizado de lo que queda escrito en el teléfono
 
@@ -169,6 +197,7 @@ U3 no añade una regla nueva: la extiende al texto que escribe la persona y la d
 | Error al guardar (F17, paso 9) | Sí, «No pudimos guardar los cambios.» con «Reintentar» | No, misma razón |
 | Error al cargar la edición (F17, paso 8) | Sí, «No pudimos cargar tu opinión.» con «Reintentar» | No: el `404` es un estado previsto del contrato |
 | Búsqueda fallida (F14) | Sí, «No pudimos buscar en Spotify.» con «Reintentar» | Sí, con `warn` y `SEARCH_PORT_UNAVAILABLE`, **solo** si el puerto falta o la consulta falla por un defecto interno; un `offline` previsto no se registra |
+| Seguimiento correcto (F20, pasos 3 y 4) | Sí, «Ahora sigues a @ana» o «Ya no sigues a @ana», con el `handle` del autor | No: es un resultado esperado y el handle ya está a la vista en la tarjeta |
 | Error al cargar o enviar un comentario (F18) | Sí, «No pudimos cargar los comentarios.» / «No pudimos enviar tu comentario.» con «Reintentar» | No: son resultados esperados del contrato |
 | Fallo de me gusta o de seguimiento (F19, F20) | Sí, snackbar sin acción (desviación registrada) | No |
 | Sin conexión en Crear (F13) | Sí, aviso informativo, sin acción | No: es un estado, no un fallo |
@@ -205,7 +234,8 @@ Traducida a decisiones de este diseño, la tabla de amenazas de `security-requir
 | Amenaza | Qué la cierra en el diseño | Dónde se comprueba |
 |---|---|---|
 | Escribir como otra persona | Una sola lectura de identidad por escritura, desde `appSession` (NFR3.12); C4 responde `422` si falta el autor | Pruebas de `useCardActions` y del controlador de comentarios |
-| Editar la opinión ajena desde una llamada directa al almacén | `403` de `updateOpinion` (`store.ts:605-607`) **y** la vista sin «Editar» (NFR3.13) | Prueba del almacén y prueba de `OpinionCard` con `isOwn: false` |
+| Editar la opinión ajena desde una llamada directa al almacén | `403` de `updateOpinion` (`store.ts:605-607`) **y** la vista sin «Editar» (NFR3.13) | Prueba del almacén y prueba de `OpinionCard` con `isOwn: false`; prueba positiva con la tarjeta propia en `detail` |
+| Editar sin camino desde el detalle | La fila de la opinión propia de `OpinionCard` en `detail` pinta «Editar» y las dos vistas de detalle pasan `onEdit` (NFR3.13) | Prueba positiva de `OpinionCard` y prueba de `DetalleObraView` / `DetalleOpinionView` que comprueba que la acción llega |
 | Seguirse a uno mismo o darse me gusta en la propia | `useCardActions` solo devuelve `onComment` y `onEdit` en la propia; `showLike={!isOwn}`; C4 responde `409` al seguirse | Prueba de `useCardActions` y de `SocialActionBar` con `showLike: false` |
 | Colar contenido ejecutable por el campo de texto | Todo se pinta como `Text`, ninguna URL sale de un texto y el tope se valida en el campo y en C4 (NFR3.14) | Prueba de render con `<script>` y prueba del `422` |
 | Dejar el texto de la persona en disco sin decisión | Ningún paquete de U3 declara almacenamiento y el borrador es del hook (NFR3.16) | Revisión de `package.json` e imports; regla de lint |
@@ -218,11 +248,11 @@ Traducida a decisiones de este diseño, la tabla de amenazas de `security-requir
 
 | Requisito | Prueba o revisión con la que se demuestra |
 |---|---|
-| NFR3.12 | Prueba de `useCardActions` sin identidad (no escribe) y con ella (escribe con `demo`); prueba de `CrearScreen` que comprueba el `authorId` enviado; prueba del controlador de comentarios con sesión doble |
-| NFR3.13 | Prueba de `content-store` con `authorId` ajeno → `403` y texto intacto; prueba de `OpinionCard` con `isOwn: false` sin «Editar»; prueba de `useCardActions` sin `onEdit` en la ajena; revisión de `store.ts:605-607` |
+| NFR3.12 | Prueba de `useCardActions` sin identidad (no escribe) y con ella (escribe con `demo`); prueba de `CrearScreen` que comprueba el `authorId` enviado; prueba del controlador de comentarios con una sesión doble que emite `demo` al suscribirse (y otra que emite `signedOut`) |
+| NFR3.13 | Prueba de `content-store` con `authorId` ajeno → `403` y texto intacto; prueba de `OpinionCard` con `isOwn: false` sin «Editar»; **prueba positiva de la tarjeta propia en `detail` con «Editar» accionable**; prueba de `useCardActions` sin `onEdit` en la ajena; revisión de `store.ts:605-607` |
 | NFR3.14 | Prueba de `MultilineField` (501 rechazado); pruebas de `422` en `createOpinion` y `addComment`; prueba de render con `<script>` literal |
-| NFR3.15 / NFR3.10 / NFR3.1 / NFR3.9 | Búsqueda de `EXPO_PUBLIC_` y de `@melodify/spotify` sin resultados en los tres paquetes; `ports.ts` con los tres en `null`; prueba de `ConnectionCard` inerte |
-| NFR3.16 | Revisión de los `package.json` y de los imports; regla `no-restricted-imports`; prueba de remontaje con `formKey` nuevo; recarga manual de Metro |
+| NFR3.15 / NFR3.10 / NFR3.1 / NFR3.9 | Búsqueda de `EXPO_PUBLIC_` y de `@melodify/spotify` sin resultados en los tres paquetes; `ports.ts` con los tres en `null`; prueba de `ConnectionCard` inerte; prueba de `useCardActions` que comprueba los dos textos de seguimiento con el `handle` interpolado («Ahora sigues a @ana» / «Ya no sigues a @ana») y que ninguno lleva texto de opinión ni de comentario |
+| NFR3.16 | Revisión de los `package.json` y de los imports; regla `no-restricted-imports`; prueba de `formKey` con el árbol montado una sola vez (texto **y** obra descartados); recarga manual de Metro |
 | NFR4.7 | Revisión del inventario; recorrido del teléfono: cerrar la app por completo y volver a entrar |
 | NFR4.8 | Revisión de dependencias y de las cadenas de § Textos exactos; recorrido con modo avión |
 | NFR4.6 / NFR9.6 | Pruebas de logger con espía: el mensaje es el literal y no lleva texto, `workId` ni `viewerId`; prueba de que un `offline` no registra nada y un puerto ausente sí |
@@ -240,7 +270,7 @@ Traducida a decisiones de este diseño, la tabla de amenazas de `security-requir
 
 ## Assumptions & Open Questions
 
-- `[assumption]` `appSession.getSession()` devuelve la sesión vigente de forma síncrona en el punto de la escritura, como en U2; si pasara a ser asíncrona, la escritura tendría que esperar y NFR8.8 dejaría de cumplirse: sería una decisión de esa etapa.
+- `[assumption]` `subscribeSession` entrega la vista vigente en el acto cuando existe y publica la primera lectura a quien se suscribió antes (`packages/app-session/src/app-session.ts:171-180`). Sobre esa garantía se apoya la identidad **síncrona** del controlador de comentarios: `getSession()` devuelve una promesa y no se usa en la ruta de escritura. Si C3 cambiara la entrega a asíncrona, `submit` tendría que esperar y NFR8.8 dejaría de cumplirse: sería una decisión de esa etapa, no un ajuste de esta.
 - `[assumption]` El `403` de `updateOpinion` está en C4 1.2.0 y no cambia en esta unidad; la prueba del almacén lo fija para que una revisión futura no lo retire por parecer redundante con la vista.
 - `[assumption]` La regla de lint que impide a C1 y a C2 importar C4 se escribe con `@typescript-eslint/no-restricted-imports` en `eslint.config.js` (la misma familia que la regla de TS-21), y el CI ya la ejecuta con `npm run lint`.
 - **Open question para U4**: el buscador real enviará la consulta de obra a Spotify; **nunca** el texto de una opinión ni de un comentario. Si U4 necesitara enviar algo más, es un cambio de contrato y de esta regla, no un detalle de implementación.

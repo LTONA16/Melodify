@@ -27,10 +27,12 @@
 | **LC-7** | Catálogo | `packages/catalog/` (`@melodify/catalog` 1.1.0, sin cambios) | Obras de ejemplo, `listSampleWorks`, `getWork`, `countOpinions`, `searchWorks`, decisión de portada, aviso de portadas; tipos de los tres puertos | U2 |
 | **LC-8** | Conectividad | `packages/connectivity/` (`@melodify/connectivity` 1.0.0, sin cambios) | `createConnectivity({ network })`, estado «en línea / sin conexión», `subscribeNetwork`; el único adaptador de `expo-network` | U2 |
 | **LC-9** | Estado y mapeo de la interfaz | `app/src/state/` | Lo de U2 (`useViewerId`, `useContent`, `useCatalog`, `useNetwork`, `useDetalleObra`, `useDetalleOpinion`, `usePerfil`, `toOpinionCardModel`) más **`useCardActions`** y **`useWorkSearch`**: la identidad de las escrituras, las cuatro acciones de tarjeta y el disparo de la búsqueda con sus 400 ms | U2; U3 añade dos hooks |
-| **LC-10** | Comentarios: el controlador de la hoja | `app/src/comments/` | `createCommentsController({ content, session })`: estado de la hoja (`opinionId`, `comments`, `status`, `failed`, `maxLength`, `counterFrom`), `subscribe`/`open`/`close`/`retry`/`submit`, el mapeo `toCommentModel` y la lectura y escritura de C4 | **U3** |
+| **LC-10** | Comentarios: el controlador de la hoja | `app/src/comments/` | `createCommentsController({ content, session })`: estado de la hoja (`opinionId`, `comments`, `status`, `failed`, `maxLength`, `counterFrom`), `subscribe`/`open`/`close`/`retry`/`submit`, el mapeo `toCommentModel` y la lectura y escritura de C4; la identidad de la escritura la guarda **una sola suscripción a `subscribeSession`**, no una espera a `getSession()` (NFR3.12) | **U3** |
 | **LC-11** | Crear y su estado | `app/src/screens/crear/` | `CrearScreen` (contenedor), `CrearView` (vista pura), `CrearHeader`, `useCrear` (borrador, validación, publicar y guardar), `validateOpinionDraft` y la reacción a `formKey` | **U3** |
 
 **Lo que no es un componente propio**: la barra de pestañas, las vistas y las piezas de C1 no tienen estado que sobreviva a su montaje ni un fallo que aísle a las demás. Las cuatro pantallas de U2 siguen sin ser componentes aquí: U3 les añade un paquete de acciones, no un estado propio.
+
+**`OpinionCard` no cambia su condición de «Editar».** La variante `detail` ya pinta la acción en la fila de la opinión propia (`OpinionCard.tsx:94-114`) y la variante `feed` en la fila de acciones (`:208-220`); la segunda excluye `isOwnDetail` justo para no repetirla. Lo que U3 aporta es el **cableado**: las dos vistas de detalle pasan `onEdit` en la opinión propia y el `useCardActions` deja de devolverlo en la ajena (NFR3.13, TS-26). Por eso C1 1.3.0 no necesita ninguna revisión del contrato por esta acción.
 
 ## Dependencias entre componentes
 
@@ -114,7 +116,7 @@ graph TD
 ### Los dos fallos que la unidad trata como intolerables
 
 - **LC-10 con dos instancias**: si cada tarjeta construyera su controlador, la hoja abierta desde Inicio y la abierta desde Perfil serían dos listas distintas y un comentario publicado en una no aparecería en la otra. Se evita con **una sola construcción** en `app/src/bootstrap/comments.ts` (TS-27, TS-18) y se comprueba con una prueba que monta dos tarjetas, abre la hoja desde cada una y verifica que ambas leen el mismo estado y que un `addComment` se ve en las dos.
-- **LC-11 con el borrador pegado**: publicar el texto de una visita anterior sobre otra obra es un error **silencioso**: la app dice «Opinión publicada» y el contenido está donde no debía. Se evita con `formKey` (TS-25) y se comprueba con la prueba de remontaje de `security-design.md` § NFR3.16: con una clave nueva, el campo está vacío y no hay obra seleccionada.
+- **LC-11 con el borrador pegado**: publicar el texto de una visita anterior sobre otra obra es un error **silencioso**: la app dice «Opinión publicada» y el contenido está donde no debía. Se evita con `formKey` (TS-25) y se comprueba con la prueba de `security-design.md` § NFR3.16, que **monta el árbol una sola vez** y cambia la clave sin desmontarlo —pulsando la pestaña Crear estando ya en Crear—: con la clave nueva se afirma que el campo está vacío **y** que no hay obra seleccionada. Si la prueba desmontara la pantalla, pasaría aunque `useCrear` no mirara `formKey`.
 
 ## Recursos compartidos y quién los posee
 
@@ -158,7 +160,7 @@ graph TD
 ## Assumptions & Open Questions
 
 - `[assumption]` LC-10 y LC-11 son las dos únicas áreas nuevas con fallo propio; si U4 introdujera el paquete de Spotify, lo declara en su propio `logical-components.md` y actualiza esta frontera.
-- `[assumption]` La construcción de LC-10 en `comments.ts` es síncrona y sin E/S: se hace una vez, junto al resto de instancias, y no añade trabajo al arranque (NFR8.1).
+- `[assumption]` La construcción de LC-10 en `comments.ts` es síncrona y **sin E/S nueva**: se hace una vez, junto al resto de instancias, y su suscripción a C3 no dispara ninguna lectura que el arranque no fuera a hacer de todos modos —si la sesión todavía no tiene vista vigente, `subscribeSession` inicia la misma primera lectura del almacén seguro (`packages/app-session/src/app-session.ts:174-180`)—. Si en U4 esa suscripción tuviera que leer algo más, la construcción pasa a ser perezosa al abrir la hoja (NFR8.1).
 - `[assumption]` El controlador no se suscribe a C4: relee al abrir y al reintentar. Si U5 necesitara ver un comentario ajeno en directo con la hoja abierta, sería una decisión de esa etapa y no un cambio de forma de C2.
 - **Open question para U4**: el buscador real solo tiene que respetar el disparo del contenedor (2 caracteres y 400 ms) y no enviar texto de opiniones ni de comentarios al puerto.
 - **Open question para U5**: la Actividad pide `useCardActions` y el mismo `Snackbar`; no debe cablear `toggleLike` por su cuenta.
