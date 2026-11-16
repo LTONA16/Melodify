@@ -110,17 +110,19 @@ Cada decisión lleva un identificador estable (`TS-23`…, continuando la numera
 - Una fábrica `createCommentsController({ content, session })` que devuelve la forma de `ShellServices.comments`: `state`, `subscribe`, `open`, `close`, `retry` y `submit`.
 - `submit(text)` recorta, valida el tope, llama a `content.addComment` con el `authorId` de `appSession.getSession()`, actualiza la lista y **devuelve `boolean`**; no conoce el snackbar ni la navegación. La cáscara pide `showSnackbar({ message: 'Comentario publicado' })` cuando el resultado es `true` (C2 1.3.0).
 - Se construye **una sola vez** en `app/src/bootstrap/comments.ts`, junto al resto de instancias (TS-18), y se inyecta en la cáscara como un servicio más.
+- El controlador es quien conoce el tope: rellena `CommentSheetState.maxLength` con `MAX_COMMENT_LENGTH` y `CommentSheetState.counterFrom` con el umbral de BR14.5 (250), de modo que la hoja recibe las dos cifras como props y ni el sistema de diseño ni la cáscara importan el almacén (TS-28).
 - `retry()` relee la lista; es el reintento de lectura, distinto del reenvío con `submit(texto)` que ofrece la hoja cuando `failed` está activo.
 
 **Alternativas descartadas**: dejar la lógica de la hoja en `AppShell` (la cáscara crecería con reglas de negocio y no podría probarse sin montar toda la app); inyectar `showSnackbar` en el controlador (el controlador pasaría a conocer la interfaz y la navegación).
 
-### TS-28 — Los dos topes son constantes de C4
+### TS-28 — Los dos topes son constantes de C4, y llegan a la hoja por el controlador
 
-- `@melodify/content-store` exporta `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300` en su superficie (`src/index.ts`), y **valida con ellos** en `createOpinion`, `updateOpinion` y `addComment`: por encima, `422` (C4 1.2.0).
-- `CrearView` y `CommentSheet` los importan para `maxLength` y `counterFrom` (400 de 500, 250 de 300). El número se escribe **una vez**.
-- El campo protege a la persona y el almacén protege al contrato; ninguna de las dos capas decide el número por su cuenta.
+- `@melodify/content-store` exporta `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300` en su superficie (`src/index.ts`), y **valida con ellos** en `createOpinion`, `updateOpinion` y `addComment`: por encima, `422` (C4 1.2.0). Las dos constantes quedan registradas en el contrato, porque son superficie nueva de C4.
+- `CrearView` los importa para `maxLength` y `counterFrom` de su `MultilineField` (contador desde 400 de 500). Es la app quien los lee; C1 no los conoce.
+- **La hoja no importa C4.** `CommentSheet` es una pieza de C1 y C1 no depende de C4 en ninguna dirección. El número le llega como prop: la pieza gana `counterFrom?: number` junto al `maxLength?` que ya declara el contrato, y quien se los pasa es la cáscara, leyéndolos de `CommentSheetState`. Ese estado gana `maxLength` y `counterFrom`, que rellena `createCommentsController` con las dos reglas que ya existen: el tope, de `MAX_COMMENT_LENGTH` (300), y el umbral visible, el de BR14.5 (250). Así el número se escribe una sola vez —el tope en C4— y ni C1 ni C2 lo repiten ni lo importan.
+- El campo protege a la persona (no acepta el carácter 501 ni el 301) y el almacén protege al contrato (`422` si una llamada directa los supera); ninguna de las dos capas decide el número por su cuenta.
 
-**Alternativas descartadas**: declarar el 500 en la app y en el paquete por separado (dos literales que se desincronizan en la primera revisión); poner el tope solo en el campo (una llamada directa a C4 guardaría lo que el formulario prohíbe, que es lo que Q1 = B y Q2 = A cerraron).
+**Alternativas descartadas**: declarar el 500 y el 300 en la app y en el paquete por separado (dos literales que se desincronizan en la primera revisión); poner el tope solo en el campo (una llamada directa a C4 guardaría lo que el formulario prohíbe, que es lo que Q1 = B y Q2 = A cerraron); que `CommentSheet` importe las constantes de C4 (crearía una arista C1 → C4 que el contrato no declara y metería el almacén dentro del sistema de diseño); que C1 repita el 300 como valor por defecto de `maxLength` (el mismo número en dos sitios).
 
 ### TS-30 — Una función pura de validación, compartida por publicar y editar
 
@@ -142,13 +144,14 @@ Cada decisión lleva un identificador estable (`TS-23`…, continuando la numera
 
 No hay decisión nueva de tokens: se usan los de TS-14.
 
-### NFR6.7 — Todo control nuevo tiene 44×44 y su etiqueta
+### NFR6.7 — Todo control nuevo tiene 44×44 y su estado se dice con palabras
 
-- Las cinco estrellas de `RatingInput` son cinco objetivos de **44×44** con su `accessibilityRole` y su etiqueta «n de 5»; el grupo se anuncia como `radiogroup` con el valor actual.
+- Las cinco estrellas de `RatingInput` son cinco objetivos de **44×44**; el grupo no estrena roles ni etiquetas de lector de pantalla, porque **NFR6 aprobado deja las etiquetas accesibles fuera de esta versión**.
 - La ✕ de la hoja, el botón «Enviar» y la ✕ que limpia la búsqueda son de **44×44**, igual que las acciones de la tarjeta (NFR6.2 de U1).
 - La valoración y el seguimiento no dependen solo del color: debajo de las estrellas se lee «Sin valorar» o «n de 5», y el botón de seguir dice «Seguir autor» o «Siguiendo» (NFR2.9).
+- Las etiquetas accesibles que U1 y U2 ya declararon en la tarjeta —incluida la de seguir de `OpinionCard`— se conservan tal cual, porque no son nuevas: esta unidad no añade ninguna ni cambia las existentes.
 - Si el contraste de las estrellas seleccionadas o del texto de error no llega a 4.5:1, se corrige el par de tokens en C1 y se anota en el contrato; no se elige un color a ojo en la pantalla (misma regla que U2).
-- **Cómo se comprueba**: prueba de `RatingInput` que comprueba el área táctil declarada y la etiqueta de cada estrella; revisión de contraste con los pares de tokens de TS-14.
+- **Cómo se comprueba**: prueba de `RatingInput` que comprueba el área táctil declarada de cada estrella y el texto de valoración visible; revisión de contraste con los pares de tokens de TS-14.
 
 ### NFR6.8 — El foco entra en el campo y vuelve a donde estaba
 
@@ -162,8 +165,8 @@ No hay decisión nueva de tokens: se usan los de TS-14.
 
 | Paquete | Versión que publica U3 | Por qué |
 |---|---|---|
-| `@melodify/design-system` | **1.3.0** | Ocho piezas nuevas y tres adiciones opcionales (`SocialActionBar.showLike?`, la etiqueta de seguir de `OpinionCard`, `CommentSheet.failed?`/`snackbar?`). |
-| `@melodify/app-shell` | **1.3.0** | `CreateEntry.formKey`, `CommentSheetState.failed`, el cierre de Crear que conserva la pila, el atrás que cancela, `submit` devolviendo `boolean` y los dos montajes reales. |
+| `@melodify/design-system` | **1.3.0** | Ocho piezas nuevas y cuatro adiciones opcionales: las tres que declara el diseño (`SocialActionBar.showLike?`, la etiqueta de seguir de `OpinionCard`, `CommentSheet.failed?`/`snackbar?`) más `CommentSheet.counterFrom?`, que añade esta etapa para que el umbral del contador de la hoja llegue como prop y C1 no importe C4. |
+| `@melodify/app-shell` | **1.3.0** | `CreateEntry.formKey`, `CommentSheetState.failed` y `CommentSheetState.maxLength`/`counterFrom` (las dos cifras que la hoja pinta, rellenas por el controlador), el cierre de Crear que conserva la pila, el atrás que cancela, `submit` devolviendo `boolean` y los dos montajes reales. |
 | `@melodify/content-store` | **1.2.0** | Los dos topes con su `422`, las constantes exportadas y sus pruebas. |
 | `@melodify/app-session` | 1.1.0 (sin cambios) | Se consume `getSession`; U3 no la modifica. |
 | `@melodify/catalog` | 1.1.0 (sin cambios) | Se consume `listSampleWorks`, `getWork`, `countOpinions`, `searchWorks`; U3 no la modifica. |

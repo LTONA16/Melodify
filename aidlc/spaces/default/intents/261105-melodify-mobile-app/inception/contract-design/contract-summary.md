@@ -119,7 +119,7 @@ shared-schema:
       Skeleton:             { shape: "card | row | header", count: number }
       Snackbar:             { message: string, visible: boolean, onDismiss: "() => void" }
       CommentSheet:         { opinionId: string, comments: "CommentModel[]", status: "loading | ready | empty | error",
-                              failed?: boolean, maxLength?: number,
+                              failed?: boolean, maxLength?: number, counterFrom?: number,
                               snackbar?: "{ message: string, visible: boolean, onDismiss: () => void }",
                               onRetry: "() => void", onSubmit: "(text: string) => void", onClose: "() => void" }
       SearchField:          { value: string, placeholder?: string, onChangeText: "(text: string) => void",
@@ -239,8 +239,9 @@ shared-schema:
         U1 arranca con `{ network: { online: true, subscribe: () => noop } }`,
         `{ spotify: { status: 'disconnected', subscribe: () => noop, connect: noop,
         disconnect: noop, retry: noop } }` y una hoja de comentarios vacía
-        (`{ state: { opinionId: null, comments: [], status: 'empty', failed: false }, subscribe: () => noop,
-        open: noop, close: noop, retry: noop, submit: () => false }`) desde
+        (`{ state: { opinionId: null, comments: [], status: 'empty', failed: false, maxLength: 0,
+        counterFrom: 0 }, subscribe: () => noop, open: noop, close: noop, retry: noop,
+        submit: () => false }`) desde
         `app/src/bootstrap/shell-services.ts`. U2 y U4 sustituyen las implementaciones de red y
         de Spotify en el punto de composición; U3 sustituye el controlador de comentarios por el
         que construye con `createCommentsController({ content, session })` en
@@ -248,7 +249,7 @@ shared-schema:
         donde toma el `authorId` que exige `addComment`. La cáscara y las pantallas no cambian.
     CommentSheetState:
       fields: { opinionId: "string | null", comments: "CommentModel[]", status: "loading | ready | empty | error",
-                failed: boolean }
+                failed: boolean, maxLength: number, counterFrom: number }
     ScreenModule:
       shape:
         name: string
@@ -683,6 +684,16 @@ x-construction:
     desde el que se calculan las edades de la siembra y `seed` la sustituye por una mínima
     (lista vacía, una sola opinión, varias obras) para ejercitar los estados de las
     pantallas (revisión 12).
+x-limits:
+  exports:
+    MAX_OPINION_LENGTH: 500
+    MAX_COMMENT_LENGTH: 300
+  rule: >
+    La superficie de `@melodify/content-store` publica las dos cifras con nombre, y
+    `createOpinion`, `updateOpinion` y `addComment` validan con ellas: por encima, `422`
+    (revisión 15). Publicarlas evita que la app y la hoja repitan el número, y es lo que
+    permite que el campo que protege a la persona y el almacén que protege al contrato usen
+    el mismo valor (revisión 16).
 x-read-errors:
   rule: >
     Las lecturas y la suscripción —`listOpinions`, `getOpinion`, `updateOpinion`,
@@ -1409,4 +1420,15 @@ El Functional Design de `u3-create-react` cruzó cuatro fronteras: el reparto de
 | C4 sube a `1.2.0` con los dos topes | `createOpinion` y `updateOpinion` exigen `text` recortado, no vacío y de **hasta 500 caracteres**; `addComment`, de **hasta 300**; por encima, `422`. La revisión 14 había retirado el tope a propósito porque OQ1/A1 seguían abiertas; U3 las cierra (Q1 = B, Q2 = A) y el número se escribe donde también lo ve una prueba que llama a C4 sin pasar por la pantalla. `updateOpinion` declara además `rating` entre 1 y 5, que ya era la regla y no estaba escrito. Ninguna vista ni operación cambia de forma. |
 | § Open questions, fila de C4 cerrada | OQ1/A1 quedan resueltas: 500 caracteres para una opinión, 300 para un comentario, valoración 1–5 obligatoria y «Quitar valoración» como única forma de volver a cero. |
 | Por qué es aditivo | Todo lo añadido a las props es opcional o pertenece a una pieza que se publica por primera vez en esta versión; los cambios de comportamiento (`closeCreate` conserva la pila, `openEdit` desde Crear conserva el `returnTo`, el aviso se pinta dentro de la hoja) no rompen a ningún consumidor, y ampliar `submit` de `void` a `boolean` deja compilando a quien no usa el resultado. Las dos validaciones nuevas de C4 estrechan lo que el contrato acepta, que es justo lo que la revisión 14 dejó pendiente de decidir. |
+
+### Revisión 16 — Los dos topes llegan a la hoja sin que C1 dependa de C4 (2026-11-15)
+
+El NFR Requirements de `u3-create-react` encontró un hueco en la revisión 15: la hoja de comentarios es una pieza de C1 y no puede importar las constantes de C4, pero el contador «N/300 desde 250» necesita las dos cifras dentro de la hoja. La solución no crea ninguna arista nueva: el controlador de comentarios es quien conoce el almacén, y las pasa por el estado de la cáscara. Las tres adiciones son opcionales o de un estado que U3 ya estaba modificando.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C4 publica sus dos topes con nombre | `@melodify/content-store` exporta `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300` en `src/index.ts`, y las tres operaciones que validan (`createOpinion`, `updateOpinion`, `addComment`) lo hacen con esas constantes. Es superficie nueva, aditiva, de la misma `1.2.0`: no cambia ninguna firma ni ningún esquema. |
+| `CommentSheet` gana `counterFrom?: number` | Opcional, junto al `maxLength?` que la revisión 15 ya declaró. La pieza no importa C4: recibe las dos cifras como props y pinta el contador «N/max» desde `counterFrom`, igual que `MultilineField`. Sin esta prop, C1 tendría que repetir el 250 o el 300, y la revisión 15 dejó dicho que el número se escribe una sola vez. |
+| `CommentSheetState` gana `maxLength` y `counterFrom` | Los rellena `createCommentsController` —el punto de composición que sí conoce C4— con `MAX_COMMENT_LENGTH` (300) y el umbral de BR14.5 (250). La cáscara los pasa a la hoja sin importar el almacén, y el marcador vacío de U1 usa `0`/`0` porque en el esqueleto la hoja nunca se pinta. |
+| Por qué es aditivo | Una prop opcional, dos campos de un estado que la revisión 15 ya amplió y dos exportaciones nuevas de C4: ningún consumidor existente deja de compilar y ninguna firma cambia. C1 sigue sin conocer C4 y C2 tampoco, que es la invariante de la revisión 15 que había que sostener. |
 

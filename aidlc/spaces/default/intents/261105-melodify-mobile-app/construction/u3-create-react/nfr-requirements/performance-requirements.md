@@ -31,7 +31,7 @@ NFR8 sigue diciendo: «no se fijan objetivos numéricos en esta versión; el cri
 - El hook `useWorkSearch` no llama a `catalog.searchWorks` hasta que la consulta tiene **2 caracteres o más** y han pasado **400 ms** desde la última pulsación; cada pulsación nueva cancela el temporizador anterior (BR13.1).
 - Una respuesta que llega tarde para una consulta ya superada **se descarta**: el hook compara la consulta con la vigente antes de pintar (BR13.4). El resultado no puede «saltar» de una búsqueda a otra.
 - La misma consulta repetida la resuelve la caché de C5 y no produce una petición nueva ni un indicador de carga (BR13.1 último inciso).
-- Con el puerto en `null` —lo único alcanzable en el teléfono hasta U4— `searchWorks` responde `offline` sin tocar la red; el hook lo pinta como error con «Reintentar» y no deja la lista en blanco (BR13.2, BR13.5).
+- Con el puerto en `null` el buscador ni se monta y `searchWorks` no se llama (BR13.5), así que en el teléfono no se ve un error de búsqueda hasta que U4 conecte la sesión. El hook, por su parte, **sí** sabe responder a un puerto ausente o a un `offline` si se le monta con uno: devuelve ese estado en vez de una lista vacía, y esa es una prueba de unidad del hook, no el estado que se pinta en el dispositivo en esta unidad (BR13.2).
 - El temporizador **se limpia al desmontar** el hook: cambiar de pestaña con una consulta en vuelo no deja un `setTimeout` vivo.
 
 **Cómo se verifica**: prueba de `useWorkSearch` con temporizadores falsos que escribe «a», «ab», «abc» y comprueba **una sola** llamada a `searchWorks` tras avanzar 400 ms; prueba de respuesta tardía que resuelve primero la consulta vieja y comprueba que no se pinta; prueba con puerto `null` que comprueba `error` y no `empty`.
