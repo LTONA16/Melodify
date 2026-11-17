@@ -41,12 +41,12 @@ function servicesDouble(initialOnline: boolean): NetworkDouble {
       retry: jest.fn(),
     },
     comments: {
-      state: { opinionId: null, comments: [], status: "empty" },
+      state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => () => {},
       open: jest.fn(),
       close: jest.fn(),
       retry: jest.fn(),
-      submit: jest.fn(),
+      submit: jest.fn(() => false),
     },
   };
 

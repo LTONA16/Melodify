@@ -1,5 +1,5 @@
 /**
- * La cáscara de la app (C2 1.2.0): decide entre la pantalla de entrada y las cinco
+ * La cáscara de la app (C2 1.3.0): decide entre la pantalla de entrada y las cinco
  * pestañas, compone la barra inferior y ofrece los tres contextos que leen las
  * pantallas —servicios, acciones globales y la entrada de Crear—.
  *
@@ -19,12 +19,20 @@
  *   desapilar el título se limpia para que el siguiente detalle no herede el
  *   anterior.
  * - **La barra se pinta una sola vez**, fuera de las pilas, nunca en Login.
- * - El aviso y la hoja de comentarios son puntos de montaje condicionales: en U1
- *   ninguno llega a tener contenido (ver `functional-spec.md`).
+ * - **1.3.0 — el ciclo de Crear**: `formKey` sube en cada entrada para que la
+ *   pantalla descarte el borrador anterior; «Cancelar», «Guardar» y el atrás del
+ *   sistema en Crear vuelven a `returnTo` **sin reiniciar su pila**, y el atrás
+ *   consume el evento porque es la única pantalla con texto que se perdería.
+ * - **1.3.0 — los dos montajes reales**: la hoja de comentarios se pinta desde
+ *   `services.comments` y el aviso desde `showSnackbar`. Con la hoja abierta el
+ *   aviso viaja **dentro** del modal (un `Snackbar` fuera quedaría detrás del
+ *   velo); cualquier cambio de pestaña limpia el mensaje pendiente.
  */
 import {
   AppHeader,
   BottomTabBar,
+  CommentSheet,
+  Snackbar,
   TextButton,
   useTheme,
   type TabItem,
@@ -35,6 +43,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { BackHandler, StyleSheet, View } from "react-native";
@@ -161,6 +170,7 @@ function TabShell({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const keyCounter = useRef(0);
+  const formKeyCounter = useRef(0);
 
   const [activeName, setActiveName] = useState(() => {
     const found = screens.find((screen) => screen.name === initialRoute);
@@ -173,26 +183,44 @@ function TabShell({
     useState<CreateEntry>(DEFAULT_CREATE_ENTRY);
   const [headerTitle, setHeaderTitle] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<string | null>(null);
+  // El estado de la hoja se lee del controlador que inyecta la app: la cáscara
+  // no conoce C4, solo este contrato (LC-1).
+  const comments = useSyncExternalStore(
+    services.comments.subscribe,
+    () => services.comments.state,
+  );
+  const dismissSnackbar = useCallback(() => setSnackbar(null), []);
+
+  /** Una marca nueva por visita: el borrador anterior no se hereda. */
+  const nextFormKey = (): number => {
+    formKeyCounter.current += 1;
+    return formKeyCounter.current;
+  };
 
   const indexOfTab = (name: string): number => {
     const index = screens.findIndex((screen) => screen.name === name);
     return index >= 0 ? index : 0;
   };
 
-  const resetStack = (name: string): void => {
-    const screen = screens.find((candidate) => candidate.name === name);
-    if (screen === undefined) {
-      return;
-    }
+  const resetStack = useCallback(
+    (name: string): void => {
+      const screen = screens.find((candidate) => candidate.name === name);
+      if (screen === undefined) {
+        return;
+      }
 
-    setStacks((previous) => ({ ...previous, [name]: [rootEntry(screen)] }));
-  };
+      setStacks((previous) => ({ ...previous, [name]: [rootEntry(screen)] }));
+    },
+    [screens],
+  );
 
   const goToTab = (name: TabName): void => {
     setActiveName(name);
     resetStack(name);
     setCreateEntry(DEFAULT_CREATE_ENTRY);
     setHeaderTitle(null);
+    // Un aviso no viaja de una pestaña a otra (LC-1).
+    setSnackbar(null);
   };
 
   const pushDetail = (
@@ -251,12 +279,39 @@ function TabShell({
       mode,
       preselectedWorkId: extra.preselectedWorkId,
       editingOpinionId: extra.editingOpinionId,
-      returnTo: activeName,
+      // «Editar mi opinión» desde Crear conserva el destino de la entrada vigente;
+      // si se tomara `activeName` como destino, «Guardar» volvería al formulario
+      // limpio en vez de al detalle (BR12.3, AC6.1.3).
+      returnTo: activeName === "crear" ? createEntry.returnTo : activeName,
+      formKey: nextFormKey(),
     });
     setActiveName("crear");
     resetStack("crear");
     setHeaderTitle(null);
   };
+
+  /**
+   * Sale de Crear sin escribir. Vuelve a `returnTo` **sin tocar su pila**: el
+   * detalle desde el que se abrió sigue donde estaba (AC6.1.3, AC5.3.3). Es lo
+   * mismo para «Cancelar», «Guardar» y el atrás del sistema (FR5.4, FR6.2).
+   *
+   * Va en `useCallback` porque el atrás del sistema la usa como dependencia del
+   * efecto: sin él, cada render reinstalaría el oyente.
+   */
+  const closeCreate = useCallback((): void => {
+    const returnTo = createEntry.returnTo;
+    setCreateEntry(DEFAULT_CREATE_ENTRY);
+    if (
+      returnTo !== null &&
+      screens.some((screen) => screen.name === returnTo)
+    ) {
+      setActiveName(returnTo);
+    } else {
+      resetStack("crear");
+    }
+    setHeaderTitle(null);
+    setSnackbar(null);
+  }, [createEntry.returnTo, resetStack, screens]);
 
   const global: GlobalServices = {
     showSnackbar: ({ message }) => setSnackbar(message),
@@ -273,17 +328,7 @@ function TabShell({
         preselectedWorkId: null,
         editingOpinionId: opinionId,
       }),
-    closeCreate: () => {
-      const returnTo = createEntry.returnTo;
-      setCreateEntry(DEFAULT_CREATE_ENTRY);
-      if (returnTo !== null && screens.some((screen) => screen.name === returnTo)) {
-        setActiveName(returnTo);
-        resetStack(returnTo);
-      } else {
-        resetStack("crear");
-      }
-      setHeaderTitle(null);
-    },
+    closeCreate,
     goToTab: ({ name }) => goToTab(name),
   };
 
@@ -301,18 +346,28 @@ function TabShell({
         preselectedWorkId: null,
         editingOpinionId: null,
         returnTo: activeName,
+        formKey: nextFormKey(),
       });
       resetStack("crear");
     }
 
     setActiveName(target.name);
     setHeaderTitle(null);
+    setSnackbar(null);
   };
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        // En Crear el atrás cancela: es la única pantalla con un borrador que se
+        // perdería, y se comporta como «Cancelar» consumiendo el evento
+        // (revisión 15 del contrato).
+        if (activeName === "crear") {
+          closeCreate();
+          return true;
+        }
+
         const stack = stacks[activeName] ?? [];
 
         // Con algo apilado, atrás desapila; en la raíz, deja que Android cierre la
@@ -327,14 +382,17 @@ function TabShell({
     );
 
     return () => subscription.remove();
-  }, [activeName, stacks, popDetail]);
+  }, [activeName, stacks, popDetail, closeCreate]);
 
   const items = tabItemsFor(screens);
   const activeIndex = indexOfTab(activeName);
   const topEntry = (stacks[activeName] ?? []).at(-1);
   const showsDetailHeader =
     topEntry !== undefined && topEntry.kind !== "root";
-  const commentsOpen = services.comments.state.opinionId !== null;
+  const commentsOpen = comments.opinionId !== null;
+  // Se guarda aparte para que la hoja reciba un `string` ya estrechado y no haya
+  // que afirmar con `!` que la opinión existe.
+  const openOpinionId = comments.opinionId;
 
   return (
     <CreateEntryContext.Provider value={createEntry}>
@@ -395,9 +453,54 @@ function TabShell({
               })}
             </View>
 
-            {snackbar !== null ? <View testID="snackbar-mount" /> : null}
+            {/*
+              Con la hoja cerrada el aviso va aquí, sobre la barra inferior y sin
+              tapar la acción principal (mockups § Snackbar). Con la hoja abierta
+              viaja dentro del modal, porque un `Snackbar` montado aquí quedaría
+              detrás del velo (BR14.6).
+            */}
+            {snackbar !== null && !commentsOpen ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.snackbarSlot,
+                  { bottom: theme.size.tabBar + theme.space[2] },
+                ]}
+              >
+                <Snackbar
+                  message={snackbar}
+                  visible
+                  onDismiss={dismissSnackbar}
+                />
+              </View>
+            ) : null}
 
-            {commentsOpen ? <View testID="comment-sheet-mount" /> : null}
+            {commentsOpen && openOpinionId !== null ? (
+              <CommentSheet
+                opinionId={openOpinionId}
+                comments={comments.comments}
+                status={comments.status}
+                failed={comments.failed}
+                maxLength={comments.maxLength}
+                counterFrom={comments.counterFrom}
+                snackbar={
+                  snackbar === null
+                    ? undefined
+                    : {
+                        message: snackbar,
+                        visible: true,
+                        onDismiss: dismissSnackbar,
+                      }
+                }
+                onSubmit={(text) => {
+                  if (services.comments.submit(text)) {
+                    setSnackbar("Comentario publicado");
+                  }
+                }}
+                onRetry={services.comments.retry}
+                onClose={services.comments.close}
+              />
+            ) : null}
 
             <View style={{ paddingBottom: insets.bottom }}>
               <BottomTabBar
@@ -441,5 +544,11 @@ export type { AppShellProps };
 const styles = StyleSheet.create({
   fill: {
     flex: 1,
+  },
+  snackbarSlot: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
   },
 });

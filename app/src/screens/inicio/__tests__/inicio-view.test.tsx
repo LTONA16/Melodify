@@ -210,9 +210,9 @@ describe("InicioView", () => {
 
     expect(screen.queryByTestId("opinion-own-label")).toBeNull();
     expect(screen.queryByTestId("opinion-edit")).toBeNull();
-    expect(
-      screen.getByTestId("social-like").props.accessibilityState,
-    ).toMatchObject({ disabled: true });
+    // La tarjeta de esta prueba es propia: el me gusta propio no se puede dar, así
+    // que el contador se pinta como texto y no como control (Q3 = A).
+    expect(screen.getByTestId("social-like").props.accessibilityRole).toBeUndefined();
     expect(
       screen.getByTestId("social-comment").props.accessibilityState,
     ).toMatchObject({ disabled: true });

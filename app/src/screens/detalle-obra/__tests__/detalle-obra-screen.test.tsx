@@ -129,12 +129,12 @@ function setup(options: HarnessOptions = {}) {
       retry: () => undefined,
     },
     comments: {
-      state: { opinionId: null, comments: [], status: "empty" },
+      state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => () => undefined,
       open: () => undefined,
       close: () => undefined,
       retry: () => undefined,
-      submit: () => undefined,
+      submit: () => false,
     },
   };
 

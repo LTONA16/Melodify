@@ -1,5 +1,6 @@
 import type { ShellServices } from "@melodify/app-shell";
 
+import { commentsController } from "./comments";
 import { connectivity } from "./instances";
 
 /**
@@ -7,12 +8,15 @@ import { connectivity } from "./instances";
  *
  * La red ya no es el valor fijo de U1 (BR6.4): `online` es el estado vigente de C6
  * y `subscribe` reenvía sus emisiones —la primera llega al establecerse, así que la
- * pantalla no arranca con un estado inventado—. Spotify y comentarios siguen con
- * sus valores por defecto: U4 y U5 los sustituirán en este mismo archivo, sin tocar
- * la cáscara.
+ * pantalla no arranca con un estado inventado—. Spotify sigue con sus valores por
+ * defecto: U4 lo sustituirá en este mismo archivo, sin tocar la cáscara.
  *
- * Ninguna acción lanza ni hace nada todavía: una pantalla puede llamarlas desde el
- * primer día y no rompe nada.
+ * Los comentarios ya son los de verdad (1.3.0): el controlador de
+ * `app/src/comments/` lee y escribe en C4 con la identidad de C3, y la cáscara lo
+ * consume a través del contrato, sin conocer el almacén (LC-1).
+ *
+ * Ninguna acción de Spotify lanza ni hace nada todavía: una pantalla puede llamarlas
+ * desde el primer día y no rompe nada.
  */
 const noopUnsubscribe = () => {};
 
@@ -34,16 +38,5 @@ export const defaultShellServices: ShellServices = {
     disconnect: () => {},
     retry: () => {},
   },
-  comments: {
-    state: {
-      opinionId: null,
-      comments: [],
-      status: "empty",
-    },
-    subscribe: () => noopUnsubscribe,
-    open: () => {},
-    close: () => {},
-    retry: () => {},
-    submit: () => {},
-  },
+  comments: commentsController,
 };

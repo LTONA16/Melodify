@@ -175,7 +175,7 @@ function createServices(overrides: Partial<ShellServices> = {}): ShellServices {
       retry: jest.fn(),
     },
     comments: {
-      state: { opinionId: null, comments: [], status: "empty" },
+      state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => noopUnsubscribe,
       open: jest.fn(),
       close: jest.fn(),
@@ -337,23 +337,33 @@ describe("AppShell — rama de sesión y puntos de montaje", () => {
   it("no monta el aviso ni la hoja mientras no tengan contenido", () => {
     renderShell();
 
-    expect(screen.queryByTestId("snackbar-mount")).toBeNull();
-    expect(screen.queryByTestId("comment-sheet-mount")).toBeNull();
+    expect(screen.queryByTestId("snackbar")).toBeNull();
+    expect(screen.queryByTestId("comment-sheet")).toBeNull();
   });
 
-  it("declara el punto de montaje de la hoja cuando hay opinión abierta", () => {
+  it("monta la hoja de verdad cuando hay una opinión abierta", () => {
     const services = createServices();
     renderShell({
       services: {
         ...services,
         comments: {
           ...services.comments,
-          state: { opinionId: "op-1", comments: [], status: "loading" },
+          state: {
+            opinionId: "op-1",
+            comments: [],
+            status: "loading",
+            failed: false,
+            maxLength: 300,
+            counterFrom: 250,
+          },
         },
       },
     });
 
-    expect(screen.getByTestId("comment-sheet-mount")).toBeTruthy();
+    expect(screen.getByTestId("comment-sheet")).toBeTruthy();
+    expect(screen.getByTestId("comment-sheet-title")).toHaveTextContent(
+      "Comentarios",
+    );
   });
 });
 
@@ -388,7 +398,7 @@ describe("AppShell — acciones globales", () => {
     );
   });
 
-  it("setHeader cambia la cabecera del detalle y showSnackbar monta el aviso", () => {
+  it("setHeader cambia la cabecera del detalle y showSnackbar pinta el aviso", () => {
     renderShell();
 
     fireEvent.press(screen.getByTestId("open-work"));
@@ -398,7 +408,9 @@ describe("AppShell — acciones globales", () => {
 
     fireEvent.press(screen.getByTestId("detail-snackbar"));
 
-    expect(screen.getByTestId("snackbar-mount")).toBeTruthy();
+    expect(screen.getByTestId("snackbar-message")).toHaveTextContent(
+      "Publicado",
+    );
   });
 
   it("abre el detalle de opinión en la pestaña que lo registra", () => {

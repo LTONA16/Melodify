@@ -183,37 +183,37 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 9 — C2 1.3.0: tipos y contrato de la cáscara (implementar)
 
-- [ ] En `packages/app-shell/src/types.ts`: `CreateEntry.formKey: number`, `CommentSheetState.failed: boolean`, `maxLength: number` y `counterFrom: number`; `comments.submit` devuelve `boolean` en lugar de `void`.
-- [ ] El marcador vacío de U1 usa `0`/`0` en `maxLength`/`counterFrom`, porque en el esqueleto la hoja nunca se pinta.
-- [ ] Actualizar la cabecera del paquete a `C2 1.3.0`; ninguna exportación cambia de forma.
+- [x] En `packages/app-shell/src/types.ts`: `CreateEntry.formKey: number`, `CommentSheetState.failed: boolean`, `maxLength: number` y `counterFrom: number`; `comments.submit` devuelve `boolean` en lugar de `void`.
+- [x] El marcador vacío de U1 usa `0`/`0` en `maxLength`/`counterFrom`, porque en el esqueleto la hoja nunca se pinta.
+- [x] Actualizar la cabecera del paquete a `C2 1.3.0`; ninguna exportación cambia de forma.
 
 ### Paso 10 — C2: los cinco cambios de comportamiento (implementar)
 
-- [ ] `formKey` sube en `openCreate`, `openEdit` y al tocar la pestaña Crear.
-- [ ] `closeCreate()` vuelve a `returnTo` **sin tocar su pila** y deja Crear limpio.
-- [ ] `openEdit` desde Crear conserva el `returnTo` de la entrada vigente y solo emite un `formKey` nuevo.
-- [ ] El atrás del sistema dentro de Crear llama a `closeCreate()` y consume el evento.
-- [ ] La cáscara se suscribe a `services.comments`, pinta `CommentSheet` cuando hay `opinionId` y `Snackbar` con el mensaje vigente; con la hoja abierta le pasa el snackbar a la hoja, porque el `Modal` queda por encima y un aviso pintado fuera quedaría detrás del velo (NFR8.10); cualquier cambio de pestaña limpia el mensaje.
+- [x] `formKey` sube en `openCreate`, `openEdit` y al tocar la pestaña Crear.
+- [x] `closeCreate()` vuelve a `returnTo` **sin tocar su pila** y deja Crear limpio.
+- [x] `openEdit` desde Crear conserva el `returnTo` de la entrada vigente y solo emite un `formKey` nuevo.
+- [x] El atrás del sistema dentro de Crear llama a `closeCreate()` y consume el evento.
+- [x] La cáscara se suscribe a `services.comments`, pinta `CommentSheet` cuando hay `opinionId` y `Snackbar` con el mensaje vigente; con la hoja abierta le pasa el snackbar a la hoja, porque el `Modal` queda por encima y un aviso pintado fuera quedaría detrás del velo (NFR8.10); cualquier cambio de pestaña limpia el mensaje.
 
 ### Paso 11 — C2: pruebas de la cáscara (escribir y ejecutar)
 
-- [ ] `packages/app-shell/src/__tests__/create-entry.test.tsx`: `formKey` sube en las tres entradas; `openEdit` desde Crear conserva `returnTo`.
-- [ ] `packages/app-shell/src/__tests__/create-close.test.tsx`: «Cancelar», atrás del sistema y «Guardar» vuelven a `returnTo` con su pila y su posición; atrás consume el evento.
-- [ ] `packages/app-shell/src/__tests__/sheet-snackbar-mount.test.tsx`: la hoja se monta con `opinionId` y no antes; el snackbar se pinta 4 s y el cambio de pestaña lo limpia; con la hoja abierta el aviso se pinta dentro.
-- [ ] Ejecutar el área de C2 y dejarla en verde.
+- [x] `packages/app-shell/src/__tests__/create-entry.test.tsx`: `formKey` sube en las tres entradas; `openEdit` desde Crear conserva `returnTo`.
+- [x] `packages/app-shell/src/__tests__/create-close.test.tsx`: «Cancelar», atrás del sistema y «Guardar» vuelven a `returnTo` con su pila y su posición; atrás consume el evento.
+- [x] `packages/app-shell/src/__tests__/sheet-snackbar-mount.test.tsx`: la hoja se monta con `opinionId` y no antes; el snackbar se pinta 4 s y el cambio de pestaña lo limpia; con la hoja abierta el aviso se pinta dentro.
+- [x] Ejecutar el área de C2 y dejarla en verde.
 
 ### Paso 12 — Controlador de comentarios (implementar)
 
-- [ ] `app/src/comments/createCommentsController.ts`: `subscribe` que emite el estado vigente al establecerse, `open`, `close`, `retry` y `submit`, con las reglas de `frontend-components.md` § `app/src/comments/`; rellena `maxLength` con `MAX_COMMENT_LENGTH` y `counterFrom` con 250.
-- [ ] `app/src/comments/toCommentModel.ts`: único mapeo de `CommentView` a `CommentModel`.
-- [ ] `app/src/comments/index.ts`: superficie del módulo.
-- [ ] Sin estado «enviando»; el almacén es síncrono. El controlador no conoce el aviso ni la navegación.
+- [x] `app/src/comments/createCommentsController.ts`: `subscribe` que emite el estado vigente al establecerse, `open`, `close`, `retry` y `submit`, con las reglas de `frontend-components.md` § `app/src/comments/`; rellena `maxLength` con `MAX_COMMENT_LENGTH` y `counterFrom` con 250.
+- [x] `app/src/comments/toCommentModel.ts`: único mapeo de `CommentView` a `CommentModel`.
+- [x] `app/src/comments/index.ts`: superficie del módulo.
+- [x] Sin estado «enviando»; el almacén es síncrono. El controlador no conoce el aviso ni la navegación.
 
 ### Paso 13 — Controlador de comentarios: pruebas (escribir y ejecutar)
 
-- [ ] `app/src/comments/__tests__/comments-controller.test.ts`: los seis estados (cerrada, cargando, vacía, con lista, error de carga y error de envío), `open` con lista vacía vs. con comentarios, `retry` solo con la hoja abierta, `close` que descarta el borrador, `submit` vacío que devuelve `false` y no escribe, `submit` correcto que añade al final y devuelve `true`, `submit` fallido que pone `failed` sin tocar la lista, y dos reintentos distintos (lista vs. envío).
-- [ ] `app/src/comments/__tests__/to-comment-model.test.ts`: nombre y handle del autor, texto y fecha.
-- [ ] Ejecutar el área y dejarla en verde.
+- [x] `app/src/comments/__tests__/comments-controller.test.ts`: los seis estados (cerrada, cargando, vacía, con lista, error de carga y error de envío), `open` con lista vacía vs. con comentarios, `retry` solo con la hoja abierta, `close` que descarta el borrador, `submit` vacío que devuelve `false` y no escribe, `submit` correcto que añade al final y devuelve `true`, `submit` fallido que pone `failed` sin tocar la lista, y dos reintentos distintos (lista vs. envío).
+- [x] `app/src/comments/__tests__/to-comment-model.test.ts`: nombre y handle del autor, texto y fecha.
+- [x] Ejecutar el área y dejarla en verde.
 
 ### Paso 14 — `useWorkSearch` (implementar)
 

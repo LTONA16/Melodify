@@ -88,7 +88,7 @@ function createServices(): ShellServices {
       retry: jest.fn(),
     },
     comments: {
-      state: { opinionId: null, comments: [], status: "empty" },
+      state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => noopUnsubscribe,
       open: jest.fn(),
       close: jest.fn(),
