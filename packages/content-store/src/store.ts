@@ -8,6 +8,10 @@
  * de fondo: acciones explícitas, reductor puro, ninguna librería de estado y el
  * reductor probado directamente.
  *
+ * C4 1.2.0 añade los dos topes de longitud (TS-28): se validan aquí y viajan a C1
+ * como props, para que el campo proteja a la persona y el almacén proteja al
+ * contrato. Nada más cambia de forma.
+ *
  * Reglas que se ven en el código:
  * - Toda escritura produce un estado **nuevo** y sube `revision`; nunca muta el
  *   anterior, así un oyente que guardó la emisión previa sigue viendo lo que leyó.
@@ -111,6 +115,13 @@ type Action =
   | { type: "follow/add"; record: FollowRecord }
   | { type: "follow/remove"; followerId: string; authorId: string };
 
+/**
+ * Topes de C4 1.2.0 (TS-28). Una sola definición: C1 los recibe como `maxLength`
+ * y C2 los lleva en `CommentSheetState`; nadie más escribe estos números.
+ */
+export const MAX_OPINION_LENGTH = 500;
+export const MAX_COMMENT_LENGTH = 300;
+
 export interface CreateOpinionInput {
   authorId: string;
   workId: string;
@@ -204,6 +215,14 @@ function hasViewer(viewerId: string | null | undefined): viewerId is string {
 
 function isValidText(text: unknown): text is string {
   return typeof text === "string" && text.trim().length > 0;
+}
+
+/**
+ * El recorte precede a la comprobación (BR12.7, TS-30): se mide el texto ya
+ * recortado, así que unos espacios de más no rechazan un texto que cabe.
+ */
+function isWithinLength(text: string, max: number): boolean {
+  return text.trim().length <= max;
 }
 
 function isValidRating(rating: unknown): rating is number {
@@ -559,6 +578,12 @@ export function createContentStore(
       if (!isValidText(input.text)) {
         return failure(422, "El texto de la opinión no es válido.");
       }
+      if (!isWithinLength(input.text, MAX_OPINION_LENGTH)) {
+        return failure(
+          422,
+          `El texto de la opinión no puede superar los ${MAX_OPINION_LENGTH} caracteres.`,
+        );
+      }
       if (!isValidRating(input.rating)) {
         return failure(422, "La valoración debe ser un entero de 1 a 5.");
       }
@@ -611,6 +636,12 @@ export function createContentStore(
 
       if (!isValidText(text)) {
         return failure(422, "El texto de la opinión no es válido.");
+      }
+      if (!isWithinLength(text, MAX_OPINION_LENGTH)) {
+        return failure(
+          422,
+          `El texto de la opinión no puede superar los ${MAX_OPINION_LENGTH} caracteres.`,
+        );
       }
       if (!isValidRating(rating)) {
         return failure(422, "La valoración debe ser un entero de 1 a 5.");
@@ -685,6 +716,12 @@ export function createContentStore(
       }
       if (!isValidText(text)) {
         return failure(422, "El comentario no puede estar vacío.");
+      }
+      if (!isWithinLength(text, MAX_COMMENT_LENGTH)) {
+        return failure(
+          422,
+          `El comentario no puede superar los ${MAX_COMMENT_LENGTH} caracteres.`,
+        );
       }
 
       const record: CommentRecord = {

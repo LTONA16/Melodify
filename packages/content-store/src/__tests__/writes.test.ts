@@ -191,10 +191,11 @@ describe("las escrituras de C4", () => {
       expect(feed()).toHaveLength(10);
     });
 
-    it("acepta un texto largo: el tope de longitud es del formulario, no del almacén", () => {
+    it("rechaza con 422 un texto de más de 500 caracteres y no escribe", () => {
       const text = "Una opinión larga. ".repeat(40).trim();
+      expect(text.length).toBeGreaterThan(500);
 
-      const created = store.createOpinion({
+      const result = store.createOpinion({
         authorId: "demo",
         workId: AS_IT_WAS,
         workTitle: "As It Was",
@@ -203,10 +204,8 @@ describe("las escrituras de C4", () => {
         rating: 4,
       });
 
-      expect(created.ok).toBe(true);
-      if (!created.ok) return;
-      expect(created.value.text).toBe(text);
-      expect(created.value.text.length).toBeGreaterThan(500);
+      expectFailure(result, 422);
+      expect(feed()).toHaveLength(10);
     });
 
     it("responde 422 si quien publica no existe y no crea la obra", () => {
