@@ -240,15 +240,15 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 18 — Formulario: validación y estado (implementar)
 
-- [ ] `app/src/screens/crear/validateOpinionDraft.ts`: función pura que dice qué falta (`work`, `text`, `rating`), usada por «Publicar» y «Guardar».
-- [ ] `app/src/screens/crear/useCrear.ts`: obra, texto, valoración, `alreadyOpined`, error de envío, carga de la edición, validación y las dos escrituras; devuelve `{ state, actions }` y reacciona a `formKey` descartando el borrador.
-- [ ] El `409` pasa a `YaOpinada`; el `422` y cualquier otro error de publicación se tratan como «No pudimos publicar tu opinión.» con «Reintentar», conservando todo; el `404` al guardar pasa a `ErrorCarga`.
+- [x] `app/src/screens/crear/validateOpinionDraft.ts`: función pura que dice qué falta (`work`, `text`, `rating`), usada por «Publicar» y «Guardar».
+- [x] `app/src/screens/crear/useCrear.ts`: obra, texto, valoración, `alreadyOpined`, error de envío, carga de la edición, validación y las dos escrituras; devuelve `{ state, actions }` y reacciona a `formKey` descartando el borrador.
+- [x] El `409` pasa a `YaOpinada`; el `422` y cualquier otro error de publicación se tratan como «No pudimos publicar tu opinión.» con «Reintentar», conservando todo; el `404` al guardar pasa a `ErrorCarga`.
 
 ### Paso 19 — Formulario: pruebas de la lógica (escribir y ejecutar)
 
-- [ ] `app/src/screens/crear/__tests__/validate-opinion-draft.test.ts`: sin obra, sin texto, sin valoración, texto de solo espacios y borrador completo.
-- [ ] `app/src/screens/crear/__tests__/use-crear.test.ts`: `alreadyOpined`, las dos escrituras con sus respuestas (`201`, `409`, `422`, `200`, `404`), «Guardar» sin cambios que no escribe, y el borrador que se descarta al cambiar `formKey`.
-- [ ] Ejecutar el área y dejarla en verde.
+- [x] `app/src/screens/crear/__tests__/validate-opinion-draft.test.ts`: sin obra, sin texto, sin valoración, texto de solo espacios y borrador completo.
+- [x] `app/src/screens/crear/__tests__/use-crear.test.ts`: `alreadyOpined`, las dos escrituras con sus respuestas (`201`, `409`, `422`, `200`, `404`), «Guardar» sin cambios que no escribe, y el borrador que se descarta al cambiar `formKey`.
+- [x] Ejecutar el área y dejarla en verde.
 
 ### Paso 20 — Crear: vista, cabecera y contenedor (implementar)
 
