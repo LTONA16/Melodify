@@ -217,26 +217,26 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 14 — `useWorkSearch` (implementar)
 
-- [ ] `app/src/state/useWorkSearch.ts` con `useWorkSearch(catalog, enabled)` → `{ query, status, results, setQuery, clear, retry }`.
-- [ ] Aplica los 2 caracteres y los 400 ms, cancela el temporizador anterior, descarta respuestas tardías y traduce `SearchResult` a `idle`, `short`, `searching`, `results`, `empty` o `error`.
-- [ ] `offline` y `error` de C5 caen los dos en `error` con el texto de BR13.2 y «Reintentar»; con `enabled` falso no monta temporizadores ni llamadas.
-- [ ] Registrar `SEARCH_PORT_UNAVAILABLE` con `warn` **solo** en el defecto interno (puerto ausente o consulta que falla sin ser `offline`), según NFR9.6 corregido.
+- [x] `app/src/state/useWorkSearch.ts` con `useWorkSearch(catalog, enabled)` → `{ query, status, results, setQuery, clear, retry }`.
+- [x] Aplica los 2 caracteres y los 400 ms, cancela el temporizador anterior, descarta respuestas tardías y traduce `SearchResult` a `idle`, `short`, `searching`, `results`, `empty` o `error`.
+- [x] `offline` y `error` de C5 caen los dos en `error` con el texto de BR13.2 y «Reintentar»; con `enabled` falso no monta temporizadores ni llamadas.
+- [x] Registrar `SEARCH_PORT_UNAVAILABLE` con `warn` **solo** en el defecto interno (puerto ausente o consulta que falla sin ser `offline`), según NFR9.6 corregido.
 
 ### Paso 15 — `useWorkSearch`: pruebas (escribir y ejecutar)
 
-- [ ] `app/src/state/__tests__/use-work-search.test.ts`, con temporizadores falsos: por debajo de 2 caracteres no llama; a los 400 ms llama una vez; escribir de nuevo cancela el anterior; una respuesta tardía se descarta; `results`, `empty`, `error` y el reintento; `enabled: false` no llama ni registra; el caso de puerto ausente registra el código y devuelve `error`.
-- [ ] Ejecutar el área y dejarla en verde.
+- [x] `app/src/state/__tests__/use-work-search.test.ts`, con temporizadores falsos: por debajo de 2 caracteres no llama; a los 400 ms llama una vez; escribir de nuevo cancela el anterior; una respuesta tardía se descarta; `results`, `empty`, `error` y el reintento; `enabled: false` no llama ni registra; el caso de puerto ausente registra el código y devuelve `error`.
+- [x] Ejecutar el área y dejarla en verde.
 
 ### Paso 16 — `useCardActions` (implementar)
 
-- [ ] `app/src/state/useCardActions.ts`: `actionsFor(opinion)` devuelve `{ onLike?, onComment?, onFollow?, onEdit? }` cableados a `toggleLike`, `toggleFollow`, `comments.open` y `openEdit`, con los textos exactos de confirmación y de fallo.
-- [ ] En una opinión propia devuelve solo `onComment` y `onEdit`; sin `viewerId` devuelve objetos vacíos y los controles quedan sin efecto.
-- [ ] El fallo de reacción pide snackbar **sin** acción (desviación registrada de FR11.2) y no cambia el estado.
+- [x] `app/src/state/useCardActions.ts`: `actionsFor(opinion)` devuelve `{ onLike?, onComment?, onFollow?, onEdit? }` cableados a `toggleLike`, `toggleFollow`, `comments.open` y `openEdit`, con los textos exactos de confirmación y de fallo.
+- [x] En una opinión propia devuelve solo `onComment` y `onEdit`; sin `viewerId` devuelve objetos vacíos y los controles quedan sin efecto.
+- [x] El fallo de reacción pide snackbar **sin** acción (desviación registrada de FR11.2) y no cambia el estado.
 
 ### Paso 17 — `useCardActions`: pruebas (escribir y ejecutar)
 
-- [ ] `app/src/state/__tests__/use-card-actions.test.ts`: me gusta y quitarlo con su confirmación; fallo que deja el estado igual y pide el texto exacto; seguir con «Ahora sigues a @ana» y «Ya no sigues a @ana»; opinión propia sin `onLike` ni `onFollow`; sin `viewerId` todo vacío; «Editar» abre `openEdit` con la opinión.
-- [ ] Ejecutar el área y dejarla en verde.
+- [x] `app/src/state/__tests__/use-card-actions.test.ts`: me gusta y quitarlo con su confirmación; fallo que deja el estado igual y pide el texto exacto; seguir con «Ahora sigues a @ana» y «Ya no sigues a @ana»; opinión propia sin `onLike` ni `onFollow`; sin `viewerId` todo vacío; «Editar» abre `openEdit` con la opinión.
+- [x] Ejecutar el área y dejarla en verde.
 
 ### Paso 18 — Formulario: validación y estado (implementar)
 

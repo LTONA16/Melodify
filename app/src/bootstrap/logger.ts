@@ -1,8 +1,9 @@
 import type { SessionLogCode } from "@melodify/app-session";
 
 /**
- * Los códigos de diagnóstico de la app: los de C3 más los tres que estrena U2
- * —suscripción y lectura de contenido, y el módulo de red—. El tipo vive aquí y no
+ * Los códigos de diagnóstico de la app: los de C3, los tres que estrenó U2
+ * —suscripción y lectura de contenido, y el módulo de red— y el que añade U3 para la
+ * búsqueda de Crear. El tipo vive aquí y no
  * en los paquetes porque es vocabulario de la app; un paquete recibe la parte que
  * necesita inyectada y no importa este archivo (NFR9.1, NFR9.4).
  *
@@ -14,7 +15,10 @@ export type AppLogCode =
   | SessionLogCode
   | "CONTENT_SUBSCRIBE_FAILED"
   | "CONTENT_READ_FAILED"
-  | "NETWORK_STATE_UNAVAILABLE";
+  | "NETWORK_STATE_UNAVAILABLE"
+  // El único código que añade U3 (NFR9.6): la búsqueda de Crear declara un defecto
+  // del puerto, nunca un `offline` previsto y nunca el texto de la consulta.
+  | "SEARCH_PORT_UNAVAILABLE";
 
 export interface AppLogger {
   warn(code: AppLogCode, message: string): void;
