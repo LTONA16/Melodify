@@ -52,6 +52,13 @@ export interface TabItem {
   icon: TabIcon;
 }
 
+/**
+ * La valoración que se elige en el formulario (C1 1.3.0): de 0 a 5, donde 0 es
+ * «sin valorar». C4 usa la misma escala, pero esta es la del control, no la del
+ * almacén: el sistema de diseño no conoce C4.
+ */
+export type RatingValue = 0 | 1 | 2 | 3 | 4 | 5;
+
 export type OpinionVariant = "feed" | "compact" | "detail";
 export type CoverSize = "card" | "result" | "detail";
 export type AvatarSize = "small" | "medium" | "large";

@@ -119,62 +119,67 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 2 — Banco de pruebas listo y comando de la unidad registrado
 
-- [ ] Verificar que `jest.config.js` (preset `jest-expo`, `testMatch`, `moduleNameMapper` de los seis paquetes, `collectCoverageFrom`) y `jest.setup.js` cubren las rutas nuevas sin cambios: las pruebas nuevas caen en `app/src/**/*.test.{ts,tsx}` y `packages/*/src/**/*.test.{ts,tsx}`.
-- [ ] Verificar que `npm run typecheck` y `npm run lint` ya miran las rutas nuevas.
-- [ ] Registrar en `unit-test-instructions.md` los comandos acotados por área (nunca `npm test` suelto) y comprobar que el primero corre hoy.
-- [ ] Sin archivos de prueba todavía: el contrato pide el banco listo antes de la primera prueba ejecutable.
+- [x] Verificar que `jest.config.js` (preset `jest-expo`, `testMatch`, `moduleNameMapper` de los seis paquetes, `collectCoverageFrom`) y `jest.setup.js` cubren las rutas nuevas sin cambios: las pruebas nuevas caen en `app/src/**/*.test.{ts,tsx}` y `packages/*/src/**/*.test.{ts,tsx}`.
+- [x] Verificar que `npm run typecheck` y `npm run lint` ya miran las rutas nuevas.
+- [x] Registrar en `unit-test-instructions.md` los comandos acotados por área (nunca `npm test` suelto) y comprobar que el primero corre hoy.
+- [x] Sin archivos de prueba todavía: el contrato pide el banco listo antes de la primera prueba ejecutable.
 
 ### Paso 3 — C4 1.2.0: los dos topes (implementar)
 
-- [ ] En `packages/content-store/src/store.ts`, definir `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300`.
-- [ ] `createOpinion` y `updateOpinion`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_OPINION_LENGTH`; mantener `422` para la valoración fuera de 1–5 y el `409` de la opinión duplicada.
-- [ ] `addComment`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_COMMENT_LENGTH`.
-- [ ] Exportar ambas constantes desde `packages/content-store/src/index.ts` como superficie aditiva de la 1.2.0; actualizar el comentario de cabecera a `C4 1.2.0`.
-- [ ] No cambiar ninguna firma ni el esquema de las vistas.
+- [x] En `packages/content-store/src/store.ts`, definir `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300`.
+- [x] `createOpinion` y `updateOpinion`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_OPINION_LENGTH`; mantener `422` para la valoración fuera de 1–5 y el `409` de la opinión duplicada.
+- [x] `addComment`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_COMMENT_LENGTH`.
+- [x] Exportar ambas constantes desde `packages/content-store/src/index.ts` como superficie aditiva de la 1.2.0; actualizar el comentario de cabecera a `C4 1.2.0`.
+- [x] No cambiar ninguna firma ni el esquema de las vistas.
 
 ### Paso 4 — C4: pruebas de los topes (escribir y ejecutar)
 
-- [ ] `packages/content-store/src/__tests__/limits.test.ts`: 500 acepta y 501 rechaza en `createOpinion`; 300 acepta y 301 rechaza en `addComment`; los tres rechazos devuelven `422` y no escriben (la revisión no sube); el texto se recorta antes de medir.
-- [ ] **Invertir** el caso de `writes.test.ts` que hoy afirma que se acepta más de 500 caracteres (hallazgo Minor de la revisión de Functional Design): pasa a esperar `422`.
-- [ ] Ejecutar solo esta área y dejarla en verde.
+- [x] `packages/content-store/src/__tests__/limits.test.ts`: 500 acepta y 501 rechaza en `createOpinion`; 300 acepta y 301 rechaza en `addComment`; los tres rechazos devuelven `422` y no escriben (la revisión no sube); el texto se recorta antes de medir.
+- [x] **Invertir** el caso de `writes.test.ts` que hoy afirma que se acepta más de 500 caracteres (hallazgo Minor de la revisión de Functional Design): pasa a esperar `422`.
+- [x] Ejecutar solo esta área y dejarla en verde.
 
 ### Paso 5 — C1 1.3.0: modelos y superficie (implementar)
 
-- [ ] En `packages/design-system/src/models.ts`, añadir lo que necesitan las piezas (`RatingValue`, props de resultado de búsqueda) sin tocar `OpinionCardModel` más allá de lo ya previsto.
-- [ ] En `packages/design-system/src/index.ts`, publicar las ocho piezas nuevas y los tipos; actualizar la cabecera a `C1 1.3.0` y dejar `SpotifyCard` libre para U4.
-- [ ] La 1.3.0 es aditiva: ninguna forma de la 1.2.0 deja de compilar.
+- [x] En `packages/design-system/src/models.ts`, añadir lo que necesitan las piezas (`RatingValue`, props de resultado de búsqueda) sin tocar `OpinionCardModel` más allá de lo ya previsto.
+- [x] En `packages/design-system/src/index.ts`, publicar las ocho piezas nuevas y los tipos; actualizar la cabecera a `C1 1.3.0` y dejar `SpotifyCard` libre para U4.
+- [x] La 1.3.0 es aditiva: ninguna forma de la 1.2.0 deja de compilar.
 
 ### Paso 6 — C1: las ocho piezas nuevas (implementar)
 
-- [ ] `SearchField` — `value`, `onChangeText`, `placeholder?`, `autoFocus?`, `disabled?`, `loading?`, `onClear?`. No temporiza; el disparo es del contenedor.
-- [ ] `RatingInput` — `value` 0–5, `onChange`, `disabled?`; «n de 5» y «Sin valorar»; repetir el toque no borra.
-- [ ] `MultilineField` — `label`, `value`, `onChangeText`, `placeholder?`, `error?`, `maxLength?`, `counterFrom?`, `editable?`, `minHeight?`, `testID?`; altura 120–240 con scroll y contador que aparece desde `counterFrom`.
-- [ ] `SecondaryButton` — `label`, `onPress`, `disabled?`; borde sin fondo.
-- [ ] `ConnectionCard` — `title`, `body`, `actionLabel`, `onAction`.
-- [ ] `WorkResultRow` — `work`, `opinionCount`, `onPress`; «N opiniones» / «1 opinión» / «Sé el primero en opinar».
-- [ ] `CommentSheet` — `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `counterFrom?`, `snackbar?`, `onSubmit`, `onRetry`, `onClose`; guarda su borrador, no lo pierde en el error de envío y pinta el snackbar dentro del modal.
-- [ ] `Snackbar` — `message`, `visible`, `onDismiss`; 4 s y sin acciones, con el temporizador del que lo monta.
-- [ ] `OpinionCard` pasa `showLike={!isOwn}` a la barra y usa «Seguir autor» / «Siguiendo» con `accessibilityLabel` «Seguir a {autor}» / «Dejar de seguir a {autor}»; sigue ocultándose en la propia.
-- [ ] `SocialActionBar` gana `showLike?: boolean` (por defecto `true`): con `false`, glifo y contador son texto sin `Pressable` ni rol.
-- [ ] `OfflineBanner` gana `message?: string` y `onRetry?`: el texto de U2 queda por defecto y en Crear se pinta sin acción.
+- [x] `SearchField` — `value`, `onChangeText`, `placeholder?`, `autoFocus?`, `disabled?`, `loading?`, `onClear?`. No temporiza; el disparo es del contenedor.
+- [x] `RatingInput` — `value` 0–5, `onChange`, `disabled?`; «n de 5» y «Sin valorar»; repetir el toque no borra.
+- [x] `MultilineField` — `label`, `value`, `onChangeText`, `placeholder?`, `error?`, `maxLength?`, `counterFrom?`, `editable?`, `minHeight?`, `testID?`; altura 120–240 con scroll y contador que aparece desde `counterFrom`.
+- [x] `SecondaryButton` — `label`, `onPress`, `disabled?`; borde sin fondo.
+- [x] `ConnectionCard` — `title`, `body`, `actionLabel`, `onAction`.
+- [x] `WorkResultRow` — `work`, `opinionCount`, `onPress`; «N opiniones» / «1 opinión» / «Sé el primero en opinar».
+- [x] `CommentSheet` — `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `counterFrom?`, `snackbar?`, `onSubmit`, `onRetry`, `onClose`; guarda su borrador, no lo pierde en el error de envío y pinta el snackbar dentro del modal.
+- [x] `Snackbar` — `message`, `visible`, `onDismiss`; 4 s y sin acciones, con el temporizador del que lo monta.
+- [x] `OpinionCard` pasa `showLike={!isOwn}` a la barra y usa «Seguir autor» / «Siguiendo» con `accessibilityLabel` «Seguir a {autor}» / «Dejar de seguir a {autor}»; sigue ocultándose en la propia.
+- [x] `SocialActionBar` gana `showLike?: boolean` (por defecto `true`): con `false`, glifo y contador son texto sin `Pressable` ni rol.
+- [x] `OfflineBanner` gana `message?: string` y `onRetry?`: el texto de U2 queda por defecto y en Crear se pinta sin acción.
+
+**Desviaciones registradas**
+
+- `MultilineField` acepta además `autoFocus?: boolean`, opcional y aditivo: NFR6.8 (TS-23) pide que el foco entre en el campo al abrir la hoja, y la alternativa —que `CommentSheet` pinte su propio `TextInput`— duplicaría el contador y el tope. La 1.3.0 sigue siendo aditiva.
+- `MultilineField` con `label: ""` no pinta rótulo: la hoja no tiene etiqueta visible en el mockup y no se inventa texto que § Textos exactos no recoge.
 
 ### Paso 7 — C1: pruebas de las piezas nuevas (escribir y ejecutar)
 
-- [ ] `packages/design-system/src/__tests__/search-field.test.tsx` — valor, cambio, limpiar, cargando y deshabilitado.
-- [ ] `packages/design-system/src/__tests__/rating-input.test.tsx` — sin valorar, «4 de 5», repetir el toque, deshabilitado.
-- [ ] `packages/design-system/src/__tests__/multiline-field.test.tsx` — normal, error con texto e icono, contador desde el umbral, tope de longitud, deshabilitado.
-- [ ] `packages/design-system/src/__tests__/secondary-button.test.tsx` y `connection-card.test.tsx` — acción, deshabilitado y textos.
-- [ ] `packages/design-system/src/__tests__/work-result-row.test.tsx` — con opiniones, singular, «Sé el primero en opinar» y pulsación.
-- [ ] `packages/design-system/src/__tests__/snackbar.test.tsx` — oculto, visible y salida a los 4 s con temporizadores falsos.
-- [ ] `packages/design-system/src/__tests__/social-action-bar.test.tsx` (ampliar) — con `showLike: false` no hay control pulsable ni rol, y el número sigue visible.
-- [ ] `packages/design-system/src/__tests__/own-opinion.test.tsx` (ampliar) — la propia no da me gusta; la etiqueta de seguir cambia con `followedByMe`; los `accessibilityLabel` son los dos exactos.
-- [ ] Ejecutar el área de C1 y dejarla en verde.
+- [x] `packages/design-system/src/__tests__/search-field.test.tsx` — valor, cambio, limpiar, cargando y deshabilitado.
+- [x] `packages/design-system/src/__tests__/rating-input.test.tsx` — sin valorar, «4 de 5», repetir el toque, deshabilitado.
+- [x] `packages/design-system/src/__tests__/multiline-field.test.tsx` — normal, error con texto e icono, contador desde el umbral, tope de longitud, deshabilitado.
+- [x] `packages/design-system/src/__tests__/secondary-button.test.tsx` y `connection-card.test.tsx` — acción, deshabilitado y textos.
+- [x] `packages/design-system/src/__tests__/work-result-row.test.tsx` — con opiniones, singular, «Sé el primero en opinar» y pulsación.
+- [x] `packages/design-system/src/__tests__/snackbar.test.tsx` — oculto, visible y salida a los 4 s con temporizadores falsos.
+- [x] `packages/design-system/src/__tests__/social-action-bar.test.tsx` (ampliar) — con `showLike: false` no hay control pulsable ni rol, y el número sigue visible.
+- [x] `packages/design-system/src/__tests__/own-opinion.test.tsx` (ampliar) — la propia no da me gusta; la etiqueta de seguir cambia con `followedByMe`; los `accessibilityLabel` son los dos exactos.
+- [x] Ejecutar el área de C1 y dejarla en verde.
 
 ### Paso 8 — C1: pruebas de la hoja de comentarios (escribir y ejecutar)
 
-- [ ] `packages/design-system/src/__tests__/comment-sheet.test.tsx`: cargando, vacía, con lista, error de carga con «Reintentar», error de envío conservando texto y lista, envío correcto, contador desde 250, tope 300 y snackbar pintado dentro del modal.
-- [ ] Afirmar el estado que cada prueba describe, no solo el montaje (regla de `team.md`).
-- [ ] Ejecutar el área de C1 y dejarla en verde.
+- [x] `packages/design-system/src/__tests__/comment-sheet.test.tsx`: cargando, vacía, con lista, error de carga con «Reintentar», error de envío conservando texto y lista, envío correcto, contador desde 250, tope 300 y snackbar pintado dentro del modal.
+- [x] Afirmar el estado que cada prueba describe, no solo el montaje (regla de `team.md`).
+- [x] Ejecutar el área de C1 y dejarla en verde.
 
 ### Paso 9 — C2 1.3.0: tipos y contrato de la cáscara (implementar)
 

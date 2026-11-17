@@ -53,3 +53,35 @@ describe("OfflineBanner", () => {
     expect(onRetry).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Las dos props opcionales de la 1.3.0: Crear pinta su propio texto y, cuando el
+ * aviso no tiene acción que ofrecer, no se inventa un «Reintentar» vacío.
+ */
+describe("OfflineBanner 1.3.0", () => {
+  it("acepta el texto de Crear y lo pinta tal cual", () => {
+    render(
+      <ThemeProvider scheme="light">
+        <OfflineBanner
+          message="Sin conexión. Puedes opinar sobre las obras de ejemplo."
+        />
+      </ThemeProvider>,
+    );
+
+    expect(
+      screen.getByText(
+        "Sin conexión. Puedes opinar sobre las obras de ejemplo.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("sin reintento no pinta acción", () => {
+    render(
+      <ThemeProvider scheme="light">
+        <OfflineBanner message="Sin conexión." />
+      </ThemeProvider>,
+    );
+
+    expect(screen.queryByTestId("banner-action")).toBeNull();
+  });
+});

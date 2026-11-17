@@ -111,3 +111,51 @@ describe("OpinionCard en estado own", () => {
     expect(screen.getByTestId("opinion-created-at")).toBeTruthy();
   });
 });
+
+/**
+ * Las dos precisiones de la 1.3.0 en la tarjeta: la opinión propia conserva el
+ * contador de me gusta pero no deja dárselo, y seguir alterna «Seguir autor» y
+ * «Siguiendo» con la etiqueta accesible de AC7.3.1 y AC7.3.2.
+ */
+describe("OpinionCard 1.3.0: me gusta propio y acción de seguir", () => {
+  it("en la propia, el me gusta es texto y no responde", () => {
+    const onLike = jest.fn();
+
+    renderCard({}, { onLike });
+
+    const like = screen.getByTestId("social-like");
+
+    expect(like).toHaveTextContent("♡ 1");
+    expect(like.props.accessibilityRole).toBeUndefined();
+
+    fireEvent.press(like);
+
+    expect(onLike).not.toHaveBeenCalled();
+  });
+
+  it("la propia no pinta la acción de seguir", () => {
+    renderCard({ followedByMe: false }, { onFollow: jest.fn() });
+
+    expect(screen.queryByTestId("opinion-follow")).toBeNull();
+  });
+
+  it("sin seguir, la etiqueta es «Seguir autor» y su etiqueta accesible nombra al autor", () => {
+    renderCard({ followedByMe: false }, { isOwn: false, onFollow: jest.fn() });
+
+    const follow = screen.getByTestId("opinion-follow");
+
+    expect(follow).toHaveTextContent("Seguir autor");
+    expect(follow.props.accessibilityLabel).toBe("Seguir a Demo");
+    expect(follow.props.accessibilityState).toMatchObject({ selected: false });
+  });
+
+  it("siguiendo, la etiqueta es «Siguiendo» y ofrece dejar de seguir", () => {
+    renderCard({ followedByMe: true }, { isOwn: false, onFollow: jest.fn() });
+
+    const follow = screen.getByTestId("opinion-follow");
+
+    expect(follow).toHaveTextContent("Siguiendo");
+    expect(follow.props.accessibilityLabel).toBe("Dejar de seguir a Demo");
+    expect(follow.props.accessibilityState).toMatchObject({ selected: true });
+  });
+});

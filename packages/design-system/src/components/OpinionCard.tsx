@@ -17,6 +17,11 @@
  * del callback, AC4.2.1 no se cumpliría hasta que U3 cablee la acción. En U2 se
  * pinta sin efecto —el mismo trato que el chip «Conectar» hasta U4— y U3 le pasa
  * `onEdit`.
+ *
+ * La 1.3.0 cambia dos cosas de la tarjeta: la barra recibe `showLike={!isOwn}`
+ * —la propia conserva el número pero no deja dárselo— y la acción de seguir dice
+ * «Seguir autor» o «Siguiendo» según `followedByMe`, con la etiqueta accesible
+ * «Seguir a {autor}» / «Dejar de seguir a {autor}» (FR7.4, AC7.3.1, AC7.3.2).
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -187,6 +192,7 @@ export function OpinionCard({
           likeCount={opinion.likeCount}
           commentCount={opinion.commentCount}
           likedByMe={opinion.likedByMe}
+          showLike={!isOwn}
           onLike={onLike}
           onComment={onComment}
         />
@@ -195,12 +201,17 @@ export function OpinionCard({
           <Pressable
             testID="opinion-follow"
             accessibilityRole="button"
-            accessibilityLabel="Seguir"
+            accessibilityLabel={
+              opinion.followedByMe
+                ? `Dejar de seguir a ${opinion.authorName}`
+                : `Seguir a ${opinion.authorName}`
+            }
+            accessibilityState={{ selected: opinion.followedByMe }}
             onPress={onFollow}
             style={[styles.inlineAction, { minHeight: theme.size.touch }]}
           >
             <Text style={[theme.type.label, { color: theme.colors.primary }]}>
-              Seguir
+              {opinion.followedByMe ? "Siguiendo" : "Seguir autor"}
             </Text>
           </Pressable>
         ) : null}
