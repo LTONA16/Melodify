@@ -21,9 +21,10 @@ import type { AppSession } from "@melodify/app-session";
 import { useGlobalServices } from "@melodify/app-shell";
 import type { Catalog } from "@melodify/catalog";
 import type { ContentStore } from "@melodify/content-store";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 import { logger, type AppLogger } from "../../bootstrap/logger";
+import { useCardActions } from "../../state/useCardActions";
 import { useNetwork } from "../../state/useNetwork";
 import { useViewerId } from "../../state/useViewerId";
 import type { ScreenDependencies } from "../dependencies";
@@ -37,6 +38,8 @@ export interface DetalleObraScreenProps extends ScreenDependencies {
 
 /** Sin colaboradores no hay nada que hacer ni a quién llamar; la vista está en carga. */
 const NO_ACTION = () => undefined;
+/** Sin colaboradores no hay acciones de tarjeta que ofrecer. */
+const NO_ACTIONS = () => ({});
 
 export function DetalleObraScreen({
   work,
@@ -55,6 +58,7 @@ export function DetalleObraScreen({
         opinionCount={0}
         own={null}
         others={[]}
+        actionsFor={NO_ACTIONS}
         online
         onRetry={NO_ACTION}
         onRetryCovers={NO_ACTION}
@@ -96,9 +100,24 @@ function DetalleObraConnected({
 }: DetalleObraConnectedProps) {
   const viewerId = useViewerId(session);
   const online = useNetwork();
-  const { status, work, own, others, average, opinionCount, cover, retry } =
+  const { status, work, own, others, ownView, otherViews, average, opinionCount, cover, retry } =
     useDetalleObra(workId, viewerId, content, catalog, online, log);
   const global = useGlobalServices();
+  const cardActionsFor = useCardActions(content, viewerId);
+
+  // Las acciones se resuelven por `opinionId` porque la vista solo conoce la forma de
+  // tarjeta de C1; las opiniones de C4 (con `isOwn` y el autor que pide seguir) viven
+  // aquí, junto a la identidad.
+  const actionsFor = useCallback(
+    (opinionId: string) => {
+      if (ownView !== null && ownView.opinionId === opinionId) {
+        return cardActionsFor(ownView);
+      }
+      const view = otherViews.find((item) => item.opinionId === opinionId);
+      return view === undefined ? {} : cardActionsFor(view);
+    },
+    [ownView, otherViews, cardActionsFor],
+  );
 
   useEffect(() => {
     global.setHeader({ title: "Detalle de obra" });
@@ -118,6 +137,7 @@ function DetalleObraConnected({
       opinionCount={opinionCount}
       own={own}
       others={others}
+      actionsFor={actionsFor}
       online={online}
       onRetry={retry}
       onRetryCovers={() => catalog.retryCovers()}

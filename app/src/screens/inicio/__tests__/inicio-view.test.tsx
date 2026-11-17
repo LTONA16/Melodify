@@ -42,7 +42,7 @@ function opinionCard(
 }
 
 const FEED: InicioCard[] = [
-  { opinion: opinionCard(), isOwn: false },
+  { opinion: opinionCard(), isOwn: false, actions: {} },
   {
     opinion: opinionCard({
       opinionId: "op-003",
@@ -57,6 +57,7 @@ const FEED: InicioCard[] = [
       rating: 3,
     }),
     isOwn: false,
+    actions: {},
   },
 ];
 
@@ -205,8 +206,34 @@ describe("InicioView", () => {
     expect(props.onOpenOpinion).toHaveBeenCalledWith("op-003");
   });
 
+  it("reparte a cada tarjeta su paquete de acciones (me gusta, comentar, seguir)", () => {
+    const onLike = jest.fn();
+    const onComment = jest.fn();
+    const onFollow = jest.fn();
+
+    renderView({
+      cards: [
+        {
+          opinion: opinionCard(),
+          isOwn: false,
+          actions: { onLike, onComment, onFollow },
+        },
+      ],
+    });
+
+    fireEvent.press(screen.getByTestId("social-like"));
+    fireEvent.press(screen.getByTestId("social-comment"));
+    fireEvent.press(screen.getByTestId("opinion-follow"));
+
+    expect(onLike).toHaveBeenCalledTimes(1);
+    expect(onComment).toHaveBeenCalledTimes(1);
+    expect(onFollow).toHaveBeenCalledTimes(1);
+  });
+
   it("las tarjetas del feed son de lectura: sin «Tu opinión», sin «Editar» y con las acciones inertes", () => {
-    renderView({ cards: [{ opinion: opinionCard(), isOwn: true }] });
+    renderView({
+      cards: [{ opinion: opinionCard(), isOwn: true, actions: {} }],
+    });
 
     expect(screen.queryByTestId("opinion-own-label")).toBeNull();
     expect(screen.queryByTestId("opinion-edit")).toBeNull();

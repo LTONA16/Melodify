@@ -1,9 +1,12 @@
 import { ThemeProvider } from "@melodify/design-system";
-import type { OpinionCardModel } from "@melodify/design-system";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import { PerfilView } from "../PerfilView";
-import type { PerfilAuthorView, PerfilViewProps } from "../PerfilView";
+import type {
+  PerfilAuthorView,
+  PerfilCard,
+  PerfilViewProps,
+} from "../PerfilView";
 
 /**
  * La vista de Perfil (BR9.1–BR9.9, AC9.1.1–AC9.1.7): identidad, contadores con
@@ -11,24 +14,27 @@ import type { PerfilAuthorView, PerfilViewProps } from "../PerfilView";
  * el cierre de sesión. La tarjeta de Spotify **no** existe en U2: su hueco es de U4
  * (AC9.1.8 sigue `Deferred`).
  */
-function card(opinionId: string): OpinionCardModel {
+function card(opinionId: string): PerfilCard {
   return {
-    opinionId,
-    authorId: "demo",
-    authorName: "Usuario demo",
-    authorHandle: "demo",
-    followedByMe: false,
-    workId: `obra-${opinionId}`,
-    workTitle: `Obra ${opinionId}`,
-    workArtist: "Queen",
-    coverUrl: null,
-    text: `Texto de ${opinionId}.`,
-    rating: 5,
-    createdAt: "2026-11-01T10:00:00.000Z",
-    updatedAt: "2026-11-01T10:00:00.000Z",
-    likeCount: 0,
-    commentCount: 0,
-    likedByMe: false,
+    opinion: {
+      opinionId,
+      authorId: "demo",
+      authorName: "Usuario demo",
+      authorHandle: "demo",
+      followedByMe: false,
+      workId: `obra-${opinionId}`,
+      workTitle: `Obra ${opinionId}`,
+      workArtist: "Queen",
+      coverUrl: null,
+      text: `Texto de ${opinionId}.`,
+      rating: 5,
+      createdAt: "2026-11-01T10:00:00.000Z",
+      updatedAt: "2026-11-01T10:00:00.000Z",
+      likeCount: 0,
+      commentCount: 0,
+      likedByMe: false,
+    },
+    actions: {},
   };
 }
 

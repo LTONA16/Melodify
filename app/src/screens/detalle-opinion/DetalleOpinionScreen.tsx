@@ -25,6 +25,7 @@ import { useEffect, useMemo } from "react";
 
 import { logger, type AppLogger } from "../../bootstrap/logger";
 import { toOpinionCardModel } from "../../state/opinionCardModel";
+import { useCardActions } from "../../state/useCardActions";
 import { useNetwork } from "../../state/useNetwork";
 import { useViewerId } from "../../state/useViewerId";
 import type { ScreenDependencies } from "../dependencies";
@@ -38,6 +39,8 @@ export interface DetalleOpinionScreenProps extends ScreenDependencies {
 
 /** Sin colaboradores no hay nada que hacer ni a quién llamar; la vista está en carga. */
 const NO_ACTION = () => undefined;
+/** Sin colaboradores no hay acciones de tarjeta que ofrecer. */
+const NO_ACTIONS = {};
 
 export function DetalleOpinionScreen({
   opinion,
@@ -52,6 +55,7 @@ export function DetalleOpinionScreen({
         status="loading"
         card={null}
         isOwn={false}
+        actions={NO_ACTIONS}
         workTitle=""
         workArtist=""
         coverUrl={null}
@@ -115,12 +119,14 @@ function DetalleOpinionConnected({
       opinion === null ? null : toOpinionCardModel({ opinion, cover }),
     [opinion, cover],
   );
+  const actionsFor = useCardActions(content, viewerId);
 
   return (
     <DetalleOpinionView
       status={status}
       card={card}
       isOwn={opinion?.isOwn === true}
+      actions={opinion === null ? NO_ACTIONS : actionsFor(opinion)}
       workTitle={workTitle}
       workArtist={workArtist}
       coverUrl={cover.kind === "url" ? cover.value : null}

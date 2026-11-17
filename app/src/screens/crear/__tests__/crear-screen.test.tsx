@@ -102,8 +102,11 @@ function opinionView(overrides: Partial<OpinionView> = {}): OpinionView {
   };
 }
 
-function ok<T>(value: T, code: 200 | 201 = 200): ContentResult<T> {
-  return { ok: true, code, value };
+function ok<T, C extends 200 | 201 = 200>(
+  value: T,
+  code?: C,
+): ContentResult<T, C> {
+  return { ok: true, code: (code ?? 200) as C, value };
 }
 
 interface ContentDouble {
@@ -381,7 +384,7 @@ describe("CrearScreen — publicar", () => {
     expect(
       (view.global.goToTab as jest.Mock).mock.invocationCallOrder[0],
     ).toBeLessThan(
-      (view.global.showSnackbar as jest.Mock).mock.invocationCallOrder[0],
+      (view.global.showSnackbar as jest.Mock).mock.invocationCallOrder[0]!,
     );
   });
 
@@ -496,7 +499,7 @@ describe("CrearScreen — editar", () => {
     expect(
       (view.global.closeCreate as jest.Mock).mock.invocationCallOrder[0],
     ).toBeLessThan(
-      (view.global.showSnackbar as jest.Mock).mock.invocationCallOrder[0],
+      (view.global.showSnackbar as jest.Mock).mock.invocationCallOrder[0]!,
     );
   });
 

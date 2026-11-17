@@ -114,7 +114,7 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 - [x] Crear `app/src/comments/` (`createCommentsController.ts`, `toCommentModel.ts`, `index.ts`) y `app/src/screens/crear/` (`CrearScreen.tsx`, `CrearView.tsx`, `CrearHeader.tsx`, `useCrear.ts`, `validateOpinionDraft.ts`).
 - [x] Respetar las fronteras de LC-1…LC-11: `app/src/comments/` no importa navegación ni la pestaña activa; ningún paquete importa `app/`; C1 no importa C4, C5 ni C8.
-- [ ] Borrar el marcador `app/src/screens/placeholders/CrearScreen.tsx` cuando `CrearScreen` real esté registrada (Paso 25).
+- [x] Borrar el marcador `app/src/screens/placeholders/CrearScreen.tsx` cuando `CrearScreen` real esté registrada (Paso 25).
 - [x] Sin pruebas en este paso: es andamiaje.
 
 ### Paso 2 — Banco de pruebas listo y comando de la unidad registrado
@@ -267,41 +267,41 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 22 — Cableado de las cuatro pantallas de U2 (implementar)
 
-- [ ] Inicio, Detalle de obra, Detalle de opinión y Perfil usan `useCardActions` y pasan el paquete a la tarjeta; no cambian su variante ni su composición.
-- [ ] La tarjeta propia recibe `onEdit` y `onComment`; las ajenas además `onLike` y `onFollow`; en Perfil ninguna recibe me gusta ni seguir.
-- [ ] `opened` desde la hoja no cambia de pestaña: la hoja se abre sobre la pantalla actual.
+- [x] Inicio, Detalle de obra, Detalle de opinión y Perfil usan `useCardActions` y pasan el paquete a la tarjeta; no cambian su variante ni su composición.
+- [x] La tarjeta propia recibe `onEdit` y `onComment`; las ajenas además `onLike` y `onFollow`; en Perfil ninguna recibe me gusta ni seguir.
+- [x] `opened` desde la hoja no cambia de pestaña: la hoja se abre sobre la pantalla actual.
 
 ### Paso 23 — Cableado: pruebas (escribir y ejecutar)
 
-- [ ] Ampliar las pruebas de Inicio, los dos detalles y Perfil: cada tarjeta recibe las acciones que le tocan, la propia no ofrece me gusta ni seguir, y tocar «Editar» abre la entrada de edición.
-- [ ] Ejecutar las cuatro áreas y dejarlas en verde.
+- [x] Ampliar las pruebas de Inicio, los dos detalles y Perfil: cada tarjeta recibe las acciones que le tocan, la propia no ofrece me gusta ni seguir, y tocar «Editar» abre la entrada de edición.
+- [x] Ejecutar las cuatro áreas y dejarlas en verde.
 
 ### Paso 24 — Composición (implementar)
 
-- [ ] `app/src/bootstrap/comments.ts` **(nuevo)**: construye una sola vez `createCommentsController({ content: contentStore, session: appSession })`.
-- [ ] `app/src/bootstrap/shell-services.ts`: sustituye el controlador vacío de comentarios por el de `comments.ts`; Spotify sigue con su valor de U1 hasta U4.
-- [ ] `app/src/bootstrap/App.tsx`: la pestaña Crear pasa a `CrearScreen` con `session`, `content` y `catalog`; el resto del registro no cambia.
-- [ ] `app/src/screens/dependencies.ts`: la forma sigue sirviendo a las cinco pantallas; si el contenedor de Crear necesita la entrada de la cáscara, se resuelve con los hooks de contexto, no con una segunda instancia.
+- [x] `app/src/bootstrap/comments.ts` **(nuevo)**: construye una sola vez `createCommentsController({ content: contentStore, session: appSession })`.
+- [x] `app/src/bootstrap/shell-services.ts`: sustituye el controlador vacío de comentarios por el de `comments.ts`; Spotify sigue con su valor de U1 hasta U4.
+- [x] `app/src/bootstrap/App.tsx`: la pestaña Crear pasa a `CrearScreen` con `session`, `content` y `catalog`; el resto del registro no cambia.
+- [x] `app/src/screens/dependencies.ts`: la forma sigue sirviendo a las cinco pantallas; si el contenedor de Crear necesita la entrada de la cáscara, se resuelve con los hooks de contexto, no con una segunda instancia.
 
 ### Paso 25 — Composición: pruebas (escribir y ejecutar)
 
-- [ ] `app/src/bootstrap/__tests__/comments-instance.test.ts`: una sola instancia por arranque y la misma que ve la cáscara.
-- [ ] Ampliar `app/src/bootstrap/__tests__/app-bootstrap.test.tsx`: Crear monta el formulario real y no el marcador; la hoja y el snackbar se pintan desde la cáscara.
-- [ ] Ejecutar el área y dejarla en verde.
+- [x] `app/src/bootstrap/__tests__/comments-instance.test.ts`: una sola instancia por arranque y la misma que ve la cáscara.
+- [x] Ampliar `app/src/bootstrap/__tests__/app-bootstrap.test.tsx`: Crear monta el formulario real y no el marcador; la hoja y el snackbar se pintan desde la cáscara.
+- [x] Ejecutar el área y dejarla en verde.
 
 ### Paso 26 — Configuración de entorno y build (verificar, sin escribir)
 
-- [ ] Confirmar que U3 no añade dependencias a `package.json` ni a ningún paquete (NFR7.6).
-- [ ] Confirmar que `.github/workflows/ci.yml` no cambia: `npm test` ya corre `jest --coverage` y los umbrales por árbol ya cubren todas las rutas nuevas.
-- [ ] Confirmar que no hay variable de entorno, secreto ni artefacto desplegable nuevo.
-- [ ] Si algo de esto dejara de ser cierto, parar y volver a Plan Approval antes de escribirlo.
+- [x] Confirmar que U3 no añade dependencias a `package.json` ni a ningún paquete (NFR7.6).
+- [x] Confirmar que `.github/workflows/ci.yml` no cambia: `npm test` ya corre `jest --coverage` y los umbrales por árbol ya cubren todas las rutas nuevas.
+- [x] Confirmar que no hay variable de entorno, secreto ni artefacto desplegable nuevo.
+- [x] Si algo de esto dejara de ser cierto, parar y volver a Plan Approval antes de escribirlo.
 
 ### Paso 27 — Documentación y trazabilidad
 
-- [ ] `code-summary.md` con lo construido, las desviaciones registradas (snackbar de fallo de reacción sin acción, `setTimeout` propio, único código de log `SEARCH_PORT_UNAVAILABLE`) y el comando de la unidad.
-- [ ] `source-manifest.json` con **todas** las rutas tocadas, incluidas las de prueba.
-- [ ] `traceability.json` generado con `aidlc engine sensor-traceability --stage code-generation --output-path … --write-upstream`, con todos los objetivos en `OK` y existiendo en disco.
-- [ ] Entradas de `memory.md` de la etapa al cerrar cada tramo.
+- [x] `code-summary.md` con lo construido, las desviaciones registradas (snackbar de fallo de reacción sin acción, `setTimeout` propio, único código de log `SEARCH_PORT_UNAVAILABLE`) y el comando de la unidad.
+- [x] `source-manifest.json` con **todas** las rutas tocadas, incluidas las de prueba.
+- [x] `traceability.json` generado con `aidlc engine sensor-traceability --stage code-generation --output-path … --write-upstream`, con todos los objetivos en `OK` y existiendo en disco.
+- [x] Entradas de `memory.md` de la etapa al cerrar cada tramo.
 
 ## Notas de ejecución
 

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, renderHook } from "@testing-library/react-native";
+import { act, fireEvent, render, renderHook, within } from "@testing-library/react-native";
 import {
   GlobalServicesContext,
   ShellServicesContext,
@@ -110,6 +110,7 @@ function setup(options: HarnessOptions = {}) {
   const log = silentLogger();
   const session = signedInSession();
   const global = options.global ?? globalServices();
+  const openComments = jest.fn();
 
   const services: ShellServices = {
     network: network.service,
@@ -123,7 +124,7 @@ function setup(options: HarnessOptions = {}) {
     comments: {
       state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => () => undefined,
-      open: () => undefined,
+      open: openComments,
       close: () => undefined,
       retry: () => undefined,
       submit: () => false,
@@ -145,7 +146,16 @@ function setup(options: HarnessOptions = {}) {
     </ThemeProvider>
   );
 
-  return { ...render(tree), tree, network, content, catalog, global, session };
+  return {
+    ...render(tree),
+    tree,
+    network,
+    content,
+    catalog,
+    global,
+    session,
+    openComments,
+  };
 }
 
 function globalServices(
@@ -211,6 +221,26 @@ describe("PerfilScreen", () => {
     expect(global.openOpinionDetail).toHaveBeenCalledWith({
       opinionId: "op-004",
     });
+  });
+
+  it("ninguna tarjeta ofrece me gusta ni seguir; «Editar» abre la edición y comentar la hoja", async () => {
+    const view = setup();
+
+    await view.findByTestId("perfil-name");
+
+    const cardView = within(view.getByTestId("opinion-card-op-004"));
+
+    expect(cardView.queryByTestId("opinion-follow")).toBeNull();
+    expect(cardView.getByTestId("social-like").props.accessibilityRole).toBeUndefined();
+    expect(cardView.getByTestId("opinion-edit")).toBeTruthy();
+
+    fireEvent.press(cardView.getByTestId("opinion-edit"));
+
+    expect(view.global.openEdit).toHaveBeenCalledWith({ opinionId: "op-004" });
+
+    fireEvent.press(cardView.getByTestId("social-comment"));
+
+    expect(view.openComments).toHaveBeenCalledWith("op-004");
   });
 
   it("«Cerrar sesión» llama a la sesión inyectada y no borra el contenido", async () => {

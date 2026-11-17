@@ -21,12 +21,15 @@ import { ScrollView, StyleSheet, View } from "react-native";
 
 import { OfflineBanner } from "../../components/OfflineBanner";
 import { WorkHeader } from "../../components/WorkHeader";
+import type { CardActions } from "../../state/useCardActions";
 import type { ContentStatus } from "../../state/useContent";
 
 export interface DetalleOpinionViewProps {
   status: ContentStatus;
   card: OpinionCardModel | null;
   isOwn: boolean;
+  /** El paquete de acciones de la tarjeta; la propia solo trae comentar y editar. */
+  actions: CardActions;
   workTitle: string;
   workArtist: string;
   coverUrl: string | null;
@@ -41,6 +44,7 @@ export function DetalleOpinionView({
   status,
   card,
   isOwn,
+  actions,
   workTitle,
   workArtist,
   coverUrl,
@@ -88,7 +92,12 @@ export function DetalleOpinionView({
             average={average}
             opinionCount={opinionCount}
           />
-          <OpinionCard opinion={card} variant="detail" isOwn={isOwn} />
+          <OpinionCard
+            opinion={card}
+            variant="detail"
+            isOwn={isOwn}
+            {...actions}
+          />
         </>
       )}
     </ScrollView>

@@ -87,6 +87,7 @@ function renderView(overrides: Partial<DetalleObraViewProps> = {}) {
     opinionCount: 2,
     own: OWN_BOHEMIAN,
     others: [OTHER_BOHEMIAN],
+    actionsFor: () => ({}),
     online: true,
     onRetry: jest.fn(),
     onRetryCovers: jest.fn(),

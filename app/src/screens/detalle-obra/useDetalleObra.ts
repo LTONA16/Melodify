@@ -41,6 +41,9 @@ export interface DetalleObraState {
   /** La opinión de quien mira, si existe: va primero y en estado `own` (BR8.4). */
   own: OpinionCardModel | null;
   others: OpinionCardModel[];
+  /** Las opiniones de C4 tal cual, para resolver sus acciones con la identidad. */
+  ownView: OpinionView | null;
+  otherViews: OpinionView[];
   /** Media de las valoraciones ya redondeada al entero; 0 sin opiniones. */
   average: number;
   opinionCount: number;
@@ -175,22 +178,31 @@ export function useDetalleObra(
     [catalog, workId, catalogVersion, online],
   );
 
-  const { own, others } = useMemo(() => {
+  const { own, others, ownView, otherViews } = useMemo(() => {
     const own: OpinionCardModel[] = [];
     const others: OpinionCardModel[] = [];
+    const ownViews: OpinionView[] = [];
+    const otherViews: OpinionView[] = [];
 
     for (const opinion of current.opinions) {
       const card = toOpinionCardModel({ opinion, cover });
       if (opinion.isOwn) {
         own.push(card);
+        ownViews.push(opinion);
       } else {
         others.push(card);
+        otherViews.push(opinion);
       }
     }
 
     // Solo puede haber una propia por obra (BR4.3); si hubiera más, la primera es la
     // que esta pantalla destaca.
-    return { own: own[0] ?? null, others };
+    return {
+      own: own[0] ?? null,
+      others,
+      ownView: ownViews[0] ?? null,
+      otherViews,
+    };
   }, [current.opinions, cover]);
 
   // Un solo redondeo para toda la app: el de `state/ratings.ts`, que el detalle de
@@ -209,6 +221,8 @@ export function useDetalleObra(
     work: current.work,
     own,
     others,
+    ownView,
+    otherViews,
     average,
     opinionCount: current.opinionCount,
     cover,

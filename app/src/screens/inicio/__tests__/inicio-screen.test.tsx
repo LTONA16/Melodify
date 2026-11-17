@@ -3,6 +3,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react-native";
 import {
   GlobalServicesContext,
@@ -121,6 +122,7 @@ function setup(options: HarnessOptions = {}) {
     });
   const log = silentLogger();
   const session = signedInSession();
+  const openComments = jest.fn();
 
   const services: ShellServices = {
     network: network.service,
@@ -134,7 +136,7 @@ function setup(options: HarnessOptions = {}) {
     comments: {
       state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => () => undefined,
-      open: () => undefined,
+      open: openComments,
       close: () => undefined,
       retry: () => undefined,
       submit: () => false,
@@ -169,7 +171,17 @@ function setup(options: HarnessOptions = {}) {
 
   const result = render(tree);
 
-  return { ...result, tree, network, content, catalog, global, session, log };
+  return {
+    ...result,
+    tree,
+    network,
+    content,
+    catalog,
+    global,
+    session,
+    log,
+    openComments,
+  };
 }
 
 describe("InicioScreen", () => {
@@ -253,6 +265,36 @@ describe("InicioScreen", () => {
     expect(view.global.openOpinionDetail).toHaveBeenCalledWith({
       opinionId: "op-003",
     });
+  });
+
+  it("cada tarjeta recibe sus acciones: la propia solo comentar y editar, la ajena además me gusta y seguir", async () => {
+    const view = setup();
+
+    await view.findByTestId("opinion-card-op-001");
+    await view.findByTestId("opinion-card-op-002");
+
+    const own = within(view.getByTestId("opinion-card-op-001"));
+
+    expect(own.getByTestId("opinion-edit")).toBeTruthy();
+    expect(own.queryByTestId("opinion-follow")).toBeNull();
+    // El contador propio se pinta como texto, no como control (Q3 = A).
+    expect(own.getByTestId("social-like").props.accessibilityRole).toBeUndefined();
+
+    const other = within(view.getByTestId("opinion-card-op-002"));
+
+    expect(other.queryByTestId("opinion-edit")).toBeNull();
+    expect(other.getByTestId("opinion-follow")).toBeTruthy();
+    expect(other.getByTestId("social-like").props.accessibilityRole).toBe(
+      "button",
+    );
+
+    fireEvent.press(own.getByTestId("opinion-edit"));
+
+    expect(view.global.openEdit).toHaveBeenCalledWith({ opinionId: "op-001" });
+
+    fireEvent.press(other.getByTestId("social-comment"));
+
+    expect(view.openComments).toHaveBeenCalledWith("op-002");
   });
 
   it("sin opiniones pinta el vacío de la siembra vacía y «Crear opinión» va a Crear", async () => {

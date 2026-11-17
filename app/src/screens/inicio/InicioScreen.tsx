@@ -24,6 +24,7 @@ import { useMemo } from "react";
 
 import { logger, type AppLogger } from "../../bootstrap/logger";
 import { toOpinionCardModel } from "../../state/opinionCardModel";
+import { useCardActions } from "../../state/useCardActions";
 import { useCatalog } from "../../state/useCatalog";
 import { useContent } from "../../state/useContent";
 import { useNetwork } from "../../state/useNetwork";
@@ -96,6 +97,7 @@ function InicioConnected({
   const catalogVersion = useCatalog(catalog);
   const { spotify } = useShellServices();
   const global = useGlobalServices();
+  const actionsFor = useCardActions(content, viewerId);
 
   const cards = useMemo(
     () =>
@@ -105,13 +107,16 @@ function InicioConnected({
           cover: catalog.coverFor(opinion.workId),
         }),
         isOwn: opinion.isOwn,
+        // El paquete de acciones se resuelve por tarjeta: la propia no ofrece me gusta
+        // ni seguir, y sin identidad llega vacío (BR14.2).
+        actions: actionsFor(opinion),
       })),
     // `revision`, `catalogVersion` y `online` son la clave del mapeo aunque no se lean
     // en el cuerpo: las portadas se deciden con la versión del catálogo y con la red, y
     // el mapeo solo debe rehacerse cuando alguna cambia (NFR8.5). La primera emisión
     // del catálogo no cuenta como cambio, y `opinions` ya cambia con la revisión.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opinions, revision, catalogVersion, online, catalog],
+    [opinions, revision, catalogVersion, online, catalog, actionsFor],
   );
 
   return (

@@ -19,6 +19,7 @@ import {
   render,
   renderHook,
   screen,
+  within,
 } from "@testing-library/react-native";
 
 import type { AppLogger } from "../../../bootstrap/logger";
@@ -94,7 +95,10 @@ function networkDouble(initial: boolean) {
   };
 }
 
-function shellServices(network: ReturnType<typeof networkDouble>): ShellServices {
+function shellServices(
+  network: ReturnType<typeof networkDouble>,
+  openComments: jest.Mock,
+): ShellServices {
   return {
     network: network.service,
     spotify: {
@@ -107,7 +111,7 @@ function shellServices(network: ReturnType<typeof networkDouble>): ShellServices
     comments: {
       state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => () => undefined,
-      open: () => undefined,
+      open: openComments,
       close: () => undefined,
       retry: () => undefined,
       submit: () => false,
@@ -160,6 +164,7 @@ function baseProps(
     status: "ready",
     card: card(),
     isOwn: true,
+    actions: {},
     workTitle: "Bohemian Rhapsody",
     workArtist: "Queen",
     coverUrl: null,
@@ -252,10 +257,11 @@ function setupScreen(options: ScreenOptions = {}) {
   const global = options.global ?? globalServices();
   const session = signedInSession();
   const opinionId = options.opinionId ?? "op-001";
+  const openComments = jest.fn();
 
   const tree = (
     <ThemeProvider scheme="light">
-      <ShellServicesContext.Provider value={shellServices(network)}>
+      <ShellServicesContext.Provider value={shellServices(network, openComments)}>
         <GlobalServicesContext.Provider value={global}>
           <DetalleOpinionScreen
             opinion={{ opinionId }}
@@ -269,7 +275,16 @@ function setupScreen(options: ScreenOptions = {}) {
     </ThemeProvider>
   );
 
-  return { ...render(tree), tree, content, catalog, global, log, session };
+  return {
+    ...render(tree),
+    tree,
+    content,
+    catalog,
+    global,
+    log,
+    session,
+    openComments,
+  };
 }
 
 describe("DetalleOpinionView", () => {
@@ -454,6 +469,26 @@ describe("DetalleOpinionScreen", () => {
       "Bohemian Rhapsody",
     );
     expect(view.getByText("Tu opinión")).toBeVisible();
+  });
+
+  it("la tarjeta propia no ofrece me gusta ni seguir; «Editar» abre la edición y comentar la hoja", async () => {
+    const view = setupScreen();
+
+    await view.findByTestId("opinion-card-op-001");
+
+    const cardView = within(view.getByTestId("opinion-card-op-001"));
+
+    expect(cardView.getByTestId("opinion-edit")).toBeTruthy();
+    expect(cardView.getByTestId("social-like").props.accessibilityRole).toBeUndefined();
+    expect(cardView.queryByTestId("opinion-follow")).toBeNull();
+
+    fireEvent.press(cardView.getByTestId("opinion-edit"));
+
+    expect(view.global.openEdit).toHaveBeenCalledWith({ opinionId: "op-001" });
+
+    fireEvent.press(cardView.getByTestId("social-comment"));
+
+    expect(view.openComments).toHaveBeenCalledWith("op-001");
   });
 
   it("sin dependencias de composición se queda en carga en lugar de inventar un almacén", () => {

@@ -25,8 +25,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 
 import { ActividadScreen } from "../screens/placeholders/ActividadScreen";
-import { CrearScreen } from "../screens/placeholders/CrearScreen";
 import { ExplorarScreen } from "../screens/placeholders/ExplorarScreen";
+import { CrearScreen } from "../screens/crear/CrearScreen";
 import { DetalleObraScreen } from "../screens/detalle-obra/DetalleObraScreen";
 import { DetalleOpinionScreen } from "../screens/detalle-opinion/DetalleOpinionScreen";
 import { InicioScreen } from "../screens/inicio/InicioScreen";
@@ -95,9 +95,15 @@ function PerfilRoute() {
   );
 }
 
+function CrearRoute() {
+  return (
+    <CrearScreen session={appSession} content={contentStore} catalog={catalog} />
+  );
+}
+
 /**
- * Las cinco pestañas en el orden de la barra (F4.1). Inicio y Perfil ya son las
- * pantallas de U2; Explorar, Crear y Actividad siguen siendo contenedoras hasta U3–U5.
+ * Las cinco pestañas en el orden de la barra (F4.1). Inicio, Crear y Perfil ya son
+ * pantallas reales; Explorar y Actividad siguen siendo contenedoras hasta U4–U5.
  */
 const screens: ScreenModule[] = [
   {
@@ -110,7 +116,7 @@ const screens: ScreenModule[] = [
     ],
   },
   { name: "explorar", title: "Explorar", component: ExplorarScreen },
-  { name: "crear", title: "Crear", component: CrearScreen },
+  { name: "crear", title: "Crear", component: CrearRoute },
   { name: "actividad", title: "Actividad", component: ActividadScreen },
   {
     name: "perfil",

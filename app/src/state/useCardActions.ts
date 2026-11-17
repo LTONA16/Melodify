@@ -20,10 +20,22 @@
  * - **Los textos son los de `functional-spec.md` § Textos exactos**, y el handle del
  *   autor se lee de la opinión que la persona está viendo, no del resultado: el
  *   resultado de seguir no trae handle.
+ * - **Los servicios salen de los contextos de la cáscara** (C2): la hoja de comentarios
+ *   y el snackbar los provee `AppShell`, así que leerlos aquí evita que cada pantalla
+ *   los baje a mano por props y que se construya una segunda hoja.
  */
-import type { GlobalServices, ShellServices } from "@melodify/app-shell";
+import {
+  useGlobalServices,
+  useShellServices,
+} from "@melodify/app-shell";
 import type { ContentStore, OpinionView } from "@melodify/content-store";
 import { useCallback } from "react";
+
+/** El texto exacto de un fallo de me gusta (desviación registrada de FR11.2). */
+export const LIKE_FAILED_MESSAGE = "No pudimos guardar tu me gusta";
+
+/** El texto exacto de un fallo de seguimiento. */
+export const FOLLOW_FAILED_MESSAGE = "No pudimos guardar tu seguimiento";
 
 /** Lo que una tarjeta puede recibir. `undefined` en un campo = control sin efecto. */
 export interface CardActions {
@@ -35,27 +47,23 @@ export interface CardActions {
 
 export type CardActionsFor = (opinion: OpinionView) => CardActions;
 
-/** Lo que el hook necesita de C4: las dos alternancias que no necesitan la sesión entera. */
+/** Lo que el hook necesita de C4: las dos alternancias que no necesitan la sesión. */
 export type CardActionsContentPort = Pick<
   ContentStore,
   "toggleLike" | "toggleFollow"
 >;
 
-export interface CardActionsDeps {
-  content: CardActionsContentPort;
-  viewerId: string | null;
-  /** El controlador de la hoja de C2; solo se usa `open`. */
-  comments: Pick<ShellServices["comments"], "open">;
-  /** El snackbar y la navegación de la cáscara. */
-  global: Pick<GlobalServices, "showSnackbar" | "openEdit">;
-}
+/**
+ * El paquete de acciones de una tarjeta, atado al espectador y al almacén de la
+ * pantalla. Devuelve una función estable mientras no cambien sus dependencias.
+ */
+export function useCardActions(
+  content: CardActionsContentPort,
+  viewerId: string | null,
+): CardActionsFor {
+  const { comments } = useShellServices();
+  const { showSnackbar, openEdit } = useGlobalServices();
 
-export function useCardActions({
-  content,
-  viewerId,
-  comments,
-  global,
-}: CardActionsDeps): CardActionsFor {
   return useCallback(
     (opinion: OpinionView): CardActions => {
       if (viewerId === null) {
@@ -71,7 +79,7 @@ export function useCardActions({
       if (opinion.isOwn) {
         return {
           onComment,
-          onEdit: () => global.openEdit({ opinionId: opinion.opinionId }),
+          onEdit: () => openEdit({ opinionId: opinion.opinionId }),
         };
       }
 
@@ -83,7 +91,7 @@ export function useCardActions({
 
         if (!result.ok) {
           // El contador no se pinta a mano: C4 no emitió, así que nada cambió.
-          global.showSnackbar({ message: "No pudimos guardar tu me gusta" });
+          showSnackbar({ message: LIKE_FAILED_MESSAGE });
         }
       };
 
@@ -94,13 +102,11 @@ export function useCardActions({
         });
 
         if (!result.ok) {
-          global.showSnackbar({
-            message: "No pudimos guardar tu seguimiento",
-          });
+          showSnackbar({ message: FOLLOW_FAILED_MESSAGE });
           return;
         }
 
-        global.showSnackbar({
+        showSnackbar({
           message: result.value.followedByMe
             ? `Ahora sigues a @${opinion.author.handle}`
             : `Ya no sigues a @${opinion.author.handle}`,
@@ -109,6 +115,6 @@ export function useCardActions({
 
       return { onLike, onComment, onFollow };
     },
-    [content, viewerId, comments, global],
+    [content, viewerId, comments, showSnackbar, openEdit],
   );
 }

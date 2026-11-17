@@ -24,6 +24,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { OfflineBanner } from "../../components/OfflineBanner";
 import { formatOpinionCount } from "../../components/WorkHeader";
+import type { CardActions } from "../../state/useCardActions";
 import type { ContentStatus } from "../../state/useContent";
 
 export interface PerfilAuthorView {
@@ -33,10 +34,20 @@ export interface PerfilAuthorView {
   followingCount: number;
 }
 
+/**
+ * Una opinión propia del perfil con su paquete de acciones. En Perfil ninguna tarjeta
+ * lleva me gusta ni seguir: son todas propias, así que `useCardActions` solo entrega
+ * comentar y editar (BR14.2).
+ */
+export interface PerfilCard {
+  opinion: OpinionCardModel;
+  actions: CardActions;
+}
+
 export interface PerfilViewProps {
   status: ContentStatus;
   author: PerfilAuthorView | null;
-  cards: readonly OpinionCardModel[];
+  cards: readonly PerfilCard[];
   online: boolean;
   onOpenOpinion: (opinionId: string) => void;
   onRetry: () => void;
@@ -132,13 +143,15 @@ export function PerfilView({
               />
             ) : (
               <View style={{ gap: theme.space[3] }}>
-                {cards.map((opinion) => (
+                {cards.map((card) => (
                   <OpinionCard
-                    key={opinion.opinionId}
-                    opinion={opinion}
+                    key={card.opinion.opinionId}
+                    opinion={card.opinion}
                     variant="compact"
                     isOwn
-                    onPress={() => onOpenOpinion(opinion.opinionId)}
+                    onPress={() => onOpenOpinion(card.opinion.opinionId)}
+                    onComment={card.actions.onComment}
+                    onEdit={card.actions.onEdit}
                   />
                 ))}
               </View>

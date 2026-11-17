@@ -23,6 +23,7 @@ import { useMemo } from "react";
 
 import { logger, type AppLogger } from "../../bootstrap/logger";
 import { toOpinionCardModel } from "../../state/opinionCardModel";
+import { useCardActions } from "../../state/useCardActions";
 import { useCatalog } from "../../state/useCatalog";
 import { useNetwork } from "../../state/useNetwork";
 import { useViewerId } from "../../state/useViewerId";
@@ -90,20 +91,23 @@ function PerfilConnected({
   const catalogVersion = useCatalog(catalog);
   const online = useNetwork();
   const global = useGlobalServices();
+  const actionsFor = useCardActions(content, viewerId);
 
   const cards = useMemo(
     () =>
-      opinions.map((opinion) =>
-        toOpinionCardModel({
+      opinions.map((opinion) => ({
+        opinion: toOpinionCardModel({
           opinion,
           cover: catalog.coverFor(opinion.workId),
         }),
-      ),
+        // Todas son propias: el paquete trae solo comentar y editar (BR14.2).
+        actions: actionsFor(opinion),
+      })),
     // `catalogVersion` y `online` son la clave del mapeo aunque no se lean en el
     // cuerpo: la portada se decide con la versión del catálogo y con la red, y el
     // mapeo solo debe rehacerse cuando alguna cambia (NFR8.5).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opinions, catalogVersion, online, catalog],
+    [opinions, catalogVersion, online, catalog, actionsFor],
   );
 
   return (

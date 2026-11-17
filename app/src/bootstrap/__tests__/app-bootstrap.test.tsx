@@ -254,4 +254,54 @@ describe("arranque de la app", () => {
     expect(within(detalle).getByTestId("opinion-edit")).toBeVisible();
     expect(within(detalle).getByText("Tu opinión")).toBeVisible();
   });
+
+  it("la pestaña Crear monta el formulario real, no un marcador", async () => {
+    readItem.mockResolvedValue(VALID_RECORD);
+
+    render(<App />);
+
+    await screen.findByText("Para ti");
+    fireEvent.press(screen.getByTestId("tab-crear"));
+
+    expect(await screen.findByTestId("crear-view")).toBeVisible();
+    expect(screen.getByTestId("crear-text")).toBeTruthy();
+    expect(screen.getByTestId("crear-submit")).toBeTruthy();
+  });
+
+  it("la hoja de comentarios se monta desde la cáscara sobre la pestaña activa", async () => {
+    readItem.mockResolvedValue(VALID_RECORD);
+
+    render(<App />);
+
+    const card = await screen.findByTestId("opinion-card-op-002");
+
+    fireEvent.press(within(card).getByTestId("social-comment"));
+
+    expect(await screen.findByTestId("comment-sheet")).toBeVisible();
+    // La hoja no navega: Inicio sigue siendo la pestaña activa y el feed sigue debajo.
+    expect(screen.getByTestId("tab-inicio").props.accessibilityState).toMatchObject(
+      { selected: true },
+    );
+    expect(
+      screen.getByTestId("opinion-card-op-002", { includeHiddenElements: true }),
+    ).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("comment-sheet-close"));
+
+    expect(screen.queryByTestId("comment-sheet")).toBeNull();
+  });
+
+  it("el snackbar de la cáscara confirma el seguimiento de un autor", async () => {
+    readItem.mockResolvedValue(VALID_RECORD);
+
+    render(<App />);
+
+    const card = await screen.findByTestId("opinion-card-op-002");
+
+    fireEvent.press(within(card).getByTestId("opinion-follow"));
+
+    expect(await screen.findByTestId("snackbar-message")).toHaveTextContent(
+      /sigues a @/,
+    );
+  });
 });

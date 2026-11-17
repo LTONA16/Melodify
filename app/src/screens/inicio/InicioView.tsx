@@ -28,17 +28,20 @@ import {
 import { FlatList, StyleSheet, Text, View } from "react-native";
 
 import { OfflineBanner } from "../../components/OfflineBanner";
+import type { CardActions } from "../../state/useCardActions";
 import type { ContentStatus } from "../../state/useContent";
 import { InicioHeader } from "./InicioHeader";
 
 /**
- * Una tarjeta del feed con su condición de propia. `isOwn` viaja al lado del modelo
- * y no dentro de él: `OpinionCardModel` es la forma de C1 y el mapeo de C4
- * (`toOpinionCardModel`) no la inventa; el dato sale de la vista de C4 (BR4.6).
+ * Una tarjeta del feed con su condición de propia y su paquete de acciones. `isOwn`
+ * viaja al lado del modelo y no dentro de él: `OpinionCardModel` es la forma de C1 y
+ * el mapeo de C4 (`toOpinionCardModel`) no la inventa; el dato sale de la vista de C4
+ * (BR4.6). Las acciones las resuelve `useCardActions` y la vista solo las reparte.
  */
 export interface InicioCard {
   opinion: OpinionCardModel;
   isOwn: boolean;
+  actions: CardActions;
 }
 
 export interface InicioViewProps {
@@ -128,6 +131,10 @@ export function InicioView({
             variant="feed"
             isOwn={item.isOwn}
             onPress={() => onOpenOpinion(item.opinion.opinionId)}
+            onLike={item.actions.onLike}
+            onComment={item.actions.onComment}
+            onFollow={item.actions.onFollow}
+            onEdit={item.actions.onEdit}
           />
         )}
       />

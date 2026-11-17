@@ -31,6 +31,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { OfflineBanner } from "../../components/OfflineBanner";
 import { WorkHeader } from "../../components/WorkHeader";
+import type { CardActions } from "../../state/useCardActions";
 import type { ContentStatus } from "../../state/useContent";
 import type { DetalleObraWork } from "./useDetalleObra";
 
@@ -46,6 +47,11 @@ export interface DetalleObraViewProps {
   /** La opinión de quien mira, si existe: va primero y en estado `own` (BR8.4). */
   own: OpinionCardModel | null;
   others: readonly OpinionCardModel[];
+  /**
+   * El paquete de acciones de cada tarjeta, por `opinionId`. El contenedor lo resuelve
+   * una vez con `useCardActions`; la propia recibe solo comentar y editar.
+   */
+  actionsFor: (opinionId: string) => CardActions;
   /** Si hay red; con `false` se pinta el aviso de sin conexión (BR10.5). */
   online: boolean;
   onRetry: () => void;
@@ -62,6 +68,7 @@ export function DetalleObraView({
   opinionCount,
   own,
   others,
+  actionsFor,
   online,
   onRetry,
   onRetryCovers,
@@ -119,7 +126,12 @@ export function DetalleObraView({
         ) : (
           <>
             {own === null ? null : (
-              <OpinionCard opinion={own} variant="detail" isOwn />
+              <OpinionCard
+                opinion={own}
+                variant="detail"
+                isOwn
+                {...actionsFor(own.opinionId)}
+              />
             )}
 
             {hasOthers ? (
@@ -133,6 +145,7 @@ export function DetalleObraView({
                     opinion={card}
                     variant="detail"
                     isOwn={false}
+                    {...actionsFor(card.opinionId)}
                   />
                 ))}
               </View>

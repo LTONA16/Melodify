@@ -118,6 +118,7 @@ function setup(options: HarnessOptions = {}) {
   const log = silentLogger();
   const session = signedInSession();
   const workId = options.workId ?? BOHEMIAN;
+  const openComments = jest.fn();
 
   const services: ShellServices = {
     network: network.service,
@@ -131,7 +132,7 @@ function setup(options: HarnessOptions = {}) {
     comments: {
       state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
       subscribe: () => () => undefined,
-      open: () => undefined,
+      open: openComments,
       close: () => undefined,
       retry: () => undefined,
       submit: () => false,
@@ -167,7 +168,17 @@ function setup(options: HarnessOptions = {}) {
 
   const result = render(tree);
 
-  return { ...result, tree, network, content, catalog, global, session, log };
+  return {
+    ...result,
+    tree,
+    network,
+    content,
+    catalog,
+    global,
+    session,
+    log,
+    openComments,
+  };
 }
 
 describe("DetalleObraScreen", () => {
@@ -210,17 +221,37 @@ describe("DetalleObraScreen", () => {
     expect(view.queryByTestId("detalle-obra-create")).toBeNull();
   });
 
-  it("«Editar» está en la tarjeta propia y en U2 no navega a ninguna parte", async () => {
+  it("«Editar» abre Crear en modo edición con la opinión propia (U3)", async () => {
     const view = setup();
 
     await view.findByTestId("opinion-card-op-001");
 
     fireEvent.press(view.getByTestId("opinion-edit"));
 
-    expect(view.global.openEdit).not.toHaveBeenCalled();
+    expect(view.global.openEdit).toHaveBeenCalledWith({ opinionId: "op-001" });
     expect(view.global.openCreate).not.toHaveBeenCalled();
     expect(view.global.openOpinionDetail).not.toHaveBeenCalled();
     expect(view.global.openWorkDetail).not.toHaveBeenCalled();
+  });
+
+  it("la tarjeta propia no ofrece me gusta ni seguir y la ajena sí; comentar abre la hoja", async () => {
+    const view = setup();
+
+    await view.findByTestId("opinion-card-op-002");
+
+    const own = within(view.getByTestId("opinion-card-op-001"));
+    const other = within(view.getByTestId("opinion-card-op-002"));
+
+    expect(own.getByTestId("social-like").props.accessibilityRole).toBeUndefined();
+    expect(own.queryByTestId("opinion-follow")).toBeNull();
+    expect(other.getByTestId("social-like").props.accessibilityRole).toBe(
+      "button",
+    );
+    expect(other.getByTestId("opinion-follow")).toBeTruthy();
+
+    fireEvent.press(other.getByTestId("social-comment"));
+
+    expect(view.openComments).toHaveBeenCalledWith("op-002");
   });
 
   it("«Opinar sobre esta obra» abre Crear con la obra preseleccionada", async () => {
