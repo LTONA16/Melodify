@@ -112,10 +112,10 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 1 — Estructura de la unidad y fronteras de importación
 
-- [ ] Crear `app/src/comments/` (`createCommentsController.ts`, `toCommentModel.ts`, `index.ts`) y `app/src/screens/crear/` (`CrearScreen.tsx`, `CrearView.tsx`, `CrearHeader.tsx`, `useCrear.ts`, `validateOpinionDraft.ts`).
-- [ ] Respetar las fronteras de LC-1…LC-11: `app/src/comments/` no importa navegación ni la pestaña activa; ningún paquete importa `app/`; C1 no importa C4, C5 ni C8.
+- [x] Crear `app/src/comments/` (`createCommentsController.ts`, `toCommentModel.ts`, `index.ts`) y `app/src/screens/crear/` (`CrearScreen.tsx`, `CrearView.tsx`, `CrearHeader.tsx`, `useCrear.ts`, `validateOpinionDraft.ts`).
+- [x] Respetar las fronteras de LC-1…LC-11: `app/src/comments/` no importa navegación ni la pestaña activa; ningún paquete importa `app/`; C1 no importa C4, C5 ni C8.
 - [ ] Borrar el marcador `app/src/screens/placeholders/CrearScreen.tsx` cuando `CrearScreen` real esté registrada (Paso 25).
-- [ ] Sin pruebas en este paso: es andamiaje.
+- [x] Sin pruebas en este paso: es andamiaje.
 
 ### Paso 2 — Banco de pruebas listo y comando de la unidad registrado
 
@@ -252,18 +252,18 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 20 — Crear: vista, cabecera y contenedor (implementar)
 
-- [ ] `app/src/screens/crear/CrearHeader.tsx`: `AppHeader` con «Crear» / «Editar opinión» y «Cancelar» en la ranura derecha.
-- [ ] `app/src/screens/crear/CrearView.tsx`: vista pura con los grupos de props de `frontend-components.md`, las dos ramas (buscador o selector de ejemplo), `loading`, `loadError`, `submitError` sobre el botón, `OfflineBanner` con el texto de cada modo y sin acción, y ninguna lectura de C4, C5 ni la sesión.
-- [ ] `app/src/screens/crear/CrearScreen.tsx`: contenedor que monta `useCrear` y `useWorkSearch`, cablea navegación y snackbar, y reacciona a `entry.formKey`.
-- [ ] El botón dice «Publicar» o «Guardar» y se sustituye por «Editar mi opinión» en `YaOpinada`; en edición no hay buscador ni «Cambiar».
+- [x] `app/src/screens/crear/CrearHeader.tsx`: `AppHeader` con «Crear» / «Editar opinión» y «Cancelar» en la ranura derecha.
+- [x] `app/src/screens/crear/CrearView.tsx`: vista pura con los grupos de props de `frontend-components.md`, las dos ramas (buscador o selector de ejemplo), `loading`, `loadError`, `submitError` sobre el botón, `OfflineBanner` con el texto de cada modo y sin acción, y ninguna lectura de C4, C5 ni la sesión.
+- [x] `app/src/screens/crear/CrearScreen.tsx`: contenedor que monta `useCrear` y `useWorkSearch`, cablea navegación y snackbar, y reacciona a `entry.formKey`.
+- [x] El botón dice «Publicar» o «Guardar» y se sustituye por «Editar mi opinión» en `YaOpinada`; en edición no hay buscador ni «Cambiar».
 
 ### Paso 21 — Crear: pruebas de pantalla (escribir y ejecutar)
 
-- [ ] `app/src/screens/crear/__tests__/crear-screen.test.tsx`, montando el árbol con dobles de sesión, contenido y catálogo: vacío, buscando, con obra, ya opinada, editando, error de carga, error de envío y sin conexión.
-- [ ] Afirmar el estado que se declara: la obra elegida, el botón habilitado o no, el texto conservado tras el fallo y el aviso de «Reintentar».
-- [ ] `app/src/screens/crear/__tests__/crear-view.test.tsx`: cada rama de la vista pura sin almacén ni catálogo.
-- [ ] Montar el árbol **una sola vez** y cambiar `formKey` sin desmontarlo: se afirma que el campo está vacío y que no hay obra seleccionada (receta de NFR3.16).
-- [ ] Ejecutar el área y dejarla en verde.
+- [x] `app/src/screens/crear/__tests__/crear-screen.test.tsx`, montando el árbol con dobles de sesión, contenido y catálogo: vacío, buscando, con obra, ya opinada, editando, error de carga, error de envío y sin conexión.
+- [x] Afirmar el estado que se declara: la obra elegida, el botón habilitado o no, el texto conservado tras el fallo y el aviso de «Reintentar».
+- [x] `app/src/screens/crear/__tests__/crear-view.test.tsx`: cada rama de la vista pura sin almacén ni catálogo.
+- [x] Montar el árbol **una sola vez** y cambiar `formKey` sin desmontarlo: se afirma que el campo está vacío y que no hay obra seleccionada (receta de NFR3.16).
+- [x] Ejecutar el área y dejarla en verde.
 
 ### Paso 22 — Cableado de las cuatro pantallas de U2 (implementar)
 
