@@ -1,0 +1,206 @@
+{
+  "stage": "nfr-design",
+  "unit": "u4-spotify-explore",
+  "upstream_ids": [
+    "NFR8.12",
+    "NFR8.11",
+    "NFR2.9",
+    "NFR1.11",
+    "NFR2.10",
+    "NFR1.12",
+    "NFR8.13",
+    "NFR8.1",
+    "NFR8.14",
+    "NFR8.15",
+    "NFR2.11",
+    "NFR2.12",
+    "NFR2.5",
+    "NFR2.8",
+    "NFR1.13",
+    "NFR1.14",
+    "NFR9.7",
+    "NFR1.15",
+    "NFR3.17",
+    "NFR3.18",
+    "NFR3.19",
+    "NFR4.9",
+    "NFR3.20",
+    "NFR4.8",
+    "NFR4.10",
+    "NFR9.4",
+    "NFR4.6",
+    "NFR9.6",
+    "NFR9.1",
+    "NFR5.10",
+    "NFR5.11",
+    "NFR7.7",
+    "NFR6.9"
+  ],
+  "coverage": [
+    {
+      "id": "NFR8.12",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.12 — un solo `requestJson` con `AbortController` de 10 s limpiado en `finally`, sin reintento automático, cinco esqueletos durante la espera y descarte de respuestas tardías arriba"
+    },
+    {
+      "id": "NFR8.11",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.15, NFR8.11 y NFR8.1 — el recorrido heredado sigue sin número y la lista de resultados usa `FlatList`"
+    },
+    {
+      "id": "NFR2.9",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.11 — cada estado se dice con palabras y nombra su salida; ninguna rama se distingue solo por color"
+    },
+    {
+      "id": "NFR1.11",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.13 — el detalle se apila sobre Explorar y volver conserva consulta, lista y desplazamiento"
+    },
+    {
+      "id": "NFR2.10",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.10 — los diez caminos a dos toques o menos, con foco al entrar en Explorar y la obra puesta al abrir Crear"
+    },
+    {
+      "id": "NFR1.12",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.12 — seis estados con salida declarada; `connecting` termina por construcción en el `finally` de `connect()`, sin temporizador de interfaz"
+    },
+    {
+      "id": "NFR8.13",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.13 — lectura asíncrona del token sin bloquear el primer fotograma, `connected` como arco inicial materializado, portadas que no bloquean el feed y navegador que no congela la app"
+    },
+    {
+      "id": "NFR8.1",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.13 y § NFR8.15, NFR8.11 y NFR8.1 — el arranque se mantiene en ≤ 2 s porque la lectura del almacén no es bloqueante"
+    },
+    {
+      "id": "NFR8.14",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.14 — caché de C5 por consulta, `coverFor` que comparte la promesa en vuelo y defensa en profundidad de `catalog` sin token; sin sondeo y sin paginación"
+    },
+    {
+      "id": "NFR8.15",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.15 — el resto del recorrido se juzga con NFR8 sin mediana ni percentil; los ocho números de la unidad son los aprobados"
+    },
+    {
+      "id": "NFR2.11",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.11 — tabla de cómo se dice cada estado en el chip, la tarjeta, el aviso y las filas; textos exactos en español y sin códigos"
+    },
+    {
+      "id": "NFR2.12",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.12 — tabla de situación, texto, acción y qué se conserva; única situación sin acción declarada (portada rota) y «sin sesión» que no es error"
+    },
+    {
+      "id": "NFR2.5",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.5 y NFR2.8 — todo error visible conserva su «Reintentar» y las dos excepciones declaradas (me gusta/seguir y portada rota)"
+    },
+    {
+      "id": "NFR2.8",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.5 y NFR2.8 — lo previsto se pinta y no se registra; solo los defectos internos llegan al logger"
+    },
+    {
+      "id": "NFR1.13",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.13 — `tokenCaido` como capa junto a `searchStatus`, con lista, consulta y desplazamiento conservados"
+    },
+    {
+      "id": "NFR1.14",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.14 — tabla de las cinco fronteras asíncronas, `connect`/`disconnect`/`retry` que nunca lanzan y emisión que aísla al `listener` que falla"
+    },
+    {
+      "id": "NFR9.7",
+      "status": "OK",
+      "target": "security-design.md § NFR9.7 — tabla de qué se muestra, qué se registra y quién lo emite; los seis códigos nuevos y `SpotifyLogPort` obligatorio"
+    },
+    {
+      "id": "NFR1.15",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.15 — tabla de los cuatro escenarios (sin client ID, sin sesión, sin red, con sesión y sin red) y ninguna pantalla bloqueada esperando red"
+    },
+    {
+      "id": "NFR3.17",
+      "status": "OK",
+      "target": "security-design.md § NFR3.17 — flujo PKCE paso a paso, `toBase64Url` puro con vector RFC 7636, `state` comparado antes del intercambio, alcance vacío y redirect resuelto una vez"
+    },
+    {
+      "id": "NFR3.18",
+      "status": "OK",
+      "target": "security-design.md § NFR3.18 — tabla de las ocho reglas del token con su compuerta, registro único de cuatro campos y por qué el mock global de Jest no prueba la frontera"
+    },
+    {
+      "id": "NFR3.19",
+      "status": "OK",
+      "target": "security-design.md § NFR3.19 — tabla de superficies (logger, interfaz, pruebas, capturas, Metro) y el redirect como único valor registrado, por `warn`"
+    },
+    {
+      "id": "NFR4.9",
+      "status": "OK",
+      "target": "security-design.md § NFR4.9 — inventario de lo que sale, lo que no sale nunca y lo que se guarda; U4 añade exactamente una fila persistida"
+    },
+    {
+      "id": "NFR3.20",
+      "status": "OK",
+      "target": "security-design.md § NFR3.20 — tabla de la puerta HTTP única, hosts fijos, URLs armadas, `workId` validado, respuesta desconfiada y errores mapeados"
+    },
+    {
+      "id": "NFR4.8",
+      "status": "OK",
+      "target": "security-design.md § NFR4.8 y NFR4.6 — el puerto de búsqueda recibe solo la consulta y ningún texto de la persona participa en la URL ni en el cuerpo"
+    },
+    {
+      "id": "NFR4.10",
+      "status": "OK",
+      "target": "security-design.md § NFR4.10 — sin backend ni proxy, la opinión es escritura local, la app no exige cuenta y ningún texto promete persistencia"
+    },
+    {
+      "id": "NFR9.4",
+      "status": "OK",
+      "target": "security-design.md § NFR9.4, NFR9.6 y NFR9.1 — la firma cerrada a dos cadenas y un código se respeta en `AppLogger` y en `SpotifyLogPort`"
+    },
+    {
+      "id": "NFR4.6",
+      "status": "OK",
+      "target": "security-design.md § NFR4.8 y NFR4.6 — el registro no lleva la consulta, ni el texto de la opinión, ni el token"
+    },
+    {
+      "id": "NFR9.6",
+      "status": "OK",
+      "target": "security-design.md § NFR9.4, NFR9.6 y NFR9.1 — el catálogo de eventos de U3 se conserva y U4 añade el suyo sin reabrirlo"
+    },
+    {
+      "id": "NFR9.1",
+      "status": "OK",
+      "target": "security-design.md § NFR9.4, NFR9.6 y NFR9.1 — un solo logger, sin SDK de errores ni analítica; los seis códigos son vocabulario de la app inyectado en el paquete"
+    },
+    {
+      "id": "NFR5.10",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — entrada de cobertura propia para `packages/spotify/src/**` con umbral de 80 % de líneas, no agregada a `app/src`"
+    },
+    {
+      "id": "NFR5.11",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — los nueve adaptadores de LC-12 y LC-13 se inyectan y no hay mock global de `fetch`; ninguna prueba sale a la red, abre el navegador ni toca el almacén"
+    },
+    {
+      "id": "NFR7.7",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — las tres dependencias nuevas son módulos del SDK 57 disponibles en Expo Go, sin `prebuild` ni módulo nativo"
+    },
+    {
+      "id": "NFR6.9",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — `SpotifyCard` con botones de 44×44, `ArtistResultRow` de fila entera y el estado escrito con palabras, no con color"
+    }
+  ]
+}

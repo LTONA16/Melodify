@@ -1,0 +1,29 @@
+<!-- INVARIANT: examples are single-line HTML comments so a fresh template parses to total=0 (MEMORY_EMPTY). Do NOT un-comment or split across lines. t100 guards this. -->
+> This file is kept up to date automatically while the stage runs.
+
+## Interpretations
+<!-- example: 2026-05-29T10:14:32Z — chose REST over GraphQL; the consuming team only needs CRUD, revisit if subscriptions land -->
+2026-11-17T09:10:00Z — [unit u4-spotify-explore] Los tres artefactos de la etapa son `performance-design.md`, `security-design.md` y `logical-components.md`; los tres filtrados por `produces_kinds` (`scalability`, `reliability`, `observability`) no se emiten porque la unidad es de tipo `ui`, y su contenido se absorbe en los dos primeros. Se deja escrito en `logical-components.md` § Alcance para que la ausencia no se lea como olvido.
+2026-11-17T09:12:00Z — [unit u4-spotify-explore] `connecting` se cierra por construcción y no por temporizador: la misma función que lo pone (`connect()`) lo quita en su `finally` si no se guardó token. Es la respuesta de diseño a NFR1.12 y la razón por la que ninguna pantalla necesita un reloj de espera.
+2026-11-17T09:14:00Z — [unit u4-spotify-explore] La transición que faltaba en NFR8.13 se resuelve como **arco inicial materializado tarde**, no como arista nueva: la lectura asíncrona del token completa el `[*] --> connected` del diagrama después del montaje, y `hydrating` es una bandera interna que no se publica ni se pinta.
+2026-11-17T09:16:00Z — [unit u4-spotify-explore] Los siete requisitos heredados que trae la traza (`NFR8.11`, `NFR2.9`, `NFR1.11`, `NFR8.1`, `NFR2.5`, `NFR2.8`, `NFR4.8`) se mapean a secciones propias de estos artefactos, no a los de U2/U3: la etapa responde de su unidad y el diseño dice qué protege U4 de cada uno.
+2026-11-17T11:05:00Z — [unit u4-spotify-explore] Tras la revisión 1 (NOT-READY), el arranque se reescribe en tres piezas que antes no encajaban: (a) un token caducado con `refreshToken` **se renueva** al hidratar y solo un fallo de renovación lleva a `invalidToken` y borra —lo exige `x-token-lifecycle.persistence`; (b) sin client ID se arranca en `notConfigured` de forma síncrona y no se lee el almacén; (c) la hidratación **no publica** `disconnected`: `useSpotifyConnection` (LC-9) devuelve `SpotifyStatus | null` y con `null` la pantalla pinta un marcador neutro, de modo que el arco inicial `[*] → <estado resuelto>` se completa al publicar y no hace falta ninguna arista entre estados.
+2026-11-17T11:07:00Z — [unit u4-spotify-explore] El borrado del token queda en tres caminos exactos —desconectar, renovación fallida (incluida la del arranque) y `401`— y un fallo de **lectura** ya no borra nada: un llavero que falla una vez no invalida una credencial, y `x-token-storage.cleared_on` solo nombra `disconnect`.
+
+## Deviations
+<!-- example: 2026-05-29T10:14:32Z — skipped the optional caching layer the stage prose suggested; the dataset is small enough that it adds risk -->
+2026-11-17T09:18:00Z — [unit u4-spotify-explore] El paso 2 del escenario (fichero de preguntas) no se ejecuta: el Functional Design ya cerró Q1 = B, Q2 = A, Q3 = B, Q4 = A y Q5 = A, y la etapa se invoca en modo artefacto; las decisiones abiertas se registran como `[assumption]` y como preguntas para U5/U6.
+2026-11-17T09:20:00Z — [unit u4-spotify-explore] El inventario no crece con la composición, el estado, la cáscara, el catálogo, la tarjeta de Perfil ni el detalle: son ampliaciones de LC-1, LC-4, LC-7, LC-9 y LC-11 y se dicen en su fila. Solo estrenan identificador las cinco áreas con fallo propio (LC-12 a LC-16).
+
+## Tradeoffs
+<!-- example: 2026-05-29T10:14:32Z — picked TDD over BDD this run; the team is unit-first and the domain is well-understood -->
+2026-11-17T09:22:00Z — [unit u4-spotify-explore] Una petición en vuelo por consulta al cambiar de texto: no se añade `AbortSignal` al puerto de búsqueda. El coste es cuota que se puede ahorrar; el beneficio es no reabrir C5 y C7 para una señal que el contrato no declara, con el tiempo límite de 10 s como red.
+2026-11-17T09:24:00Z — [unit u4-spotify-explore] El `log` es parámetro obligatorio de las dos fábricas. El coste es que ninguna se construye sin diagnóstico; el beneficio es que los cinco códigos del paquete tienen por dónde salir, porque un fallo de guardado o de borrado no cambia el estado visible.
+2026-11-17T09:26:00Z — [unit u4-spotify-explore] La prueba de la frontera del token no es una prueba de montaje: el doble global de `expo-secure-store` de `jest.setup.js` taparía justo el import indebido. La compuerta es el mapa `exports`, la regla de lint y la revisión de imports, y se dice en `security-design.md` § NFR3.18 para que no se sustituya por una prueba que pasaría siempre.
+2026-11-17T11:09:00Z — [unit u4-spotify-explore] La ventana neutra del arranque cuesta un fotograma sin chip ni tarjeta; a cambio, la app nunca afirma «Sin conectar» cuando puede haber sesión y la máquina no gana una arista que ninguna acción de la persona produce. La ventana es la lectura del llavero, la misma que C3 ya hacía.
+
+## Open questions
+<!-- example: 2026-05-29T10:14:32Z — confirm the retention window with compliance before the next stage hardens the schema -->
+2026-11-17T09:28:00Z — [unit u4-spotify-explore] Confirmar en el teléfono que Metro del SDK 57 resuelve `@melodify/spotify/auth` sin `metro.config.js`; si no, se añade la configuración que active `unstable_enablePackageExports` y no se parte el paquete.
+2026-11-17T09:29:00Z — [unit u4-spotify-explore] Confirmar que `expo-web-browser` devuelve `code` y `state` con un redirect `exp://…`; si no vuelve, el flujo acaba en `connectionError` y el recorrido se demuestra sin sesión (FR12.2).
+2026-11-17T09:30:00Z — [unit u4-spotify-explore] U5: Actividad no habla con Spotify; si mostrara portadas reales, pasaría por C5 y no por C7.

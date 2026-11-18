@@ -1,0 +1,178 @@
+{
+  "stage": "infrastructure-design",
+  "unit": "u4-spotify-explore",
+  "upstream_ids": [
+    "NFR8.12",
+    "NFR2.10",
+    "NFR1.12",
+    "NFR8.11",
+    "NFR8.1",
+    "NFR2.9",
+    "NFR2.5",
+    "NFR2.8",
+    "NFR1.11",
+    "NFR9.7",
+    "NFR8.14",
+    "NFR8.13",
+    "NFR1.13",
+    "NFR1.14",
+    "NFR1.15",
+    "NFR2.12",
+    "NFR3.20",
+    "NFR4.9",
+    "NFR8.15",
+    "NFR2.11",
+    "NFR3.17",
+    "NFR4.8",
+    "NFR4.6",
+    "NFR9.4",
+    "NFR9.6",
+    "NFR9.1",
+    "NFR4.10",
+    "NFR3.18",
+    "NFR3.19",
+    "NFR3.11",
+    "NFR5.10",
+    "NFR5.11",
+    "NFR7.7",
+    "NFR6.9"
+  ],
+  "coverage": [
+    {
+      "id": "NFR8.12",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR2.10",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR1.12",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR8.11",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR8.1",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR2.9",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR2.5",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR2.8",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR1.11",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR9.7",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR8.14",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR8.13",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR1.13",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR1.14",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR1.15",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR2.12",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR3.20",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR4.9",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR8.15",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR2.11",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR3.17",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR4.8",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR4.6",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR9.4",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR9.6",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR9.1",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR4.10",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR3.18",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR3.19",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR3.11",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR5.10",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR5.11",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR7.7",
+      "status": "GAP"
+    },
+    {
+      "id": "NFR6.9",
+      "status": "GAP"
+    }
+  ]
+}
