@@ -1,5 +1,5 @@
 /**
- * La cáscara de la app (C2 1.3.0): decide entre la pantalla de entrada y las cinco
+ * La cáscara de la app (C2 1.4.0): decide entre la pantalla de entrada y las cinco
  * pestañas, compone la barra inferior y ofrece los tres contextos que leen las
  * pantallas —servicios, acciones globales y la entrada de Crear—.
  *
@@ -19,6 +19,9 @@
  *   desapilar el título se limpia para que el siguiente detalle no herede el
  *   anterior.
  * - **La barra se pinta una sola vez**, fuera de las pilas, nunca en Login.
+ * - **1.4.0 — la obra viaja con la ruta**: el detalle y Crear reciben la `data`
+ *   que ya estaba resuelta, sin que la cáscara conozca C5 ni vuelva a pedirla. Si
+ *   sólo llega `workId`, todo sigue funcionando como antes y la pantalla resuelve.
  * - **1.3.0 — el ciclo de Crear**: `formKey` sube en cada entrada para que la
  *   pantalla descarte el borrador anterior; «Cancelar», «Guardar» y el atrás del
  *   sistema en Crear vuelven a `returnTo` **sin reiniciar su pila**, y el atrás
@@ -28,6 +31,7 @@
  *   aviso viaja **dentro** del modal (un `Snackbar` fuera quedaría detrás del
  *   velo); cualquier cambio de pestaña limpia el mensaje pendiente.
  */
+import type { WorkView } from "@melodify/catalog";
 import {
   AppHeader,
   BottomTabBar,
@@ -75,6 +79,8 @@ type StackEntry =
       key: string;
       detail: Extract<DetailScreen, { kind: "work" }>;
       workId: string;
+      /** La obra ya resuelta por quien abrió la ruta; opcional como en C2. */
+      data?: WorkView;
     }
   | {
       kind: "opinion";
@@ -127,7 +133,9 @@ function renderEntry(entry: StackEntry | undefined): ReactNode {
 
   if (entry.kind === "work") {
     const DetailComponent = entry.detail.component;
-    return <DetailComponent work={{ workId: entry.workId }} />;
+    return (
+      <DetailComponent work={{ workId: entry.workId, data: entry.data }} />
+    );
   }
 
   const DetailComponent = entry.detail.component;
@@ -225,7 +233,7 @@ function TabShell({
 
   const pushDetail = (
     kind: "work" | "opinion",
-    params: { workId?: string; opinionId?: string },
+    params: { workId?: string; opinionId?: string; data?: WorkView },
   ): void => {
     const screen = screens.find((candidate) => candidate.name === activeName);
     const registered = screen?.details?.find((item) => item.kind === kind);
@@ -243,6 +251,7 @@ function TabShell({
             key,
             detail: registered,
             workId: params.workId ?? "",
+            data: params.data,
           }
         : {
             kind: "opinion",
@@ -273,10 +282,14 @@ function TabShell({
 
   const openCreateTab = (
     mode: CreateEntry["mode"],
-    extra: Pick<CreateEntry, "preselectedWorkId" | "editingOpinionId">,
+    extra: Pick<
+      CreateEntry,
+      "preselectedWork" | "preselectedWorkId" | "editingOpinionId"
+    >,
   ): void => {
     setCreateEntry({
       mode,
+      preselectedWork: extra.preselectedWork,
       preselectedWorkId: extra.preselectedWorkId,
       editingOpinionId: extra.editingOpinionId,
       // «Editar mi opinión» desde Crear conserva el destino de la entrada vigente;
@@ -316,15 +329,18 @@ function TabShell({
   const global: GlobalServices = {
     showSnackbar: ({ message }) => setSnackbar(message),
     setHeader: ({ title }) => setHeaderTitle(title),
-    openWorkDetail: ({ workId }) => pushDetail("work", { workId }),
+    openWorkDetail: ({ workId, data }) =>
+      pushDetail("work", { workId, data }),
     openOpinionDetail: ({ opinionId }) => pushDetail("opinion", { opinionId }),
-    openCreate: ({ workId } = {}) =>
+    openCreate: ({ workId, data } = {}) =>
       openCreateTab("create", {
-        preselectedWorkId: workId ?? null,
+        preselectedWork: data ?? null,
+        preselectedWorkId: workId ?? data?.workId ?? null,
         editingOpinionId: null,
       }),
     openEdit: ({ opinionId }) =>
       openCreateTab("edit", {
+        preselectedWork: null,
         preselectedWorkId: null,
         editingOpinionId: opinionId,
       }),
@@ -343,6 +359,7 @@ function TabShell({
       // «Cancelar» vuelve a la pestaña de donde se vino (invariante de C2).
       setCreateEntry({
         mode: "create",
+        preselectedWork: null,
         preselectedWorkId: null,
         editingOpinionId: null,
         returnTo: activeName,

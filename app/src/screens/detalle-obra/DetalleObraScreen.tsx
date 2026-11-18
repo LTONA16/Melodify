@@ -19,7 +19,7 @@
  */
 import type { AppSession } from "@melodify/app-session";
 import { useGlobalServices } from "@melodify/app-shell";
-import type { Catalog } from "@melodify/catalog";
+import type { Catalog, WorkView } from "@melodify/catalog";
 import type { ContentStore } from "@melodify/content-store";
 import { useEffect, useCallback } from "react";
 
@@ -33,7 +33,7 @@ import { useDetalleObra } from "./useDetalleObra";
 
 export interface DetalleObraScreenProps extends ScreenDependencies {
   /** La obra apilada por la cáscara; el registro `{ kind: "work" }` le pasa esto. */
-  work: { workId: string };
+  work: { workId: string; data?: WorkView };
 }
 
 /** Sin colaboradores no hay nada que hacer ni a quién llamar; la vista está en carga. */
@@ -70,6 +70,7 @@ export function DetalleObraScreen({
   return (
     <DetalleObraConnected
       workId={work.workId}
+      data={work.data}
       session={session}
       content={content}
       catalog={catalog}
@@ -80,6 +81,7 @@ export function DetalleObraScreen({
 
 interface DetalleObraConnectedProps {
   workId: string;
+  data?: WorkView;
   session: AppSession;
   content: ContentStore;
   catalog: Catalog;
@@ -93,6 +95,7 @@ interface DetalleObraConnectedProps {
  */
 function DetalleObraConnected({
   workId,
+  data,
   session,
   content,
   catalog,
@@ -100,8 +103,19 @@ function DetalleObraConnected({
 }: DetalleObraConnectedProps) {
   const viewerId = useViewerId(session);
   const online = useNetwork();
-  const { status, work, own, others, ownView, otherViews, average, opinionCount, cover, retry } =
-    useDetalleObra(workId, viewerId, content, catalog, online, log);
+  const {
+    status,
+    work: resolvedWork,
+    workView: resolvedWorkView,
+    own,
+    others,
+    ownView,
+    otherViews,
+    average,
+    opinionCount,
+    cover,
+    retry,
+  } = useDetalleObra(workId, viewerId, content, catalog, online, log, data);
   const global = useGlobalServices();
   const cardActionsFor = useCardActions(content, viewerId);
 
@@ -131,7 +145,7 @@ function DetalleObraConnected({
   return (
     <DetalleObraView
       status={status}
-      work={work}
+      work={resolvedWork}
       coverUrl={cover.kind === "url" ? cover.value : null}
       average={average}
       opinionCount={opinionCount}
@@ -141,7 +155,12 @@ function DetalleObraConnected({
       online={online}
       onRetry={retry}
       onRetryCovers={() => catalog.retryCovers()}
-      onCreateOpinion={() => global.openCreate({ workId })}
+      onCreateOpinion={() =>
+        global.openCreate({
+          workId,
+          ...(resolvedWorkView === null ? {} : { data: resolvedWorkView }),
+        })
+      }
     />
   );
 }

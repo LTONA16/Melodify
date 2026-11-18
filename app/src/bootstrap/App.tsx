@@ -25,8 +25,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 
 import { ActividadScreen } from "../screens/placeholders/ActividadScreen";
-import { ExplorarScreen } from "../screens/placeholders/ExplorarScreen";
 import { CrearScreen } from "../screens/crear/CrearScreen";
+import { ExplorarScreen } from "../screens/explorar/ExplorarScreen";
 import { DetalleObraScreen } from "../screens/detalle-obra/DetalleObraScreen";
 import { DetalleOpinionScreen } from "../screens/detalle-opinion/DetalleOpinionScreen";
 import { InicioScreen } from "../screens/inicio/InicioScreen";
@@ -101,9 +101,17 @@ function CrearRoute() {
   );
 }
 
+function ExplorarRoute() {
+  return <ExplorarScreen catalog={catalog} />;
+}
+
 /**
- * Las cinco pestañas en el orden de la barra (F4.1). Inicio, Crear y Perfil ya son
- * pantallas reales; Explorar y Actividad siguen siendo contenedoras hasta U4–U5.
+ * Las cinco pestañas en el orden de la barra (F4.1). Inicio, Explorar, Crear y
+ * Perfil ya son pantallas reales; Actividad sigue siendo contenedora hasta U5.
+ *
+ * Explorar registra el detalle de obra igual que Inicio: una obra encontrada en
+ * Spotify abre su detalle y lleva a Crear la `WorkView` ya resuelta (`data`), sin
+ * volver a pedirla ni depender de que esté en el catálogo de ejemplo.
  */
 const screens: ScreenModule[] = [
   {
@@ -115,7 +123,12 @@ const screens: ScreenModule[] = [
       { kind: "opinion", component: DetalleOpinionRoute },
     ],
   },
-  { name: "explorar", title: "Explorar", component: ExplorarScreen },
+  {
+    name: "explorar",
+    title: "Explorar",
+    component: ExplorarRoute,
+    details: [{ kind: "work", component: DetalleObraRoute }],
+  },
   { name: "crear", title: "Crear", component: CrearRoute },
   { name: "actividad", title: "Actividad", component: ActividadScreen },
   {

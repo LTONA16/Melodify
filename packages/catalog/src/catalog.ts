@@ -1,17 +1,20 @@
 /**
- * El catálogo de C5 1.1.0: las obras de ejemplo, la decisión de portada, el
- * recuento de opiniones por obra y los tres puertos de Spotify, que en esta unidad
- * viajan en `null`.
+ * El catálogo de C5 1.2.0: las obras de ejemplo, la decisión de portada, el
+ * recuento de opiniones por obra y los tres puertos de Spotify.
  *
  * Qué decide este paquete y qué no:
- * - **Portada** (BR5.3): solo es una URL real cuando hay sesión de Spotify, hay
- *   conexión y la obra tiene `coverUrl`. En cualquier otro caso es el bloque con la
- *   inicial. La decisión se recalcula en cada llamada y nunca se guarda por obra,
- *   para que desconectar o perder la red cambie el resultado sin invalidar nada.
+ * - **Portada** (BR18.1): solo es una URL real cuando hay sesión de Spotify, hay
+ *   conexión y la obra tiene `coverUrl` o C5 consigue resolverla. En cualquier otro
+ *   caso es el bloque con la inicial. Un `coverFor` con la obra pendiente devuelve
+ *   el bloque de inmediato y dispara **una** resolución de fondo; al terminar,
+ *   C5 emite para que las pantallas vuelvan a preguntar. La decisión nunca se
+ *   guarda por obra: desconectar o perder la red cambia el resultado sin invalidar
+ *   nada (BR18.4).
  * - **Recuento** (BR5.4): el «N opiniones» se cuenta sobre C4 en el instante de la
  *   llamada; el catálogo no guarda el número.
  * - **Búsqueda** (BR5.5): sin puerto responde `offline` sin tocar la red. Con
- *   puerto, normaliza el fallo de Spotify y guarda el resultado por consulta.
+ *   puerto, normaliza el fallo de Spotify, guarda obras y artistas por consulta y
+ *   registra solo las obras para que el detalle las encuentre (BR20.8).
  *
  * El catálogo no importa `@melodify/spotify` en ninguna forma: los tipos de los
  * puertos los declara él mismo y las implementaciones llegan inyectadas (BR5.6,
@@ -21,6 +24,7 @@ import type { Connectivity } from "@melodify/connectivity";
 import type { ContentStore } from "@melodify/content-store";
 
 import type {
+  ArtistHit,
   CatalogPorts,
   ResolvePortResult,
   SearchPortResult,
@@ -45,10 +49,11 @@ export type CatalogResult<T> = CatalogSuccess<T> | CatalogFailure;
 
 export type SearchStatus = "ok" | "empty" | "offline" | "error";
 
-/** `GET /works`: el estado de la búsqueda y sus obras. */
+/** `GET /works`: el estado de la búsqueda, sus obras y los artistas encontrados. */
 export interface SearchResult {
   status: SearchStatus;
   works: WorkView[];
+  artists?: ArtistHit[];
 }
 
 /** `GET /works/{workId}/opinion-count`. */
@@ -100,14 +105,19 @@ function isRecordableWork(work: WorkView | undefined): work is WorkView {
  */
 function toSearchResult(result: SearchPortResult): SearchResult {
   if (result.kind === "ok") {
-    return { status: "ok", works: result.works ?? [] };
+    return {
+      status: "ok",
+      works: result.works ?? [],
+      artists: result.artists ?? [],
+    };
   }
   if (result.kind === "empty") {
-    return { status: "empty", works: [] };
+    return { status: "empty", works: [], artists: [] };
   }
   return {
     status: result.failure === "network" ? "offline" : "error",
     works: [],
+    artists: [],
   };
 }
 
@@ -125,6 +135,7 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
   const works: WorkView[] = cloneSampleWorks();
   const searchCache = new Map<string, SearchResult>();
   const listeners = new Set<(snapshot: CatalogSnapshot) => void>();
+  const pendingCovers = new Set<string>();
 
   let coverFailure = false;
 
@@ -175,8 +186,62 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
       title: resolved.title,
       artist: resolved.artist,
       coverUrl: resolved.coverUrl,
+      workKind: current.workKind ?? resolved.workKind,
     };
     return changed;
+  };
+
+  /** La resolución exige sesión, red y un puerto; sin los tres no se toca la red. */
+  const canResolveCover = (): boolean =>
+    resolve !== null &&
+    session?.isConnected() === true &&
+    connectivity.getNetworkState().online;
+
+  /**
+   * Resuelve la portada de una obra pendiente y emite al terminar. El conjunto
+   * `pendingCovers` es la garantía de una sola petición: dos `coverFor` en el
+   * mismo tick ven la obra ya en vuelo y no la piden otra vez.
+   */
+  const resolveCover = async (workId: string): Promise<void> => {
+    if (
+      resolve === null ||
+      pendingCovers.has(workId) ||
+      !canResolveCover()
+    ) {
+      return;
+    }
+
+    const work = findWork(workId);
+    if (work === undefined || work.coverUrl !== null) {
+      return;
+    }
+
+    pendingCovers.add(workId);
+    try {
+      const resolved = await resolve.resolve(workId);
+      if (resolved.kind === "ok" && isRecordableWork(resolved.work)) {
+        const changed = mergeResolvedWork(resolved.work);
+        const failureChanged = coverFailure;
+        coverFailure = false;
+        if (changed || failureChanged) {
+          notify();
+        }
+      } else {
+        if (!coverFailure) {
+          coverFailure = true;
+          notify();
+        }
+      }
+    } catch {
+      // Un fallo deja el bloque con la inicial y enciende el aviso de portadas
+      // (BR18.5); no se propaga a la pantalla ni cambia la lista.
+      if (!coverFailure) {
+        coverFailure = true;
+        notify();
+      }
+    } finally {
+      pendingCovers.delete(workId);
+    }
   };
 
   const retryPendingCovers = async (
@@ -187,6 +252,10 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
     let changed = false;
 
     for (const work of pending) {
+      if (pendingCovers.has(work.workId)) {
+        continue;
+      }
+
       let resolved: ResolvePortResult;
       try {
         resolved = await resolver.resolve(work.workId);
@@ -241,6 +310,11 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
     coverFor(workId) {
       const work = findWork(workId);
       if (work === undefined || work.coverUrl === null) {
+        // Con sesión y red, la obra sin portada se resuelve de fondo y esta
+        // llamada devuelve ya el bloque; `notify` hará que se vuelva a preguntar.
+        if (work !== undefined && canResolveCover()) {
+          void resolveCover(workId);
+        }
         return { ...INITIAL_BLOCK };
       }
 
@@ -258,17 +332,23 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
       // El contrato pide dos caracteres como mínimo: una consulta más corta no
       // busca nada, y devolverla vacía evita una petición que no puede acertar.
       if (normalized.length < 2) {
-        return { status: "empty", works: [] };
+        return { status: "empty", works: [], artists: [] };
       }
 
-      if (search === null) {
-        // Sin puerto no hay red que tocar: es la invitación a conectar de U4.
-        return { status: "offline", works: [] };
+      if (search === null || session?.isConnected() !== true) {
+        // Sin puerto o sin sesión no hay red que tocar: es la invitación a
+        // conectar de U4 (BR19.5). La sesión se consulta aquí, no en el puerto,
+        // para que desconectar no convierta la falta de Spotify en un `error`.
+        return { status: "offline", works: [], artists: [] };
       }
 
       const cached = searchCache.get(normalized);
       if (cached !== undefined) {
-        return { status: cached.status, works: cached.works.map((work) => ({ ...work })) };
+        return {
+          status: cached.status,
+          works: cached.works.map((work) => ({ ...work })),
+          artists: (cached.artists ?? []).map((artist) => ({ ...artist })),
+        };
       }
 
       let result: SearchResult;
@@ -277,7 +357,7 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
       } catch {
         // Un puerto que lanza es un defecto suyo, no un fallo de Spotify: se
         // responde `error` y no se guarda, para que se pueda reintentar.
-        return { status: "error", works: [] };
+        return { status: "error", works: [], artists: [] };
       }
 
       if (result.status === "ok") {
@@ -295,7 +375,11 @@ export function createCatalog(options: CreateCatalogOptions): Catalog {
         }
       }
 
-      return { status: result.status, works: result.works.map((work) => ({ ...work })) };
+      return {
+        status: result.status,
+        works: result.works.map((work) => ({ ...work })),
+        artists: (result.artists ?? []).map((artist) => ({ ...artist })),
+      };
     },
 
     subscribe(listener) {

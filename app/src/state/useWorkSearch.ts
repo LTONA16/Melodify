@@ -15,16 +15,20 @@
  * - **Las respuestas tardías se descartan por número de petición**, no por comparar
  *   el texto: `setQuery` y `clear` invalidan en el acto, antes de que el efecto vuelva
  *   a correr, para que una promesa que resuelve en ese hueco tampoco se pinte.
- * - **`offline` y `error` se pintan igual** (BR13.2): un fallo de red no puede parecer
- *   una lista vacía. La diferencia es de diagnóstico: un `offline` es un estado
- *   previsto y no se registra; un `error` —o una consulta que lanza— es un defecto
- *   interno y se registra con `SEARCH_PORT_UNAVAILABLE` (NFR9.6). El mensaje del
- *   registro es literal: nunca lleva la consulta ni el texto de nadie (NFR4.6).
+ * - **`offline` y `error` no son lo mismo** (BR17.7, BR17.10): un fallo de red es un
+ *   estado previsto y no se registra; un `error` —o una consulta que lanza— es un
+ *   defecto interno y se registra con `SEARCH_PORT_UNAVAILABLE` (NFR9.6). El mensaje
+ *   del registro es literal: nunca lleva la consulta ni el texto de nadie (NFR4.6).
  * - **Con `enabled` falso no se monta nada**: ni temporizador ni llamada, y el estado
  *   vuelve a `idle`. Es la rama «sin Spotify» de BR13.5, que ni siquiera pinta el
  *   buscador.
+ * - **`paused` es la capa de token caído de Explorar** (BR18.6): no pide ni cambia
+ *   el estado vigente, para que la lista y la consulta que ya estaban en pantalla
+ *   sobrevivan al `401`. Al levantarse la capa, el efecto vuelve a correr con la
+ *   consulta que quedó escrita.
  */
 import type { Catalog, WorkView } from "@melodify/catalog";
+import type { ArtistSummary } from "@melodify/design-system";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { logger, type AppLogger } from "../bootstrap/logger";
@@ -35,7 +39,22 @@ export type WorkSearchStatus =
   | "searching"
   | "results"
   | "empty"
-  | "error";
+  | "error"
+  | "offline";
+
+export interface WorkSearchOptions {
+  /**
+   * Explorar pide artistas además de obras; Crear no, porque un artista no se
+   * puede elegir como obra (BR20.6). Por defecto se apaga.
+   */
+  includeArtists?: boolean;
+  /**
+   * La capa de token caído de Explorar (BR18.6): no lanza peticiones ni toca el
+   * estado vigente, pero deja escribir en el campo. Al volver a `false`, la
+   * consulta actual se busca otra vez.
+   */
+  paused?: boolean;
+}
 
 export interface WorkSearchState {
   /** Lo que hay escrito en el campo, tal cual. */
@@ -43,6 +62,8 @@ export interface WorkSearchState {
   status: WorkSearchStatus;
   /** Solo con `results`; en el resto de estados siempre vacío. */
   results: WorkView[];
+  /** Artistas encontrados; solo con `includeArtists` y en `results`. */
+  artists: ArtistSummary[];
   setQuery: (text: string) => void;
   /** Vacía el campo, cancela la espera y vuelve al estado inicial sin pedir nada. */
   clear: () => void;
@@ -65,10 +86,15 @@ export function useWorkSearch(
   catalog: Catalog,
   enabled: boolean,
   log: AppLogger = logger,
+  options: WorkSearchOptions = {},
 ): WorkSearchState {
+  const includeArtists = options.includeArtists ?? false;
+  const paused = options.paused ?? false;
+  const pausedRef = useRef(paused);
   const [query, setQueryState] = useState("");
   const [status, setStatus] = useState<WorkSearchStatus>("idle");
   const [results, setResults] = useState<WorkView[]>([]);
+  const [artists, setArtists] = useState<ArtistSummary[]>([]);
   // El número de la petición vigente. Sube al escribir, al limpiar, al reintentar y
   // al disparar; una respuesta con otro número ya no interesa. Es un `ref` y no un
   // estado porque invalidar no debe repintar nada por sí mismo.
@@ -82,12 +108,23 @@ export function useWorkSearch(
   const normalized = normalizeQuery(query);
 
   useEffect(() => {
+    // El `run` que ya salió a la red no se reejecuta con el render: lee la capa por
+    // referencia desde el efecto para descartar su resultado si el token cayó
+    // mientras esperaba.
+    pausedRef.current = paused;
+
+    if (paused) {
+      // Token caído: ni se pide ni se limpia lo que la persona ya estaba leyendo.
+      return undefined;
+    }
+
     if (!enabled) {
       // Sin buscador montado no hay nada que esperar ni que pedir (BR13.5).
       requestRef.current += 1;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus("idle");
       setResults([]);
+      setArtists([]);
       return undefined;
     }
 
@@ -95,6 +132,7 @@ export function useWorkSearch(
       requestRef.current += 1;
       setStatus("idle");
       setResults([]);
+      setArtists([]);
       return undefined;
     }
 
@@ -103,6 +141,7 @@ export function useWorkSearch(
       requestRef.current += 1;
       setStatus("short");
       setResults([]);
+      setArtists([]);
       return undefined;
     }
 
@@ -110,6 +149,7 @@ export function useWorkSearch(
     requestRef.current = id;
     setStatus("searching");
     setResults([]);
+    setArtists([]);
 
     const run = async (): Promise<void> => {
       let result: Awaited<ReturnType<Catalog["searchWorks"]>>;
@@ -117,33 +157,58 @@ export function useWorkSearch(
       try {
         result = await catalog.searchWorks(normalized);
       } catch {
+        if (id !== requestRef.current || pausedRef.current) {
+          // La capa de token caído también descarta el fallo del puerto.
+          return;
+        }
         // Un puerto que falta o que lanza es un defecto interno, no un estado del
         // contrato: se registra y se pinta el error con «Reintentar».
         log.warn(
           "SEARCH_PORT_UNAVAILABLE",
           "la búsqueda no pudo ejecutarse: el puerto falló o no está",
         );
-        if (id === requestRef.current) {
-          setStatus("error");
-          setResults([]);
-        }
+        setStatus("error");
+        setResults([]);
+        setArtists([]);
         return;
       }
 
-      if (id !== requestRef.current) {
-        // Llegó tarde para una consulta que ya no es la vigente (BR13.4).
+      if (id !== requestRef.current || pausedRef.current) {
+        // Llegó tarde para una consulta que ya no es la vigente (BR13.4) o el
+        // token cayó mientras esperaba: no se pinta ni se declara `results`.
         return;
       }
 
-      if (result.status === "ok" && result.works.length > 0) {
+      const foundArtists: ArtistSummary[] = includeArtists
+        ? (result.artists ?? []).map((artist) => ({
+            artistId: artist.artistId,
+            name: artist.name,
+          }))
+        : [];
+
+      if (
+        result.status === "ok" &&
+        (result.works.length > 0 || foundArtists.length > 0)
+      ) {
         setStatus("results");
         setResults(result.works);
+        setArtists(foundArtists);
         return;
       }
 
       if (result.status === "ok" || result.status === "empty") {
         setStatus("empty");
         setResults([]);
+        setArtists([]);
+        return;
+      }
+
+      if (result.status === "offline") {
+        // Sin red es un estado previsto, no un error interno: no se registra y la
+        // vista puede pintar su banner propio (BR17.7, BR17.10).
+        setStatus("offline");
+        setResults([]);
+        setArtists([]);
         return;
       }
 
@@ -157,6 +222,7 @@ export function useWorkSearch(
 
       setStatus("error");
       setResults([]);
+      setArtists([]);
     };
 
     const timer = setTimeout(() => {
@@ -168,7 +234,7 @@ export function useWorkSearch(
     };
     // `attempt` es la clave del reintento: cambiarlo vuelve a programar la búsqueda
     // sin tocar la consulta escrita.
-  }, [normalized, enabled, attempt, catalog, log]);
+  }, [normalized, enabled, paused, attempt, catalog, log, includeArtists]);
 
   const setQuery = useCallback((text: string) => {
     // Invalida la petición en vuelo antes del siguiente render: si su promesa
@@ -182,11 +248,12 @@ export function useWorkSearch(
     setQueryState("");
     setStatus("idle");
     setResults([]);
+    setArtists([]);
   }, []);
 
   const retry = useCallback(() => {
     setAttempt((previous) => previous + 1);
   }, []);
 
-  return { query, status, results, setQuery, clear, retry };
+  return { query, status, results, artists, setQuery, clear, retry };
 }

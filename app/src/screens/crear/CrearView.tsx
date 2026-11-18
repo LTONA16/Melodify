@@ -58,6 +58,11 @@ export interface CrearSampleWork {
   opinionCount: number;
 }
 
+/** Un resultado de búsqueda; el rótulo de tipo es opcional (BR20.9). */
+export interface CrearSearchWork extends WorkSummary {
+  workKind?: "track" | "album";
+}
+
 export interface CrearViewProps {
   mode: CrearMode;
   screenStatus: CrearScreenStatus;
@@ -78,7 +83,7 @@ export interface CrearViewProps {
   searchVisible: boolean;
   query: string;
   searchStatus: WorkSearchStatus;
-  results: readonly WorkSummary[];
+  results: readonly CrearSearchWork[];
   onChangeQuery: (text: string) => void;
   onClearQuery: () => void;
   /** «Cambiar»: vuelve a desplegar el buscador con el texto vacío (BR13.3). */
@@ -127,6 +132,7 @@ function SelectedWorkRow({
     <View style={{ gap: theme.space[2] }}>
       <WorkResultRow
         work={work}
+        kind={work.workKind}
         opinionCount={opinionCount}
         onPress={canChange ? onChange : NO_ACTION}
       />
@@ -144,7 +150,7 @@ function SelectedWorkRow({
 interface SearchBranchProps {
   query: string;
   searchStatus: WorkSearchStatus;
-  results: readonly WorkSummary[];
+  results: readonly CrearSearchWork[];
   onChangeQuery: (text: string) => void;
   onClearQuery: () => void;
   onSearchRetry: () => void;
@@ -186,6 +192,7 @@ function SearchBranch({
               <WorkResultRow
                 key={work.workId}
                 work={work}
+                kind={work.workKind}
                 opinionCount={0}
                 onPress={() => onChooseWork(work)}
               />

@@ -112,51 +112,51 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 1 — Estructura de la unidad y fronteras de importación
 
-- [x] Crear `app/src/comments/` (`createCommentsController.ts`, `toCommentModel.ts`, `index.ts`) y `app/src/screens/crear/` (`CrearScreen.tsx`, `CrearView.tsx`, `CrearHeader.tsx`, `useCrear.ts`, `validateOpinionDraft.ts`).
-- [x] Respetar las fronteras de LC-1…LC-11: `app/src/comments/` no importa navegación ni la pestaña activa; ningún paquete importa `app/`; C1 no importa C4, C5 ni C8.
-- [x] Borrar el marcador `app/src/screens/placeholders/CrearScreen.tsx` cuando `CrearScreen` real esté registrada (Paso 25).
-- [x] Sin pruebas en este paso: es andamiaje.
+- [ ] Crear `app/src/comments/` (`createCommentsController.ts`, `toCommentModel.ts`, `index.ts`) y `app/src/screens/crear/` (`CrearScreen.tsx`, `CrearView.tsx`, `CrearHeader.tsx`, `useCrear.ts`, `validateOpinionDraft.ts`).
+- [ ] Respetar las fronteras de LC-1…LC-11: `app/src/comments/` no importa navegación ni la pestaña activa; ningún paquete importa `app/`; C1 no importa C4, C5 ni C8.
+- [ ] Borrar el marcador `app/src/screens/placeholders/CrearScreen.tsx` cuando `CrearScreen` real esté registrada (Paso 25).
+- [ ] Sin pruebas en este paso: es andamiaje.
 
 ### Paso 2 — Banco de pruebas listo y comando de la unidad registrado
 
-- [x] Verificar que `jest.config.js` (preset `jest-expo`, `testMatch`, `moduleNameMapper` de los seis paquetes, `collectCoverageFrom`) y `jest.setup.js` cubren las rutas nuevas sin cambios: las pruebas nuevas caen en `app/src/**/*.test.{ts,tsx}` y `packages/*/src/**/*.test.{ts,tsx}`.
-- [x] Verificar que `npm run typecheck` y `npm run lint` ya miran las rutas nuevas.
-- [x] Registrar en `unit-test-instructions.md` los comandos acotados por área (nunca `npm test` suelto) y comprobar que el primero corre hoy.
-- [x] Sin archivos de prueba todavía: el contrato pide el banco listo antes de la primera prueba ejecutable.
+- [ ] Verificar que `jest.config.js` (preset `jest-expo`, `testMatch`, `moduleNameMapper` de los seis paquetes, `collectCoverageFrom`) y `jest.setup.js` cubren las rutas nuevas sin cambios: las pruebas nuevas caen en `app/src/**/*.test.{ts,tsx}` y `packages/*/src/**/*.test.{ts,tsx}`.
+- [ ] Verificar que `npm run typecheck` y `npm run lint` ya miran las rutas nuevas.
+- [ ] Registrar en `unit-test-instructions.md` los comandos acotados por área (nunca `npm test` suelto) y comprobar que el primero corre hoy.
+- [ ] Sin archivos de prueba todavía: el contrato pide el banco listo antes de la primera prueba ejecutable.
 
 ### Paso 3 — C4 1.2.0: los dos topes (implementar)
 
-- [x] En `packages/content-store/src/store.ts`, definir `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300`.
-- [x] `createOpinion` y `updateOpinion`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_OPINION_LENGTH`; mantener `422` para la valoración fuera de 1–5 y el `409` de la opinión duplicada.
-- [x] `addComment`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_COMMENT_LENGTH`.
-- [x] Exportar ambas constantes desde `packages/content-store/src/index.ts` como superficie aditiva de la 1.2.0; actualizar el comentario de cabecera a `C4 1.2.0`.
-- [x] No cambiar ninguna firma ni el esquema de las vistas.
+- [ ] En `packages/content-store/src/store.ts`, definir `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300`.
+- [ ] `createOpinion` y `updateOpinion`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_OPINION_LENGTH`; mantener `422` para la valoración fuera de 1–5 y el `409` de la opinión duplicada.
+- [ ] `addComment`: recortar primero y rechazar con `422` el texto vacío o de más de `MAX_COMMENT_LENGTH`.
+- [ ] Exportar ambas constantes desde `packages/content-store/src/index.ts` como superficie aditiva de la 1.2.0; actualizar el comentario de cabecera a `C4 1.2.0`.
+- [ ] No cambiar ninguna firma ni el esquema de las vistas.
 
 ### Paso 4 — C4: pruebas de los topes (escribir y ejecutar)
 
-- [x] `packages/content-store/src/__tests__/limits.test.ts`: 500 acepta y 501 rechaza en `createOpinion`; 300 acepta y 301 rechaza en `addComment`; los tres rechazos devuelven `422` y no escriben (la revisión no sube); el texto se recorta antes de medir.
-- [x] **Invertir** el caso de `writes.test.ts` que hoy afirma que se acepta más de 500 caracteres (hallazgo Minor de la revisión de Functional Design): pasa a esperar `422`.
-- [x] Ejecutar solo esta área y dejarla en verde.
+- [ ] `packages/content-store/src/__tests__/limits.test.ts`: 500 acepta y 501 rechaza en `createOpinion`; 300 acepta y 301 rechaza en `addComment`; los tres rechazos devuelven `422` y no escriben (la revisión no sube); el texto se recorta antes de medir.
+- [ ] **Invertir** el caso de `writes.test.ts` que hoy afirma que se acepta más de 500 caracteres (hallazgo Minor de la revisión de Functional Design): pasa a esperar `422`.
+- [ ] Ejecutar solo esta área y dejarla en verde.
 
 ### Paso 5 — C1 1.3.0: modelos y superficie (implementar)
 
-- [x] En `packages/design-system/src/models.ts`, añadir lo que necesitan las piezas (`RatingValue`, props de resultado de búsqueda) sin tocar `OpinionCardModel` más allá de lo ya previsto.
-- [x] En `packages/design-system/src/index.ts`, publicar las ocho piezas nuevas y los tipos; actualizar la cabecera a `C1 1.3.0` y dejar `SpotifyCard` libre para U4.
-- [x] La 1.3.0 es aditiva: ninguna forma de la 1.2.0 deja de compilar.
+- [ ] En `packages/design-system/src/models.ts`, añadir lo que necesitan las piezas (`RatingValue`, props de resultado de búsqueda) sin tocar `OpinionCardModel` más allá de lo ya previsto.
+- [ ] En `packages/design-system/src/index.ts`, publicar las ocho piezas nuevas y los tipos; actualizar la cabecera a `C1 1.3.0` y dejar `SpotifyCard` libre para U4.
+- [ ] La 1.3.0 es aditiva: ninguna forma de la 1.2.0 deja de compilar.
 
 ### Paso 6 — C1: las ocho piezas nuevas (implementar)
 
-- [x] `SearchField` — `value`, `onChangeText`, `placeholder?`, `autoFocus?`, `disabled?`, `loading?`, `onClear?`. No temporiza; el disparo es del contenedor.
-- [x] `RatingInput` — `value` 0–5, `onChange`, `disabled?`; «n de 5» y «Sin valorar»; repetir el toque no borra.
-- [x] `MultilineField` — `label`, `value`, `onChangeText`, `placeholder?`, `error?`, `maxLength?`, `counterFrom?`, `editable?`, `minHeight?`, `testID?`; altura 120–240 con scroll y contador que aparece desde `counterFrom`.
-- [x] `SecondaryButton` — `label`, `onPress`, `disabled?`; borde sin fondo.
-- [x] `ConnectionCard` — `title`, `body`, `actionLabel`, `onAction`.
-- [x] `WorkResultRow` — `work`, `opinionCount`, `onPress`; «N opiniones» / «1 opinión» / «Sé el primero en opinar».
-- [x] `CommentSheet` — `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `counterFrom?`, `snackbar?`, `onSubmit`, `onRetry`, `onClose`; guarda su borrador, no lo pierde en el error de envío y pinta el snackbar dentro del modal.
-- [x] `Snackbar` — `message`, `visible`, `onDismiss`; 4 s y sin acciones, con el temporizador del que lo monta.
-- [x] `OpinionCard` pasa `showLike={!isOwn}` a la barra y usa «Seguir autor» / «Siguiendo» con `accessibilityLabel` «Seguir a {autor}» / «Dejar de seguir a {autor}»; sigue ocultándose en la propia.
-- [x] `SocialActionBar` gana `showLike?: boolean` (por defecto `true`): con `false`, glifo y contador son texto sin `Pressable` ni rol.
-- [x] `OfflineBanner` gana `message?: string` y `onRetry?`: el texto de U2 queda por defecto y en Crear se pinta sin acción.
+- [ ] `SearchField` — `value`, `onChangeText`, `placeholder?`, `autoFocus?`, `disabled?`, `loading?`, `onClear?`. No temporiza; el disparo es del contenedor.
+- [ ] `RatingInput` — `value` 0–5, `onChange`, `disabled?`; «n de 5» y «Sin valorar»; repetir el toque no borra.
+- [ ] `MultilineField` — `label`, `value`, `onChangeText`, `placeholder?`, `error?`, `maxLength?`, `counterFrom?`, `editable?`, `minHeight?`, `testID?`; altura 120–240 con scroll y contador que aparece desde `counterFrom`.
+- [ ] `SecondaryButton` — `label`, `onPress`, `disabled?`; borde sin fondo.
+- [ ] `ConnectionCard` — `title`, `body`, `actionLabel`, `onAction`.
+- [ ] `WorkResultRow` — `work`, `opinionCount`, `onPress`; «N opiniones» / «1 opinión» / «Sé el primero en opinar».
+- [ ] `CommentSheet` — `opinionId`, `comments`, `status`, `failed?`, `maxLength?`, `counterFrom?`, `snackbar?`, `onSubmit`, `onRetry`, `onClose`; guarda su borrador, no lo pierde en el error de envío y pinta el snackbar dentro del modal.
+- [ ] `Snackbar` — `message`, `visible`, `onDismiss`; 4 s y sin acciones, con el temporizador del que lo monta.
+- [ ] `OpinionCard` pasa `showLike={!isOwn}` a la barra y usa «Seguir autor» / «Siguiendo» con `accessibilityLabel` «Seguir a {autor}» / «Dejar de seguir a {autor}»; sigue ocultándose en la propia.
+- [ ] `SocialActionBar` gana `showLike?: boolean` (por defecto `true`): con `false`, glifo y contador son texto sin `Pressable` ni rol.
+- [ ] `OfflineBanner` gana `message?: string` y `onRetry?`: el texto de U2 queda por defecto y en Crear se pinta sin acción.
 
 **Desviaciones registradas**
 
@@ -165,143 +165,143 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 ### Paso 7 — C1: pruebas de las piezas nuevas (escribir y ejecutar)
 
-- [x] `packages/design-system/src/__tests__/search-field.test.tsx` — valor, cambio, limpiar, cargando y deshabilitado.
-- [x] `packages/design-system/src/__tests__/rating-input.test.tsx` — sin valorar, «4 de 5», repetir el toque, deshabilitado.
-- [x] `packages/design-system/src/__tests__/multiline-field.test.tsx` — normal, error con texto e icono, contador desde el umbral, tope de longitud, deshabilitado.
-- [x] `packages/design-system/src/__tests__/secondary-button.test.tsx` y `connection-card.test.tsx` — acción, deshabilitado y textos.
-- [x] `packages/design-system/src/__tests__/work-result-row.test.tsx` — con opiniones, singular, «Sé el primero en opinar» y pulsación.
-- [x] `packages/design-system/src/__tests__/snackbar.test.tsx` — oculto, visible y salida a los 4 s con temporizadores falsos.
-- [x] `packages/design-system/src/__tests__/social-action-bar.test.tsx` (ampliar) — con `showLike: false` no hay control pulsable ni rol, y el número sigue visible.
-- [x] `packages/design-system/src/__tests__/own-opinion.test.tsx` (ampliar) — la propia no da me gusta; la etiqueta de seguir cambia con `followedByMe`; los `accessibilityLabel` son los dos exactos.
-- [x] Ejecutar el área de C1 y dejarla en verde.
+- [ ] `packages/design-system/src/__tests__/search-field.test.tsx` — valor, cambio, limpiar, cargando y deshabilitado.
+- [ ] `packages/design-system/src/__tests__/rating-input.test.tsx` — sin valorar, «4 de 5», repetir el toque, deshabilitado.
+- [ ] `packages/design-system/src/__tests__/multiline-field.test.tsx` — normal, error con texto e icono, contador desde el umbral, tope de longitud, deshabilitado.
+- [ ] `packages/design-system/src/__tests__/secondary-button.test.tsx` y `connection-card.test.tsx` — acción, deshabilitado y textos.
+- [ ] `packages/design-system/src/__tests__/work-result-row.test.tsx` — con opiniones, singular, «Sé el primero en opinar» y pulsación.
+- [ ] `packages/design-system/src/__tests__/snackbar.test.tsx` — oculto, visible y salida a los 4 s con temporizadores falsos.
+- [ ] `packages/design-system/src/__tests__/social-action-bar.test.tsx` (ampliar) — con `showLike: false` no hay control pulsable ni rol, y el número sigue visible.
+- [ ] `packages/design-system/src/__tests__/own-opinion.test.tsx` (ampliar) — la propia no da me gusta; la etiqueta de seguir cambia con `followedByMe`; los `accessibilityLabel` son los dos exactos.
+- [ ] Ejecutar el área de C1 y dejarla en verde.
 
 ### Paso 8 — C1: pruebas de la hoja de comentarios (escribir y ejecutar)
 
-- [x] `packages/design-system/src/__tests__/comment-sheet.test.tsx`: cargando, vacía, con lista, error de carga con «Reintentar», error de envío conservando texto y lista, envío correcto, contador desde 250, tope 300 y snackbar pintado dentro del modal.
-- [x] Afirmar el estado que cada prueba describe, no solo el montaje (regla de `team.md`).
-- [x] Ejecutar el área de C1 y dejarla en verde.
+- [ ] `packages/design-system/src/__tests__/comment-sheet.test.tsx`: cargando, vacía, con lista, error de carga con «Reintentar», error de envío conservando texto y lista, envío correcto, contador desde 250, tope 300 y snackbar pintado dentro del modal.
+- [ ] Afirmar el estado que cada prueba describe, no solo el montaje (regla de `team.md`).
+- [ ] Ejecutar el área de C1 y dejarla en verde.
 
 ### Paso 9 — C2 1.3.0: tipos y contrato de la cáscara (implementar)
 
-- [x] En `packages/app-shell/src/types.ts`: `CreateEntry.formKey: number`, `CommentSheetState.failed: boolean`, `maxLength: number` y `counterFrom: number`; `comments.submit` devuelve `boolean` en lugar de `void`.
-- [x] El marcador vacío de U1 usa `0`/`0` en `maxLength`/`counterFrom`, porque en el esqueleto la hoja nunca se pinta.
-- [x] Actualizar la cabecera del paquete a `C2 1.3.0`; ninguna exportación cambia de forma.
+- [ ] En `packages/app-shell/src/types.ts`: `CreateEntry.formKey: number`, `CommentSheetState.failed: boolean`, `maxLength: number` y `counterFrom: number`; `comments.submit` devuelve `boolean` en lugar de `void`.
+- [ ] El marcador vacío de U1 usa `0`/`0` en `maxLength`/`counterFrom`, porque en el esqueleto la hoja nunca se pinta.
+- [ ] Actualizar la cabecera del paquete a `C2 1.3.0`; ninguna exportación cambia de forma.
 
 ### Paso 10 — C2: los cinco cambios de comportamiento (implementar)
 
-- [x] `formKey` sube en `openCreate`, `openEdit` y al tocar la pestaña Crear.
-- [x] `closeCreate()` vuelve a `returnTo` **sin tocar su pila** y deja Crear limpio.
-- [x] `openEdit` desde Crear conserva el `returnTo` de la entrada vigente y solo emite un `formKey` nuevo.
-- [x] El atrás del sistema dentro de Crear llama a `closeCreate()` y consume el evento.
-- [x] La cáscara se suscribe a `services.comments`, pinta `CommentSheet` cuando hay `opinionId` y `Snackbar` con el mensaje vigente; con la hoja abierta le pasa el snackbar a la hoja, porque el `Modal` queda por encima y un aviso pintado fuera quedaría detrás del velo (NFR8.10); cualquier cambio de pestaña limpia el mensaje.
+- [ ] `formKey` sube en `openCreate`, `openEdit` y al tocar la pestaña Crear.
+- [ ] `closeCreate()` vuelve a `returnTo` **sin tocar su pila** y deja Crear limpio.
+- [ ] `openEdit` desde Crear conserva el `returnTo` de la entrada vigente y solo emite un `formKey` nuevo.
+- [ ] El atrás del sistema dentro de Crear llama a `closeCreate()` y consume el evento.
+- [ ] La cáscara se suscribe a `services.comments`, pinta `CommentSheet` cuando hay `opinionId` y `Snackbar` con el mensaje vigente; con la hoja abierta le pasa el snackbar a la hoja, porque el `Modal` queda por encima y un aviso pintado fuera quedaría detrás del velo (NFR8.10); cualquier cambio de pestaña limpia el mensaje.
 
 ### Paso 11 — C2: pruebas de la cáscara (escribir y ejecutar)
 
-- [x] `packages/app-shell/src/__tests__/create-entry.test.tsx`: `formKey` sube en las tres entradas; `openEdit` desde Crear conserva `returnTo`.
-- [x] `packages/app-shell/src/__tests__/create-close.test.tsx`: «Cancelar», atrás del sistema y «Guardar» vuelven a `returnTo` con su pila y su posición; atrás consume el evento.
-- [x] `packages/app-shell/src/__tests__/sheet-snackbar-mount.test.tsx`: la hoja se monta con `opinionId` y no antes; el snackbar se pinta 4 s y el cambio de pestaña lo limpia; con la hoja abierta el aviso se pinta dentro.
-- [x] Ejecutar el área de C2 y dejarla en verde.
+- [ ] `packages/app-shell/src/__tests__/create-entry.test.tsx`: `formKey` sube en las tres entradas; `openEdit` desde Crear conserva `returnTo`.
+- [ ] `packages/app-shell/src/__tests__/create-close.test.tsx`: «Cancelar», atrás del sistema y «Guardar» vuelven a `returnTo` con su pila y su posición; atrás consume el evento.
+- [ ] `packages/app-shell/src/__tests__/sheet-snackbar-mount.test.tsx`: la hoja se monta con `opinionId` y no antes; el snackbar se pinta 4 s y el cambio de pestaña lo limpia; con la hoja abierta el aviso se pinta dentro.
+- [ ] Ejecutar el área de C2 y dejarla en verde.
 
 ### Paso 12 — Controlador de comentarios (implementar)
 
-- [x] `app/src/comments/createCommentsController.ts`: `subscribe` que emite el estado vigente al establecerse, `open`, `close`, `retry` y `submit`, con las reglas de `frontend-components.md` § `app/src/comments/`; rellena `maxLength` con `MAX_COMMENT_LENGTH` y `counterFrom` con 250.
-- [x] `app/src/comments/toCommentModel.ts`: único mapeo de `CommentView` a `CommentModel`.
-- [x] `app/src/comments/index.ts`: superficie del módulo.
-- [x] Sin estado «enviando»; el almacén es síncrono. El controlador no conoce el aviso ni la navegación.
+- [ ] `app/src/comments/createCommentsController.ts`: `subscribe` que emite el estado vigente al establecerse, `open`, `close`, `retry` y `submit`, con las reglas de `frontend-components.md` § `app/src/comments/`; rellena `maxLength` con `MAX_COMMENT_LENGTH` y `counterFrom` con 250.
+- [ ] `app/src/comments/toCommentModel.ts`: único mapeo de `CommentView` a `CommentModel`.
+- [ ] `app/src/comments/index.ts`: superficie del módulo.
+- [ ] Sin estado «enviando»; el almacén es síncrono. El controlador no conoce el aviso ni la navegación.
 
 ### Paso 13 — Controlador de comentarios: pruebas (escribir y ejecutar)
 
-- [x] `app/src/comments/__tests__/comments-controller.test.ts`: los seis estados (cerrada, cargando, vacía, con lista, error de carga y error de envío), `open` con lista vacía vs. con comentarios, `retry` solo con la hoja abierta, `close` que descarta el borrador, `submit` vacío que devuelve `false` y no escribe, `submit` correcto que añade al final y devuelve `true`, `submit` fallido que pone `failed` sin tocar la lista, y dos reintentos distintos (lista vs. envío).
-- [x] `app/src/comments/__tests__/to-comment-model.test.ts`: nombre y handle del autor, texto y fecha.
-- [x] Ejecutar el área y dejarla en verde.
+- [ ] `app/src/comments/__tests__/comments-controller.test.ts`: los seis estados (cerrada, cargando, vacía, con lista, error de carga y error de envío), `open` con lista vacía vs. con comentarios, `retry` solo con la hoja abierta, `close` que descarta el borrador, `submit` vacío que devuelve `false` y no escribe, `submit` correcto que añade al final y devuelve `true`, `submit` fallido que pone `failed` sin tocar la lista, y dos reintentos distintos (lista vs. envío).
+- [ ] `app/src/comments/__tests__/to-comment-model.test.ts`: nombre y handle del autor, texto y fecha.
+- [ ] Ejecutar el área y dejarla en verde.
 
 ### Paso 14 — `useWorkSearch` (implementar)
 
-- [x] `app/src/state/useWorkSearch.ts` con `useWorkSearch(catalog, enabled)` → `{ query, status, results, setQuery, clear, retry }`.
-- [x] Aplica los 2 caracteres y los 400 ms, cancela el temporizador anterior, descarta respuestas tardías y traduce `SearchResult` a `idle`, `short`, `searching`, `results`, `empty` o `error`.
-- [x] `offline` y `error` de C5 caen los dos en `error` con el texto de BR13.2 y «Reintentar»; con `enabled` falso no monta temporizadores ni llamadas.
-- [x] Registrar `SEARCH_PORT_UNAVAILABLE` con `warn` **solo** en el defecto interno (puerto ausente o consulta que falla sin ser `offline`), según NFR9.6 corregido.
+- [ ] `app/src/state/useWorkSearch.ts` con `useWorkSearch(catalog, enabled)` → `{ query, status, results, setQuery, clear, retry }`.
+- [ ] Aplica los 2 caracteres y los 400 ms, cancela el temporizador anterior, descarta respuestas tardías y traduce `SearchResult` a `idle`, `short`, `searching`, `results`, `empty` o `error`.
+- [ ] `offline` y `error` de C5 caen los dos en `error` con el texto de BR13.2 y «Reintentar»; con `enabled` falso no monta temporizadores ni llamadas.
+- [ ] Registrar `SEARCH_PORT_UNAVAILABLE` con `warn` **solo** en el defecto interno (puerto ausente o consulta que falla sin ser `offline`), según NFR9.6 corregido.
 
 ### Paso 15 — `useWorkSearch`: pruebas (escribir y ejecutar)
 
-- [x] `app/src/state/__tests__/use-work-search.test.ts`, con temporizadores falsos: por debajo de 2 caracteres no llama; a los 400 ms llama una vez; escribir de nuevo cancela el anterior; una respuesta tardía se descarta; `results`, `empty`, `error` y el reintento; `enabled: false` no llama ni registra; el caso de puerto ausente registra el código y devuelve `error`.
-- [x] Ejecutar el área y dejarla en verde.
+- [ ] `app/src/state/__tests__/use-work-search.test.ts`, con temporizadores falsos: por debajo de 2 caracteres no llama; a los 400 ms llama una vez; escribir de nuevo cancela el anterior; una respuesta tardía se descarta; `results`, `empty`, `error` y el reintento; `enabled: false` no llama ni registra; el caso de puerto ausente registra el código y devuelve `error`.
+- [ ] Ejecutar el área y dejarla en verde.
 
 ### Paso 16 — `useCardActions` (implementar)
 
-- [x] `app/src/state/useCardActions.ts`: `actionsFor(opinion)` devuelve `{ onLike?, onComment?, onFollow?, onEdit? }` cableados a `toggleLike`, `toggleFollow`, `comments.open` y `openEdit`, con los textos exactos de confirmación y de fallo.
-- [x] En una opinión propia devuelve solo `onComment` y `onEdit`; sin `viewerId` devuelve objetos vacíos y los controles quedan sin efecto.
-- [x] El fallo de reacción pide snackbar **sin** acción (desviación registrada de FR11.2) y no cambia el estado.
+- [ ] `app/src/state/useCardActions.ts`: `actionsFor(opinion)` devuelve `{ onLike?, onComment?, onFollow?, onEdit? }` cableados a `toggleLike`, `toggleFollow`, `comments.open` y `openEdit`, con los textos exactos de confirmación y de fallo.
+- [ ] En una opinión propia devuelve solo `onComment` y `onEdit`; sin `viewerId` devuelve objetos vacíos y los controles quedan sin efecto.
+- [ ] El fallo de reacción pide snackbar **sin** acción (desviación registrada de FR11.2) y no cambia el estado.
 
 ### Paso 17 — `useCardActions`: pruebas (escribir y ejecutar)
 
-- [x] `app/src/state/__tests__/use-card-actions.test.ts`: me gusta y quitarlo con su confirmación; fallo que deja el estado igual y pide el texto exacto; seguir con «Ahora sigues a @ana» y «Ya no sigues a @ana»; opinión propia sin `onLike` ni `onFollow`; sin `viewerId` todo vacío; «Editar» abre `openEdit` con la opinión.
-- [x] Ejecutar el área y dejarla en verde.
+- [ ] `app/src/state/__tests__/use-card-actions.test.ts`: me gusta y quitarlo con su confirmación; fallo que deja el estado igual y pide el texto exacto; seguir con «Ahora sigues a @ana» y «Ya no sigues a @ana»; opinión propia sin `onLike` ni `onFollow`; sin `viewerId` todo vacío; «Editar» abre `openEdit` con la opinión.
+- [ ] Ejecutar el área y dejarla en verde.
 
 ### Paso 18 — Formulario: validación y estado (implementar)
 
-- [x] `app/src/screens/crear/validateOpinionDraft.ts`: función pura que dice qué falta (`work`, `text`, `rating`), usada por «Publicar» y «Guardar».
-- [x] `app/src/screens/crear/useCrear.ts`: obra, texto, valoración, `alreadyOpined`, error de envío, carga de la edición, validación y las dos escrituras; devuelve `{ state, actions }` y reacciona a `formKey` descartando el borrador.
-- [x] El `409` pasa a `YaOpinada`; el `422` y cualquier otro error de publicación se tratan como «No pudimos publicar tu opinión.» con «Reintentar», conservando todo; el `404` al guardar pasa a `ErrorCarga`.
+- [ ] `app/src/screens/crear/validateOpinionDraft.ts`: función pura que dice qué falta (`work`, `text`, `rating`), usada por «Publicar» y «Guardar».
+- [ ] `app/src/screens/crear/useCrear.ts`: obra, texto, valoración, `alreadyOpined`, error de envío, carga de la edición, validación y las dos escrituras; devuelve `{ state, actions }` y reacciona a `formKey` descartando el borrador.
+- [ ] El `409` pasa a `YaOpinada`; el `422` y cualquier otro error de publicación se tratan como «No pudimos publicar tu opinión.» con «Reintentar», conservando todo; el `404` al guardar pasa a `ErrorCarga`.
 
 ### Paso 19 — Formulario: pruebas de la lógica (escribir y ejecutar)
 
-- [x] `app/src/screens/crear/__tests__/validate-opinion-draft.test.ts`: sin obra, sin texto, sin valoración, texto de solo espacios y borrador completo.
-- [x] `app/src/screens/crear/__tests__/use-crear.test.ts`: `alreadyOpined`, las dos escrituras con sus respuestas (`201`, `409`, `422`, `200`, `404`), «Guardar» sin cambios que no escribe, y el borrador que se descarta al cambiar `formKey`.
-- [x] Ejecutar el área y dejarla en verde.
+- [ ] `app/src/screens/crear/__tests__/validate-opinion-draft.test.ts`: sin obra, sin texto, sin valoración, texto de solo espacios y borrador completo.
+- [ ] `app/src/screens/crear/__tests__/use-crear.test.ts`: `alreadyOpined`, las dos escrituras con sus respuestas (`201`, `409`, `422`, `200`, `404`), «Guardar» sin cambios que no escribe, y el borrador que se descarta al cambiar `formKey`.
+- [ ] Ejecutar el área y dejarla en verde.
 
 ### Paso 20 — Crear: vista, cabecera y contenedor (implementar)
 
-- [x] `app/src/screens/crear/CrearHeader.tsx`: `AppHeader` con «Crear» / «Editar opinión» y «Cancelar» en la ranura derecha.
-- [x] `app/src/screens/crear/CrearView.tsx`: vista pura con los grupos de props de `frontend-components.md`, las dos ramas (buscador o selector de ejemplo), `loading`, `loadError`, `submitError` sobre el botón, `OfflineBanner` con el texto de cada modo y sin acción, y ninguna lectura de C4, C5 ni la sesión.
-- [x] `app/src/screens/crear/CrearScreen.tsx`: contenedor que monta `useCrear` y `useWorkSearch`, cablea navegación y snackbar, y reacciona a `entry.formKey`.
-- [x] El botón dice «Publicar» o «Guardar» y se sustituye por «Editar mi opinión» en `YaOpinada`; en edición no hay buscador ni «Cambiar».
+- [ ] `app/src/screens/crear/CrearHeader.tsx`: `AppHeader` con «Crear» / «Editar opinión» y «Cancelar» en la ranura derecha.
+- [ ] `app/src/screens/crear/CrearView.tsx`: vista pura con los grupos de props de `frontend-components.md`, las dos ramas (buscador o selector de ejemplo), `loading`, `loadError`, `submitError` sobre el botón, `OfflineBanner` con el texto de cada modo y sin acción, y ninguna lectura de C4, C5 ni la sesión.
+- [ ] `app/src/screens/crear/CrearScreen.tsx`: contenedor que monta `useCrear` y `useWorkSearch`, cablea navegación y snackbar, y reacciona a `entry.formKey`.
+- [ ] El botón dice «Publicar» o «Guardar» y se sustituye por «Editar mi opinión» en `YaOpinada`; en edición no hay buscador ni «Cambiar».
 
 ### Paso 21 — Crear: pruebas de pantalla (escribir y ejecutar)
 
-- [x] `app/src/screens/crear/__tests__/crear-screen.test.tsx`, montando el árbol con dobles de sesión, contenido y catálogo: vacío, buscando, con obra, ya opinada, editando, error de carga, error de envío y sin conexión.
-- [x] Afirmar el estado que se declara: la obra elegida, el botón habilitado o no, el texto conservado tras el fallo y el aviso de «Reintentar».
-- [x] `app/src/screens/crear/__tests__/crear-view.test.tsx`: cada rama de la vista pura sin almacén ni catálogo.
-- [x] Montar el árbol **una sola vez** y cambiar `formKey` sin desmontarlo: se afirma que el campo está vacío y que no hay obra seleccionada (receta de NFR3.16).
-- [x] Ejecutar el área y dejarla en verde.
+- [ ] `app/src/screens/crear/__tests__/crear-screen.test.tsx`, montando el árbol con dobles de sesión, contenido y catálogo: vacío, buscando, con obra, ya opinada, editando, error de carga, error de envío y sin conexión.
+- [ ] Afirmar el estado que se declara: la obra elegida, el botón habilitado o no, el texto conservado tras el fallo y el aviso de «Reintentar».
+- [ ] `app/src/screens/crear/__tests__/crear-view.test.tsx`: cada rama de la vista pura sin almacén ni catálogo.
+- [ ] Montar el árbol **una sola vez** y cambiar `formKey` sin desmontarlo: se afirma que el campo está vacío y que no hay obra seleccionada (receta de NFR3.16).
+- [ ] Ejecutar el área y dejarla en verde.
 
 ### Paso 22 — Cableado de las cuatro pantallas de U2 (implementar)
 
-- [x] Inicio, Detalle de obra, Detalle de opinión y Perfil usan `useCardActions` y pasan el paquete a la tarjeta; no cambian su variante ni su composición.
-- [x] La tarjeta propia recibe `onEdit` y `onComment`; las ajenas además `onLike` y `onFollow`; en Perfil ninguna recibe me gusta ni seguir.
-- [x] `opened` desde la hoja no cambia de pestaña: la hoja se abre sobre la pantalla actual.
+- [ ] Inicio, Detalle de obra, Detalle de opinión y Perfil usan `useCardActions` y pasan el paquete a la tarjeta; no cambian su variante ni su composición.
+- [ ] La tarjeta propia recibe `onEdit` y `onComment`; las ajenas además `onLike` y `onFollow`; en Perfil ninguna recibe me gusta ni seguir.
+- [ ] `opened` desde la hoja no cambia de pestaña: la hoja se abre sobre la pantalla actual.
 
 ### Paso 23 — Cableado: pruebas (escribir y ejecutar)
 
-- [x] Ampliar las pruebas de Inicio, los dos detalles y Perfil: cada tarjeta recibe las acciones que le tocan, la propia no ofrece me gusta ni seguir, y tocar «Editar» abre la entrada de edición.
-- [x] Ejecutar las cuatro áreas y dejarlas en verde.
+- [ ] Ampliar las pruebas de Inicio, los dos detalles y Perfil: cada tarjeta recibe las acciones que le tocan, la propia no ofrece me gusta ni seguir, y tocar «Editar» abre la entrada de edición.
+- [ ] Ejecutar las cuatro áreas y dejarlas en verde.
 
 ### Paso 24 — Composición (implementar)
 
-- [x] `app/src/bootstrap/comments.ts` **(nuevo)**: construye una sola vez `createCommentsController({ content: contentStore, session: appSession })`.
-- [x] `app/src/bootstrap/shell-services.ts`: sustituye el controlador vacío de comentarios por el de `comments.ts`; Spotify sigue con su valor de U1 hasta U4.
-- [x] `app/src/bootstrap/App.tsx`: la pestaña Crear pasa a `CrearScreen` con `session`, `content` y `catalog`; el resto del registro no cambia.
-- [x] `app/src/screens/dependencies.ts`: la forma sigue sirviendo a las cinco pantallas; si el contenedor de Crear necesita la entrada de la cáscara, se resuelve con los hooks de contexto, no con una segunda instancia.
+- [ ] `app/src/bootstrap/comments.ts` **(nuevo)**: construye una sola vez `createCommentsController({ content: contentStore, session: appSession })`.
+- [ ] `app/src/bootstrap/shell-services.ts`: sustituye el controlador vacío de comentarios por el de `comments.ts`; Spotify sigue con su valor de U1 hasta U4.
+- [ ] `app/src/bootstrap/App.tsx`: la pestaña Crear pasa a `CrearScreen` con `session`, `content` y `catalog`; el resto del registro no cambia.
+- [ ] `app/src/screens/dependencies.ts`: la forma sigue sirviendo a las cinco pantallas; si el contenedor de Crear necesita la entrada de la cáscara, se resuelve con los hooks de contexto, no con una segunda instancia.
 
 ### Paso 25 — Composición: pruebas (escribir y ejecutar)
 
-- [x] `app/src/bootstrap/__tests__/comments-instance.test.ts`: una sola instancia por arranque y la misma que ve la cáscara.
-- [x] Ampliar `app/src/bootstrap/__tests__/app-bootstrap.test.tsx`: Crear monta el formulario real y no el marcador; la hoja y el snackbar se pintan desde la cáscara.
-- [x] Ejecutar el área y dejarla en verde.
+- [ ] `app/src/bootstrap/__tests__/comments-instance.test.ts`: una sola instancia por arranque y la misma que ve la cáscara.
+- [ ] Ampliar `app/src/bootstrap/__tests__/app-bootstrap.test.tsx`: Crear monta el formulario real y no el marcador; la hoja y el snackbar se pintan desde la cáscara.
+- [ ] Ejecutar el área y dejarla en verde.
 
 ### Paso 26 — Configuración de entorno y build (verificar, sin escribir)
 
-- [x] Confirmar que U3 no añade dependencias a `package.json` ni a ningún paquete (NFR7.6).
-- [x] Confirmar que `.github/workflows/ci.yml` no cambia: `npm test` ya corre `jest --coverage` y los umbrales por árbol ya cubren todas las rutas nuevas.
-- [x] Confirmar que no hay variable de entorno, secreto ni artefacto desplegable nuevo.
-- [x] Si algo de esto dejara de ser cierto, parar y volver a Plan Approval antes de escribirlo.
+- [ ] Confirmar que U3 no añade dependencias a `package.json` ni a ningún paquete (NFR7.6).
+- [ ] Confirmar que `.github/workflows/ci.yml` no cambia: `npm test` ya corre `jest --coverage` y los umbrales por árbol ya cubren todas las rutas nuevas.
+- [ ] Confirmar que no hay variable de entorno, secreto ni artefacto desplegable nuevo.
+- [ ] Si algo de esto dejara de ser cierto, parar y volver a Plan Approval antes de escribirlo.
 
 ### Paso 27 — Documentación y trazabilidad
 
-- [x] `code-summary.md` con lo construido, las desviaciones registradas (snackbar de fallo de reacción sin acción, `setTimeout` propio, único código de log `SEARCH_PORT_UNAVAILABLE`) y el comando de la unidad.
-- [x] `source-manifest.json` con **todas** las rutas tocadas, incluidas las de prueba.
-- [x] `traceability.json` generado con `aidlc engine sensor-traceability --stage code-generation --output-path … --write-upstream`, con todos los objetivos en `OK` y existiendo en disco.
-- [x] Entradas de `memory.md` de la etapa al cerrar cada tramo.
+- [ ] `code-summary.md` con lo construido, las desviaciones registradas (snackbar de fallo de reacción sin acción, `setTimeout` propio, único código de log `SEARCH_PORT_UNAVAILABLE`) y el comando de la unidad.
+- [ ] `source-manifest.json` con **todas** las rutas tocadas, incluidas las de prueba.
+- [ ] `traceability.json` generado con `aidlc engine sensor-traceability --stage code-generation --output-path … --write-upstream`, con todos los objetivos en `OK` y existiendo en disco.
+- [ ] Entradas de `memory.md` de la etapa al cerrar cada tramo.
 
 ## Notas de ejecución
 

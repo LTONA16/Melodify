@@ -11,7 +11,11 @@ import {
   type ShellServices,
 } from "@melodify/app-shell";
 import type { AppSession, SessionView } from "@melodify/app-session";
-import { createCatalog, type Catalog } from "@melodify/catalog";
+import {
+  createCatalog,
+  type Catalog,
+  type WorkView,
+} from "@melodify/catalog";
 import type { Connectivity, NetworkView } from "@melodify/connectivity";
 import { createContentStore, type ContentStore } from "@melodify/content-store";
 import { ThemeProvider } from "@melodify/design-system";
@@ -98,6 +102,7 @@ function networkDouble(initial: boolean) {
 
 interface HarnessOptions {
   workId?: string;
+  data?: WorkView;
   content?: ContentStore;
   catalog?: Catalog;
   network?: ReturnType<typeof networkDouble>;
@@ -155,7 +160,7 @@ function setup(options: HarnessOptions = {}) {
       <ShellServicesContext.Provider value={services}>
         <GlobalServicesContext.Provider value={global}>
           <DetalleObraScreen
-            work={{ workId }}
+            work={{ workId, ...(options.data === undefined ? {} : { data: options.data }) }}
             session={session}
             content={content}
             catalog={catalog}
@@ -263,7 +268,64 @@ describe("DetalleObraScreen", () => {
 
     fireEvent.press(view.getByTestId("detalle-obra-create"));
 
-    expect(view.global.openCreate).toHaveBeenCalledWith({ workId: BAD_GUY });
+    expect(view.global.openCreate).toHaveBeenCalledWith({
+      workId: BAD_GUY,
+      data: expect.objectContaining({ workId: BAD_GUY, title: "bad guy" }),
+    });
+  });
+
+  it("prioriza la obra del catálogo sobre los datos de la ruta", async () => {
+    const view = setup({
+      workId: BAD_GUY,
+      data: {
+        workId: BAD_GUY,
+        title: "Título de la ruta",
+        artist: "Artista de la ruta",
+        coverUrl: null,
+        origin: "spotify",
+        workKind: "album",
+      },
+    });
+
+    await view.findByTestId("opinion-card-op-005");
+
+    expect(view.getByTestId("work-header-title")).toHaveTextContent("bad guy");
+    expect(view.getByTestId("work-header-artist")).toHaveTextContent(
+      "Billie Eilish",
+    );
+  });
+
+  it("si el catálogo no conoce la obra usa los datos de la ruta y los lleva a Crear", async () => {
+    const unknown = "0RutaSinCatalogo";
+    const data: WorkView = {
+      workId: unknown,
+      title: "Obra desde la ruta",
+      artist: "Artista de la ruta",
+      coverUrl: null,
+      origin: "spotify",
+      workKind: "album",
+    };
+    const view = setup({ workId: unknown, data });
+
+    await view.findByText("Obra desde la ruta");
+
+    expect(view.getByTestId("work-header-artist")).toHaveTextContent(
+      "Artista de la ruta",
+    );
+
+    fireEvent.press(view.getByTestId("detalle-obra-create"));
+
+    expect(view.global.openCreate).toHaveBeenCalledWith({
+      workId: unknown,
+      data,
+    });
+  });
+
+  it("si no hay catálogo ni datos de ruta pinta el error de la obra", async () => {
+    const view = setup({ workId: "0ObraQueNoExiste" });
+
+    expect(await view.findByText("No pudimos cargar esta obra.")).toBeVisible();
+    expect(view.queryByTestId("work-header")).toBeNull();
   });
 
   it("sin conexión pinta el aviso, conserva la identidad y reintenta las portadas", async () => {

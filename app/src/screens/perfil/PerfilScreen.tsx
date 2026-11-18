@@ -16,7 +16,7 @@
  * segundo almacén o un segundo catálogo. El paso 29 de la composición las pasa una vez.
  */
 import type { AppSession } from "@melodify/app-session";
-import { useGlobalServices } from "@melodify/app-shell";
+import { useGlobalServices, useShellServices } from "@melodify/app-shell";
 import type { Catalog } from "@melodify/catalog";
 import type { ContentStore } from "@melodify/content-store";
 import { useMemo } from "react";
@@ -26,6 +26,7 @@ import { toOpinionCardModel } from "../../state/opinionCardModel";
 import { useCardActions } from "../../state/useCardActions";
 import { useCatalog } from "../../state/useCatalog";
 import { useNetwork } from "../../state/useNetwork";
+import { useSpotifyConnection } from "../../state/useSpotifyConnection";
 import { useViewerId } from "../../state/useViewerId";
 import type { ScreenDependencies } from "../dependencies";
 import { PerfilView } from "./PerfilView";
@@ -49,6 +50,10 @@ export function PerfilScreen({
         author={null}
         cards={[]}
         online
+        spotifyStatus="disconnected"
+        onConnectSpotify={NO_ACTION}
+        onDisconnectSpotify={NO_ACTION}
+        onRetrySpotify={NO_ACTION}
         onOpenOpinion={NO_ACTION}
         onRetry={NO_ACTION}
         onRetryCovers={NO_ACTION}
@@ -90,6 +95,9 @@ function PerfilConnected({
   const { status, author, opinions, retry } = usePerfil(viewerId, content, log);
   const catalogVersion = useCatalog(catalog);
   const online = useNetwork();
+  const { spotify } = useShellServices();
+  const { status: liveSpotifyStatus } = useSpotifyConnection();
+  const spotifyStatus = liveSpotifyStatus ?? spotify.status;
   const global = useGlobalServices();
   const actionsFor = useCardActions(content, viewerId);
 
@@ -116,6 +124,17 @@ function PerfilConnected({
       author={author}
       cards={cards}
       online={online}
+      spotifyStatus={spotifyStatus}
+      onConnectSpotify={() => {
+        spotify.connect();
+      }}
+      onDisconnectSpotify={() => {
+        spotify.disconnect();
+        global.showSnackbar({ message: "Spotify desconectado" });
+      }}
+      onRetrySpotify={() => {
+        spotify.retry();
+      }}
       onOpenOpinion={(opinionId) => global.openOpinionDetail({ opinionId })}
       onRetry={retry}
       onRetryCovers={() => catalog.retryCovers()}

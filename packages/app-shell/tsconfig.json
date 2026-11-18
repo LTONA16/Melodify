@@ -6,5 +6,8 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": ["src/**/*"],
-  "references": [{ "path": "../design-system" }]
+  "references": [
+    { "path": "../design-system" },
+    { "path": "../catalog" }
+  ]
 }

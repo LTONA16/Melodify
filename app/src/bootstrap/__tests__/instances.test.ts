@@ -52,11 +52,11 @@ describe("instancias de la app", () => {
     expect(received).toBe(state.online);
   });
 
-  it("los tres puertos de Spotify siguen en `null`: sin sesión no hay búsqueda ni portada real", async () => {
+  it("con los puertos reales pero sin sesión no hay búsqueda ni portada real", async () => {
     const search = await catalog.searchWorks("queen");
     const cover = catalog.coverFor("4u7EnebtmKWzUH433Rbtpz");
 
-    expect(search.status).toBe("offline");
+    expect(search).toEqual({ status: "offline", works: [], artists: [] });
     expect(cover).toEqual({ kind: "initialBlock", value: null });
   });
 

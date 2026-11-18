@@ -20,6 +20,7 @@ const DEMO = "demo";
 
 const ENTRY: CreateEntry = {
   mode: "create",
+  preselectedWork: null,
   preselectedWorkId: null,
   editingOpinionId: null,
   returnTo: null,
@@ -173,6 +174,31 @@ describe("useCrear — arranque y obra", () => {
       workId: "work-1",
       viewerId: DEMO,
     });
+  });
+
+  it("la obra completa de la ruta gana sobre el id y conserva su tipo", () => {
+    const catalog = catalogDouble();
+    const { result } = setup({
+      entry: {
+        ...ENTRY,
+        preselectedWorkId: "work-1",
+        preselectedWork: {
+          ...workView(),
+          title: "Título de la ruta",
+          workKind: "album",
+        },
+      },
+      catalog,
+    });
+
+    expect(result.current.state.work).toEqual({
+      workId: "work-1",
+      title: "Título de la ruta",
+      artist: "Billie Eilish",
+      coverUrl: null,
+      workKind: "album",
+    });
+    expect(catalog.getWork).not.toHaveBeenCalled();
   });
 
   it("una obra preseleccionada que no está en el catálogo no bloquea el formulario", () => {
@@ -441,6 +467,7 @@ describe("useCrear — publicar", () => {
 describe("useCrear — editar", () => {
   const EDIT_ENTRY: CreateEntry = {
     mode: "edit",
+    preselectedWork: null,
     preselectedWorkId: null,
     editingOpinionId: "op-1",
     returnTo: "work",
@@ -640,6 +667,7 @@ describe("useCrear — cada visita empieza limpia", () => {
     const { rerender } = setup({
       entry: {
         mode: "edit",
+        preselectedWork: null,
         preselectedWorkId: null,
         editingOpinionId: "op-1",
         returnTo: null,
@@ -651,6 +679,7 @@ describe("useCrear — cada visita empieza limpia", () => {
     rerender({
       entry: {
         mode: "edit",
+        preselectedWork: null,
         preselectedWorkId: null,
         editingOpinionId: "op-2",
         returnTo: null,

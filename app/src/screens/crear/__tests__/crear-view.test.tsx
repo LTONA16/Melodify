@@ -135,6 +135,12 @@ describe("CrearView — sin Spotify (selector de ejemplo)", () => {
     expect(onChooseWork).toHaveBeenCalledWith(OTHER);
   });
 
+  it("la fila elegida usa el rótulo de álbum cuando la obra lo trae", () => {
+    const view = setup({ work: { ...WORK, workKind: "album" } });
+
+    expect(view.getByTestId("work-result-kind")).toHaveTextContent("Álbum");
+  });
+
   it("con obra elegida pliega el selector y deja su fila con «Cambiar», sin buscador", () => {
     const view = setup({ work: WORK });
 

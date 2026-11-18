@@ -68,6 +68,7 @@ function renderView(overrides: Partial<InicioViewProps> = {}) {
     online: true,
     metadataError: false,
     spotifyStatus: "disconnected",
+    onSpotifyPress: jest.fn(),
     onOpenOpinion: jest.fn(),
     onRetry: jest.fn(),
     onRetryCovers: jest.fn(),
@@ -176,8 +177,8 @@ describe("InicioView", () => {
     expect(screen.getAllByTestId("opinion-work-title")).toHaveLength(2);
   });
 
-  it("el chip dice «Conectar» sin sesión de Spotify y en U2 no responde", () => {
-    renderView();
+  it("el chip dice «Conectar» sin sesión y delega la conexión", () => {
+    const props = renderView();
 
     const chip = screen.getByTestId("spotify-chip");
 
@@ -185,9 +186,9 @@ describe("InicioView", () => {
     expect(chip.props.accessibilityLabel).toBe("Conectar");
     expect(screen.queryByTestId("spotify-chip-dot")).toBeNull();
 
-    // La acción se cablea en U4; aquí tocarlo no cambia la pantalla.
     fireEvent.press(chip);
 
+    expect(props.onSpotifyPress).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Para ti")).toBeVisible();
   });
 

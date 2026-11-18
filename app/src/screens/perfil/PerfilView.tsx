@@ -1,14 +1,15 @@
 /**
  * La vista de Perfil (F10, BR9.1–BR9.9): pura.
  *
- * Identidad, contadores y opiniones propias en variante `compact`, de la más
- * reciente a la más antigua. «Cerrar sesión» es un `TextButton` en tono de error
- * porque es la única acción destructiva de la pantalla (BR9.7). En U2 **no** hay
- * tarjeta de Spotify: el hueco lo llena U4 (BR9.9).
+ * Identidad, contadores, tarjeta de Spotify y opiniones propias en variante
+ * `compact`, de la más reciente a la más antigua. La tarjeta va tras los contadores
+ * y antes de «Mis opiniones» (BR9.9). «Cerrar sesión» es un `TextButton` en tono de
+ * error porque es la única acción destructiva de la pantalla (BR9.7).
  *
  * Los contadores se escriben con singular: «1 opinión · 1 siguiendo», no «1
  * opiniones».
  */
+import type { SpotifyStatus } from "@melodify/app-shell";
 import type { OpinionCardModel } from "@melodify/design-system";
 import {
   AppHeader,
@@ -17,6 +18,7 @@ import {
   ErrorState,
   OpinionCard,
   Skeleton,
+  SpotifyCard,
   TextButton,
   useTheme,
 } from "@melodify/design-system";
@@ -49,6 +51,10 @@ export interface PerfilViewProps {
   author: PerfilAuthorView | null;
   cards: readonly PerfilCard[];
   online: boolean;
+  spotifyStatus: SpotifyStatus;
+  onConnectSpotify: () => void;
+  onDisconnectSpotify: () => void;
+  onRetrySpotify: () => void;
   onOpenOpinion: (opinionId: string) => void;
   onRetry: () => void;
   onRetryCovers: () => void;
@@ -65,6 +71,10 @@ export function PerfilView({
   author,
   cards,
   online,
+  spotifyStatus,
+  onConnectSpotify,
+  onDisconnectSpotify,
+  onRetrySpotify,
   onOpenOpinion,
   onRetry,
   onRetryCovers,
@@ -130,6 +140,13 @@ export function PerfilView({
             >
               {`${formatOpinionCount(author.opinionCount)} · ${formatFollowingCount(author.followingCount)}`}
             </Text>
+
+            <SpotifyCard
+              status={spotifyStatus}
+              onConnect={onConnectSpotify}
+              onDisconnect={onDisconnectSpotify}
+              onRetry={onRetrySpotify}
+            />
 
             <Text style={[theme.type.title2, { color: theme.colors.text }]}>
               Mis opiniones

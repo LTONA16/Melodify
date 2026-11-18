@@ -10,6 +10,7 @@ import {
   ShellServicesContext,
   type GlobalServices,
   type ShellServices,
+  type SpotifyStatus,
 } from "@melodify/app-shell";
 import type { AppSession, SessionView } from "@melodify/app-session";
 import { createCatalog, type Catalog } from "@melodify/catalog";
@@ -123,13 +124,24 @@ function setup(options: HarnessOptions = {}) {
   const log = silentLogger();
   const session = signedInSession();
   const openComments = jest.fn();
+  let spotifyStatus: SpotifyStatus = "disconnected";
+  const spotifyListeners = new Set<(status: SpotifyStatus) => void>();
+  const connectSpotify = jest.fn();
 
   const services: ShellServices = {
     network: network.service,
     spotify: {
-      status: "disconnected",
-      subscribe: () => () => undefined,
-      connect: () => undefined,
+      get status() {
+        return spotifyStatus;
+      },
+      subscribe: (listener) => {
+        spotifyListeners.add(listener);
+        listener(spotifyStatus);
+        return () => {
+          spotifyListeners.delete(listener);
+        };
+      },
+      connect: connectSpotify,
       disconnect: () => undefined,
       retry: () => undefined,
     },
@@ -181,6 +193,13 @@ function setup(options: HarnessOptions = {}) {
     session,
     log,
     openComments,
+    connectSpotify,
+    setSpotify(next: SpotifyStatus) {
+      spotifyStatus = next;
+      for (const listener of [...spotifyListeners]) {
+        listener(next);
+      }
+    },
   };
 }
 
@@ -329,6 +348,29 @@ describe("InicioScreen", () => {
     fireEvent.press(view.getByTestId("error-state-retry"));
 
     expect(subscribeContent).toHaveBeenCalledTimes(2);
+  });
+
+  it("el chip sin sesión inicia la conexión y no navega", async () => {
+    const view = setup();
+
+    await view.findByTestId("opinion-card-op-002");
+    fireEvent.press(view.getByTestId("spotify-chip"));
+
+    expect(view.connectSpotify).toHaveBeenCalledTimes(1);
+    expect(view.global.goToTab).not.toHaveBeenCalled();
+  });
+
+  it("el chip conectado lleva a Perfil y no vuelve a conectar", async () => {
+    const view = setup();
+
+    await view.findByTestId("opinion-card-op-002");
+    act(() => {
+      view.setSpotify("connected");
+    });
+    fireEvent.press(view.getByTestId("spotify-chip"));
+
+    expect(view.global.goToTab).toHaveBeenCalledWith({ name: "perfil" });
+    expect(view.connectSpotify).not.toHaveBeenCalled();
   });
 
   it("sin colaboradores se queda en carga en lugar de inventar instancias", () => {

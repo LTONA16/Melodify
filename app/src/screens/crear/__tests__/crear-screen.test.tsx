@@ -72,6 +72,7 @@ const WORK_3: WorkView = {
 
 const ENTRY_CREATE: CreateEntry = {
   mode: "create",
+  preselectedWork: null,
   preselectedWorkId: null,
   editingOpinionId: null,
   returnTo: null,
@@ -466,6 +467,7 @@ describe("CrearScreen — publicar", () => {
 describe("CrearScreen — editar", () => {
   const EDIT_ENTRY: CreateEntry = {
     mode: "edit",
+    preselectedWork: null,
     preselectedWorkId: null,
     editingOpinionId: "op-1",
     returnTo: null,

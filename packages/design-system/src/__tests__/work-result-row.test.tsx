@@ -74,4 +74,20 @@ describe("WorkResultRow", () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it("sin kind no pinta etiqueta de clase", () => {
+    renderRow(1);
+
+    expect(screen.queryByTestId("work-result-kind")).toBeNull();
+  });
+
+  it("con kind pinta Canción o Álbum sin añadir una línea", () => {
+    renderRow(1, { kind: "track" });
+    expect(screen.getByTestId("work-result-kind")).toHaveTextContent("Canción");
+
+    screen.unmount();
+
+    renderRow(1, { kind: "album" });
+    expect(screen.getByTestId("work-result-kind")).toHaveTextContent("Álbum");
+  });
 });

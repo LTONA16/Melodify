@@ -12,6 +12,7 @@
     { "path": "../packages/connectivity" },
     { "path": "../packages/content-store" },
     { "path": "../packages/catalog" },
-    { "path": "../packages/app-shell" }
+    { "path": "../packages/app-shell" },
+    { "path": "../packages/spotify" }
   ]
 }

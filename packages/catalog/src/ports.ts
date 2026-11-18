@@ -23,6 +23,17 @@ export interface WorkView {
   coverUrl: string | null;
   /** De dónde entró la obra: catálogo de ejemplo o búsqueda en Spotify. */
   origin: "sample" | "spotify";
+  /**
+   * Si la obra es una canción o un álbum. Es opcional: las obras sembradas antes
+   * de U4 no lo traen y se tratan como canción (BR20.9).
+   */
+  workKind?: "track" | "album";
+}
+
+/** Un artista encontrado en Spotify; no es una obra y no abre detalle (BR20.6). */
+export interface ArtistHit {
+  artistId: string;
+  name: string;
 }
 
 export type SearchPortFailure =
@@ -38,6 +49,8 @@ export type ResolvePortFailure = SearchPortFailure | "notFound";
 export interface SearchPortResult {
   kind: "ok" | "empty" | "failure";
   works?: WorkView[];
+  /** Los artistas viajan junto a las obras; C5 los devuelve vacíos si no hay. */
+  artists?: ArtistHit[];
   failure?: SearchPortFailure;
 }
 

@@ -52,6 +52,8 @@ export interface InicioViewProps {
   /** Si la última resolución de metadatos falló (BR7.5). */
   metadataError: boolean;
   spotifyStatus: SpotifyStatus;
+  /** Lleva a Perfil si hay sesión; si no, inicia la conexión (F6.2, Q2 = A). */
+  onSpotifyPress: () => void;
   onOpenOpinion: (opinionId: string) => void;
   onRetry: () => void;
   onRetryCovers: () => void;
@@ -64,6 +66,7 @@ export function InicioView({
   online,
   metadataError,
   spotifyStatus,
+  onSpotifyPress,
   onOpenOpinion,
   onRetry,
   onRetryCovers,
@@ -111,7 +114,10 @@ export function InicioView({
 
   return (
     <View style={styles.fill}>
-      <InicioHeader spotifyStatus={spotifyStatus} />
+      <InicioHeader
+        spotifyStatus={spotifyStatus}
+        onPress={onSpotifyPress}
+      />
 
       <FlatList
         testID="inicio-feed"

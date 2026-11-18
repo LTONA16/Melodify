@@ -11,9 +11,9 @@
  * La siembra se construye al importar, no en el primer render: así el feed no paga
  * su coste y el arranque, que ya tiene su presupuesto, es quien lo asume (NFR8.1).
  *
- * Los tres puertos de Spotify siguen en `null` hasta U4 (`ports.ts`): sin sesión, la
- * búsqueda responde `offline` y toda portada es el bloque con la inicial (BR5.5,
- * BR5.6).
+ * Los tres puertos de Spotify llegan de `ports.ts` desde U4 y son instancias reales:
+ * sin sesión, la búsqueda sigue respondiendo `offline` y toda portada es el bloque
+ * con la inicial (BR5.5, BR5.6, BR19.5).
  */
 import { createCatalog } from "@melodify/catalog";
 import { createConnectivity, expoNetworkAdapter } from "@melodify/connectivity";

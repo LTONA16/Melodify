@@ -1,19 +1,34 @@
-import { catalogPorts } from "../ports";
+import { catalogPorts, spotifyAuth, spotifyCatalog } from "../ports";
 
 /**
- * Los tres puertos de C5 existen declarados y **sin implementación registrada**:
- * «sin sesión, sin búsqueda y sin resolución» es un estado observable, no un
- * error, y es lo que deja que el catálogo de ejemplo funcione solo (C5).
+ * Los tres puertos ya están registrados y comparten **una sola** instancia de
+ * sesión y de catálogo (TS-18, TS-35, R-01): dos máquinas de token serían dos
+ * hidrataciones y dos respuestas distintas a «¿hay sesión?».
  */
 describe("puertos del catálogo", () => {
-  it("declara los tres puertos y ninguno arranca implementado", () => {
+  it("registra los tres puertos y no deja ninguno en `null`", () => {
     expect(Object.keys(catalogPorts).sort()).toEqual([
       "resolve",
       "search",
       "session",
     ]);
-    expect(catalogPorts.session).toBeNull();
-    expect(catalogPorts.search).toBeNull();
-    expect(catalogPorts.resolve).toBeNull();
+    expect(catalogPorts.session).not.toBeNull();
+    expect(catalogPorts.search).not.toBeNull();
+    expect(catalogPorts.resolve).not.toBeNull();
+  });
+
+  it("la sesión de C5 es la misma máquina de autorización que usa la cáscara", () => {
+    expect(catalogPorts.session).toBe(spotifyAuth);
+    expect(typeof spotifyAuth.getState().status).toBe("string");
+  });
+
+  it("la búsqueda y la resolución son el mismo cliente de catálogo", () => {
+    expect(catalogPorts.search).toBe(spotifyCatalog);
+    expect(catalogPorts.resolve).toBe(spotifyCatalog);
+  });
+
+  it("sin client ID la sesión arranca en `notConfigured` y la app sigue operativa", () => {
+    expect(spotifyAuth.getState().status).toBe("notConfigured");
+    expect(() => spotifyAuth.connect()).not.toThrow();
   });
 });

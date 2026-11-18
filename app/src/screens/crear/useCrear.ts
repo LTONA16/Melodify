@@ -24,7 +24,7 @@
  *   (BR12.4).
  */
 import type { CreateEntry } from "@melodify/app-shell";
-import type { Catalog } from "@melodify/catalog";
+import type { Catalog, WorkView } from "@melodify/catalog";
 import type { ContentStore, OpinionView } from "@melodify/content-store";
 import { MAX_OPINION_LENGTH } from "@melodify/content-store";
 import { useCallback, useEffect, useState } from "react";
@@ -155,6 +155,8 @@ function findOwnOpinion(
 
 interface EntryFields {
   mode: CrearMode;
+  /** La obra ya resuelta por la pantalla que abrió Crear: gana sobre el id. */
+  preselectedWork: WorkView | null;
   preselectedWorkId: string | null;
   editingOpinionId: string | null;
 }
@@ -209,7 +211,20 @@ function deriveState(
 
   let work: SelectedWork | null = null;
 
-  if (entry.preselectedWorkId !== null) {
+  // La obra que ya venía resuelta gana sobre volver a buscarla por id (BR11.10):
+  // conserva el título, la portada y `workKind` que la ruta ya conocía.
+  if (
+    entry.preselectedWork !== null &&
+    entry.preselectedWork.workId === entry.preselectedWorkId
+  ) {
+    work = {
+      workId: entry.preselectedWork.workId,
+      title: entry.preselectedWork.title,
+      artist: entry.preselectedWork.artist,
+      coverUrl: entry.preselectedWork.coverUrl,
+      workKind: entry.preselectedWork.workKind,
+    };
+  } else if (entry.preselectedWorkId !== null) {
     const found = catalog.getWork(entry.preselectedWorkId);
 
     if (found.ok) {
@@ -218,6 +233,7 @@ function deriveState(
         title: found.value.title,
         artist: found.value.artist,
         coverUrl: found.value.coverUrl,
+        workKind: found.value.workKind,
       };
     }
   }
@@ -242,7 +258,13 @@ export function useCrear({
   onDone,
   onEditExisting,
 }: UseCrearDeps): CrearController {
-  const { formKey, mode, preselectedWorkId, editingOpinionId } = entry;
+  const {
+    formKey,
+    mode,
+    preselectedWork,
+    preselectedWorkId,
+    editingOpinionId,
+  } = entry;
   // El primer render pinta el estado honesto —cargando— y el efecto deriva los datos
   // una sola vez por visita. Derivarlo también en el inicializador duplicaría las
   // lecturas de C4 sin cambiar lo que se ve.
@@ -258,7 +280,7 @@ export function useCrear({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(
       deriveState(
-        { mode, preselectedWorkId, editingOpinionId },
+        { mode, preselectedWork, preselectedWorkId, editingOpinionId },
         viewerId,
         content,
         catalog,
@@ -267,6 +289,7 @@ export function useCrear({
   }, [
     formKey,
     mode,
+    preselectedWork,
     preselectedWorkId,
     editingOpinionId,
     viewerId,

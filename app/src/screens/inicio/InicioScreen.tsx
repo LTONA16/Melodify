@@ -28,6 +28,7 @@ import { useCardActions } from "../../state/useCardActions";
 import { useCatalog } from "../../state/useCatalog";
 import { useContent } from "../../state/useContent";
 import { useNetwork } from "../../state/useNetwork";
+import { useSpotifyConnection } from "../../state/useSpotifyConnection";
 import { useViewerId } from "../../state/useViewerId";
 import type { ScreenDependencies } from "../dependencies";
 import { InicioView } from "./InicioView";
@@ -51,6 +52,7 @@ export function InicioScreen({
         online
         metadataError={false}
         spotifyStatus="disconnected"
+        onSpotifyPress={NO_ACTION}
         onOpenOpinion={NO_ACTION}
         onRetry={NO_ACTION}
         onRetryCovers={NO_ACTION}
@@ -96,8 +98,20 @@ function InicioConnected({
   const online = useNetwork();
   const catalogVersion = useCatalog(catalog);
   const { spotify } = useShellServices();
+  const { status: liveSpotifyStatus } = useSpotifyConnection();
+  // La suscripción mantiene el chip al día; el estado actual de la cáscara cubre
+  // el primer render, antes de que el hook reciba su primera emisión (R-07).
+  const spotifyStatus = liveSpotifyStatus ?? spotify.status;
   const global = useGlobalServices();
   const actionsFor = useCardActions(content, viewerId);
+
+  const onSpotifyPress = () => {
+    if (spotifyStatus === "connected") {
+      global.goToTab({ name: "perfil" });
+      return;
+    }
+    void spotify.connect();
+  };
 
   const cards = useMemo(
     () =>
@@ -125,7 +139,8 @@ function InicioConnected({
       cards={cards}
       online={online}
       metadataError={catalog.getCoverFailure()}
-      spotifyStatus={spotify.status}
+      spotifyStatus={spotifyStatus}
+      onSpotifyPress={onSpotifyPress}
       onOpenOpinion={(opinionId) => global.openOpinionDetail({ opinionId })}
       onRetry={retry}
       onRetryCovers={() => catalog.retryCovers()}

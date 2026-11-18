@@ -17,7 +17,7 @@
  * la red (BR5.3): cuando cambia la conexión hay que volver a preguntar aunque el
  * catálogo no haya cambiado.
  */
-import type { Catalog, CoverDecision } from "@melodify/catalog";
+import type { Catalog, CoverDecision, WorkView } from "@melodify/catalog";
 import type { ContentStore, OpinionView } from "@melodify/content-store";
 import type { OpinionCardModel } from "@melodify/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -28,16 +28,25 @@ import { averageRating } from "../../state/ratings";
 import { useCatalog } from "../../state/useCatalog";
 import type { ContentStatus } from "../../state/useContent";
 
+/**
+ * La obra que esta pantalla conoce. Es la vista completa de C5 —no solo título y
+ * artista— para conservar `workKind` y poder entregar `data` a Crear sin inventar
+ * campos (BR8.3, BR20.9).
+ */
 export interface DetalleObraWork {
   workId: string;
   title: string;
   artist: string;
+  /** Se conserva para que Crear sepa si la obra es canción o álbum (BR20.9). */
+  workKind?: WorkView["workKind"];
 }
 
 export interface DetalleObraState {
   status: ContentStatus;
   /** La identidad, o `null` si ni siquiera la obra se pudo resolver (BR8.8). */
   work: DetalleObraWork | null;
+  /** La vista completa resuelta, para entregarla como `data` a Crear (BR8.3). */
+  workView: WorkView | null;
   /** La opinión de quien mira, si existe: va primero y en estado `own` (BR8.4). */
   own: OpinionCardModel | null;
   others: OpinionCardModel[];
@@ -55,7 +64,7 @@ interface Snapshot {
   /** A qué obra y a quién mira corresponde esta foto; si no coincide, está vieja. */
   key: string;
   status: ContentStatus;
-  work: DetalleObraWork | null;
+  work: WorkView | null;
   opinions: OpinionView[];
   opinionCount: number;
 }
@@ -85,6 +94,7 @@ export function useDetalleObra(
   catalog: Catalog,
   online: boolean,
   log: AppLogger = logger,
+  data?: WorkView,
 ): DetalleObraState {
   const [attempt, setAttempt] = useState(0);
   const key = keyOf(workId, viewerId, attempt);
@@ -104,7 +114,7 @@ export function useDetalleObra(
     let active = true;
     let unsubscribe: (() => void) | null = null;
 
-    const fail = (code: "CONTENT_READ_FAILED" | "CONTENT_SUBSCRIBE_FAILED", message: string, work: DetalleObraWork | null): void => {
+    const fail = (code: "CONTENT_READ_FAILED" | "CONTENT_SUBSCRIBE_FAILED", message: string, work: WorkView | null): void => {
       log.error(code, message);
       if (active) {
         setSnapshot({ key, status: "error", work, opinions: [], opinionCount: 0 });
@@ -113,17 +123,21 @@ export function useDetalleObra(
 
     const apply = (): void => {
       const work = catalog.getWork(workId);
+      // Prioridad del catálogo y respaldo en lo que trajo la navegación
+      // (BR8.1, BR16.5): si C5 no conoce la obra, la vista de la ruta todavía sirve.
+      const fallback = data?.workId === workId ? data : null;
+      const source = work.ok ? work.value : fallback;
 
-      if (!work.ok) {
-        fail("CONTENT_READ_FAILED", work.message, null);
+      if (source === null) {
+        fail(
+          "CONTENT_READ_FAILED",
+          work.ok ? "La obra no está disponible." : work.message,
+          null,
+        );
         return;
       }
 
-      const identity: DetalleObraWork = {
-        workId,
-        title: work.value.title,
-        artist: work.value.artist,
-      };
+      const identity: WorkView = source;
       const opinions = content.listOpinions({ workId, viewerId });
 
       if (!opinions.ok) {
@@ -163,7 +177,7 @@ export function useDetalleObra(
       active = false;
       unsubscribe?.();
     };
-  }, [key, workId, viewerId, content, catalog, log]);
+  }, [key, workId, viewerId, content, catalog, log, data]);
 
   // Si la foto no es de esta obra y esta identidad, se pinta carga: es lo que evita
   // enseñar las opiniones de la obra anterior durante un fotograma.
@@ -219,6 +233,7 @@ export function useDetalleObra(
   return {
     status: current.status,
     work: current.work,
+    workView: current.work,
     own,
     others,
     ownView,

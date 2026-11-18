@@ -9,10 +9,9 @@ import type {
 } from "../PerfilView";
 
 /**
- * La vista de Perfil (BR9.1–BR9.9, AC9.1.1–AC9.1.7): identidad, contadores con
- * singular correcto, opiniones propias en variante compacta, los cuatro estados y
- * el cierre de sesión. La tarjeta de Spotify **no** existe en U2: su hueco es de U4
- * (AC9.1.8 sigue `Deferred`).
+ * La vista de Perfil (BR9.1–BR9.9, AC9.1.1–AC9.1.8): identidad, contadores con
+ * singular correcto, la tarjeta de Spotify entre contadores y «Mis opiniones»,
+ * opiniones propias en variante compacta, los estados y el cierre de sesión.
  */
 function card(opinionId: string): PerfilCard {
   return {
@@ -51,6 +50,10 @@ function baseProps(overrides: Partial<PerfilViewProps> = {}): PerfilViewProps {
     author: AUTHOR,
     cards: [card("op-001"), card("op-004"), card("op-008")],
     online: true,
+    spotifyStatus: "disconnected",
+    onConnectSpotify: jest.fn(),
+    onDisconnectSpotify: jest.fn(),
+    onRetrySpotify: jest.fn(),
     onOpenOpinion: jest.fn(),
     onRetry: jest.fn(),
     onRetryCovers: jest.fn(),
@@ -141,12 +144,50 @@ describe("PerfilView", () => {
     expect(onSignOut).toHaveBeenCalledTimes(1);
   });
 
-  it("no pinta ninguna tarjeta de Spotify en esta unidad", () => {
-    renderPerfil();
+  it("pinta la tarjeta de Spotify entre los contadores y «Mis opiniones»", () => {
+    const onConnectSpotify = jest.fn();
+    renderPerfil({ onConnectSpotify });
 
-    expect(screen.queryByText(/spotify/i)).toBeNull();
-    expect(screen.queryByText("Conectar")).toBeNull();
-    expect(screen.queryByText("Conectado")).toBeNull();
+    expect(screen.getByTestId("spotify-card")).toBeVisible();
+    expect(screen.getByTestId("spotify-card-status")).toHaveTextContent(
+      "Sin conectar",
+    );
+    expect(screen.getByText("Mis opiniones")).toBeVisible();
+
+    fireEvent.press(screen.getByTestId("spotify-card-connect"));
+
+    expect(onConnectSpotify).toHaveBeenCalledTimes(1);
+  });
+
+  it("conectado desconecta y en error/notConfigured reintenta", () => {
+    const onDisconnectSpotify = jest.fn();
+    const view = renderPerfil({
+      spotifyStatus: "connected",
+      onDisconnectSpotify,
+    });
+
+    fireEvent.press(screen.getByTestId("spotify-card-disconnect"));
+    expect(onDisconnectSpotify).toHaveBeenCalledTimes(1);
+    view.unmount();
+
+    const onRetrySpotify = jest.fn();
+    const retry = renderPerfil({
+      spotifyStatus: "connectionError",
+      onRetrySpotify,
+    });
+
+    fireEvent.press(screen.getByTestId("spotify-card-retry"));
+    expect(onRetrySpotify).toHaveBeenCalledTimes(1);
+    retry.unmount();
+
+    renderPerfil({ spotifyStatus: "notConfigured" });
+
+    expect(
+      screen.getByText(
+        "La conexión con Spotify no está configurada en esta instalación.",
+      ),
+    ).toBeVisible();
+    expect(screen.getByTestId("spotify-card-retry")).toBeVisible();
   });
 
   it("sin conexión pinta el aviso y la identidad sigue visible", () => {

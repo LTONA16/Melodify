@@ -69,7 +69,7 @@ export function SearchField({
 
       <TextInput
         testID="search-field-input"
-        accessibilityLabel="Buscar obra"
+        accessibilityLabel="Buscar en Spotify"
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}

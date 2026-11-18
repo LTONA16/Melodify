@@ -1,7 +1,7 @@
 /**
- * Superficie pública de `@melodify/app-shell` (C2 1.2.0): la cáscara, sus tipos y
- * los tres hooks de lectura. La 1.2.0 no cambia ninguna forma: la misma superficie
- * de la 1.1.0, con la pila que conserva la raíz detrás.
+ * Superficie pública de `@melodify/app-shell` (C2 1.4.0): la cáscara, sus tipos y
+ * los tres hooks de lectura. La 1.4.0 es aditiva: la ruta de obra y Crear pueden
+ * llevar la `WorkView` ya resuelta, y `SpotifyStatus` es el estado que posee C1.
  */
 export { AppShell } from "./AppShell";
 export type { AppShellProps } from "./AppShell";

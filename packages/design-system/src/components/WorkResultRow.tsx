@@ -17,6 +17,8 @@ export interface WorkResultRowProps {
   work: WorkSummary;
   opinionCount: number;
   onPress: () => void;
+  /** La clase solo la conoce la búsqueda; sin ella la fila es la de 1.3.0. */
+  kind?: "track" | "album";
 }
 
 function opinionsLabel(count: number): string {
@@ -33,8 +35,10 @@ export function WorkResultRow({
   work,
   opinionCount,
   onPress,
+  kind,
 }: WorkResultRowProps) {
   const theme = useTheme();
+  const kindLabel = kind === "track" ? "Canción" : kind === "album" ? "Álbum" : null;
 
   return (
     <Pressable
@@ -64,13 +68,23 @@ export function WorkResultRow({
         >
           {work.title}
         </Text>
-        <Text
-          testID="work-result-artist"
-          numberOfLines={1}
-          style={[theme.type.caption, { color: theme.colors.textSecondary }]}
-        >
-          {work.artist}
-        </Text>
+        <View style={styles.metaRow}>
+          <Text
+            testID="work-result-artist"
+            numberOfLines={1}
+            style={[theme.type.caption, { color: theme.colors.textSecondary }]}
+          >
+            {work.artist}
+          </Text>
+          {kindLabel === null ? null : (
+            <Text
+              testID="work-result-kind"
+              style={[theme.type.caption, { color: theme.colors.textMuted }]}
+            >
+              {kindLabel}
+            </Text>
+          )}
+        </View>
         <Text
           testID="work-result-opinions"
           style={[theme.type.caption, { color: theme.colors.textMuted }]}
@@ -91,5 +105,10 @@ const styles = StyleSheet.create({
   texts: {
     flex: 1,
     gap: 2,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 });

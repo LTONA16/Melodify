@@ -33,6 +33,8 @@ export interface SelectedWork {
   title: string;
   artist: string;
   coverUrl: string | null;
+  /** Canción o álbum cuando la obra lo trae; sin dato se trata como canción. */
+  workKind?: "track" | "album";
 }
 
 /** Lo que se valida: el borrador, sin saber de dónde vino. */

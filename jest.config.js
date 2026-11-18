@@ -15,6 +15,9 @@ module.exports = {
     "^@melodify/content-store$": "<rootDir>/packages/content-store/src",
     "^@melodify/catalog$": "<rootDir>/packages/catalog/src",
     "^@melodify/connectivity$": "<rootDir>/packages/connectivity/src",
+    "^@melodify/spotify$": "<rootDir>/packages/spotify/src",
+    "^@melodify/spotify/auth$": "<rootDir>/packages/spotify/src/auth",
+    "^@melodify/spotify/catalog$": "<rootDir>/packages/spotify/src/catalog",
   },
   testMatch: [
     "<rootDir>/app/src/**/*.test.{ts,tsx}",
@@ -43,5 +46,6 @@ module.exports = {
     "./packages/content-store/src/**": { lines: 80 },
     "./packages/catalog/src/**": { lines: 80 },
     "./packages/connectivity/src/**": { lines: 80 },
+    "./packages/spotify/src/**": { lines: 80 },
   },
 };

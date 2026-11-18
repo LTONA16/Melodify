@@ -52,8 +52,8 @@ function deferred<T>(): {
   return { promise, resolve };
 }
 
-function ok(works: WorkView[]): SearchResult {
-  return { status: "ok", works };
+function ok(works: WorkView[], artists: SearchResult["artists"] = []): SearchResult {
+  return { status: "ok", works, artists };
 }
 
 /** Avanza la espera y deja resolver la promesa que la búsqueda tenga en vuelo. */
@@ -68,6 +68,8 @@ async function advance(ms: number = SEARCH_DEBOUNCE_MS): Promise<void> {
 function renderSearch(options: {
   handler?: (query: string) => Promise<SearchResult>;
   enabled?: boolean;
+  includeArtists?: boolean;
+  paused?: boolean;
 }) {
   const logger = loggerDouble();
   const { catalog, searchWorks } = catalogDouble(
@@ -75,9 +77,17 @@ function renderSearch(options: {
   );
 
   const view = renderHook(
-    ({ enabled }: { enabled: boolean }) =>
-      useWorkSearch(catalog, enabled, logger),
-    { initialProps: { enabled: options.enabled ?? true } },
+    ({ enabled, paused }: { enabled: boolean; paused: boolean }) =>
+      useWorkSearch(catalog, enabled, logger, {
+        includeArtists: options.includeArtists,
+        paused,
+      }),
+    {
+      initialProps: {
+        enabled: options.enabled ?? true,
+        paused: options.paused ?? false,
+      },
+    },
   );
 
   return { ...view, logger, searchWorks };
@@ -98,6 +108,7 @@ describe("useWorkSearch — disparo y espera", () => {
     expect(result.current.query).toBe("");
     expect(result.current.status).toBe("idle");
     expect(result.current.results).toEqual([]);
+    expect(result.current.artists).toEqual([]);
   });
 
   it("con menos de 2 caracteres no pide nada y lo dice", async () => {
@@ -268,7 +279,7 @@ describe("useWorkSearch — los dos fallos que se pintan igual", () => {
     jest.useRealTimers();
   });
 
-  it("`offline` de C5 se pinta como error y NO se registra", async () => {
+  it("`offline` de C5 se pinta como sin conexión y NO se registra", async () => {
     const { result, logger } = renderSearch({
       handler: async () => ({ status: "offline", works: [] }),
     });
@@ -278,7 +289,7 @@ describe("useWorkSearch — los dos fallos que se pintan igual", () => {
     });
     await advance();
 
-    expect(result.current.status).toBe("error");
+    expect(result.current.status).toBe("offline");
     expect(result.current.results).toEqual([]);
     expect(logger.warn).not.toHaveBeenCalled();
   });
@@ -362,6 +373,89 @@ describe("useWorkSearch — los dos fallos que se pintan igual", () => {
   });
 });
 
+describe("useWorkSearch — artistas de Explorar", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("con includeArtists devuelve obras y artistas en results", async () => {
+    const { result } = renderSearch({
+      includeArtists: true,
+      handler: async () =>
+        ok(WORKS, [{ artistId: "artist1", name: "Luna" }]),
+    });
+
+    act(() => {
+      result.current.setQuery("luna");
+    });
+    await advance();
+
+    expect(result.current.status).toBe("results");
+    expect(result.current.results).toEqual(WORKS);
+    expect(result.current.artists).toEqual([
+      { artistId: "artist1", name: "Luna" },
+    ]);
+  });
+
+  it("en Explorar, artistas sin obras siguen siendo results", async () => {
+    const { result } = renderSearch({
+      includeArtists: true,
+      handler: async () =>
+        ok([], [{ artistId: "artist1", name: "Luna" }]),
+    });
+
+    act(() => {
+      result.current.setQuery("luna");
+    });
+    await advance();
+
+    expect(result.current.status).toBe("results");
+    expect(result.current.results).toEqual([]);
+    expect(result.current.artists).toHaveLength(1);
+  });
+
+  it("en Crear los artistas no cuentan: sin obras queda empty", async () => {
+    const { result } = renderSearch({
+      handler: async () =>
+        ok([], [{ artistId: "artist1", name: "Luna" }]),
+    });
+
+    act(() => {
+      result.current.setQuery("luna");
+    });
+    await advance();
+
+    expect(result.current.status).toBe("empty");
+    expect(result.current.results).toEqual([]);
+    expect(result.current.artists).toEqual([]);
+  });
+
+  it("limpiar también vacía los artistas", async () => {
+    const { result } = renderSearch({
+      includeArtists: true,
+      handler: async () =>
+        ok([], [{ artistId: "artist1", name: "Luna" }]),
+    });
+
+    act(() => {
+      result.current.setQuery("luna");
+    });
+    await advance();
+    expect(result.current.artists).toHaveLength(1);
+
+    act(() => {
+      result.current.clear();
+    });
+
+    expect(result.current.artists).toEqual([]);
+    expect(result.current.status).toBe("idle");
+  });
+});
+
 describe("useWorkSearch — sin buscador montado", () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -388,6 +482,64 @@ describe("useWorkSearch — sin buscador montado", () => {
     expect(result.current.results).toEqual([]);
   });
 
+  it("con `paused` no pide y conserva lo que ya estaba cargado", async () => {
+    const { result, rerender, searchWorks } = renderSearch({});
+
+    act(() => {
+      result.current.setQuery("ba");
+    });
+    await advance();
+
+    expect(result.current.status).toBe("results");
+    expect(result.current.results).toEqual(WORKS);
+
+    act(() => {
+      rerender({ enabled: true, paused: true });
+    });
+    act(() => {
+      result.current.setQuery("otra");
+    });
+    await advance(2000);
+
+    expect(searchWorks).toHaveBeenCalledTimes(1);
+    expect(result.current.query).toBe("otra");
+    expect(result.current.status).toBe("results");
+    expect(result.current.results).toEqual(WORKS);
+
+    act(() => {
+      rerender({ enabled: true, paused: false });
+    });
+    await advance();
+
+    expect(searchWorks).toHaveBeenCalledTimes(2);
+    expect(searchWorks).toHaveBeenLastCalledWith("otra");
+  });
+
+  it("pausar con una petición en vuelo descarta su respuesta", async () => {
+    const pending = deferred<SearchResult>();
+    const { result, rerender } = renderSearch({
+      handler: () => pending.promise,
+    });
+
+    act(() => {
+      result.current.setQuery("ba");
+    });
+    await advance();
+
+    expect(result.current.status).toBe("searching");
+
+    act(() => {
+      rerender({ enabled: true, paused: true });
+    });
+    await act(async () => {
+      pending.resolve(ok(WORKS));
+      await Promise.resolve();
+    });
+
+    expect(result.current.status).toBe("searching");
+    expect(result.current.results).toEqual([]);
+  });
+
   it("apagarlo con una búsqueda en vuelo descarta lo que llegue después", async () => {
     const slow = deferred<SearchResult>();
     const { result, rerender } = renderSearch({
@@ -399,7 +551,7 @@ describe("useWorkSearch — sin buscador montado", () => {
     });
     await advance();
 
-    rerender({ enabled: false });
+    rerender({ enabled: false, paused: false });
 
     await act(async () => {
       slow.resolve(ok(WORKS));

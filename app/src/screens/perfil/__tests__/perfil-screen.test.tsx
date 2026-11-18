@@ -4,6 +4,7 @@ import {
   ShellServicesContext,
   type GlobalServices,
   type ShellServices,
+  type SpotifyStatus,
 } from "@melodify/app-shell";
 import type { AppSession, SessionView } from "@melodify/app-session";
 import { createCatalog, type Catalog } from "@melodify/catalog";
@@ -111,15 +112,28 @@ function setup(options: HarnessOptions = {}) {
   const session = signedInSession();
   const global = options.global ?? globalServices();
   const openComments = jest.fn();
+  let spotifyStatus: SpotifyStatus = "disconnected";
+  const spotifyListeners = new Set<(status: SpotifyStatus) => void>();
+  const connectSpotify = jest.fn();
+  const disconnectSpotify = jest.fn();
+  const retrySpotify = jest.fn();
 
   const services: ShellServices = {
     network: network.service,
     spotify: {
-      status: "disconnected",
-      subscribe: () => () => undefined,
-      connect: () => undefined,
-      disconnect: () => undefined,
-      retry: () => undefined,
+      get status() {
+        return spotifyStatus;
+      },
+      subscribe: (listener) => {
+        spotifyListeners.add(listener);
+        listener(spotifyStatus);
+        return () => {
+          spotifyListeners.delete(listener);
+        };
+      },
+      connect: connectSpotify,
+      disconnect: disconnectSpotify,
+      retry: retrySpotify,
     },
     comments: {
       state: { opinionId: null, comments: [], status: "empty", failed: false, maxLength: 300, counterFrom: 250 },
@@ -155,6 +169,15 @@ function setup(options: HarnessOptions = {}) {
     global,
     session,
     openComments,
+    connectSpotify,
+    disconnectSpotify,
+    retrySpotify,
+    setSpotify(next: SpotifyStatus) {
+      spotifyStatus = next;
+      for (const listener of [...spotifyListeners]) {
+        listener(next);
+      }
+    },
   };
 }
 
@@ -271,6 +294,65 @@ describe("PerfilScreen", () => {
       ),
     ).toBeVisible();
     expect(view.getByTestId("perfil-name")).toBeVisible();
+  });
+
+  it("pinta los seis estados de Spotify y cablea cada salida", async () => {
+    const view = setup();
+
+    await view.findByTestId("perfil-name");
+
+    expect(view.getByTestId("spotify-card-status")).toHaveTextContent(
+      "Sin conectar",
+    );
+    fireEvent.press(view.getByTestId("spotify-card-connect"));
+    expect(view.connectSpotify).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      view.setSpotify("connecting");
+    });
+    expect(view.getByTestId("spotify-card-status")).toHaveTextContent(
+      "Conectando…",
+    );
+    expect(view.getByTestId("spotify-card-connecting-button")).toBeDisabled();
+
+    act(() => {
+      view.setSpotify("connected");
+    });
+    expect(view.getByTestId("spotify-card-status")).toHaveTextContent(
+      "Conectado",
+    );
+    fireEvent.press(view.getByTestId("spotify-card-disconnect"));
+    expect(view.disconnectSpotify).toHaveBeenCalledTimes(1);
+    expect(view.global.showSnackbar).toHaveBeenCalledWith({
+      message: "Spotify desconectado",
+    });
+
+    act(() => {
+      view.setSpotify("connectionError");
+    });
+    expect(view.getByTestId("spotify-card-status")).toHaveTextContent(
+      "No pudimos conectar con Spotify.",
+    );
+    fireEvent.press(view.getByTestId("spotify-card-retry"));
+    expect(view.retrySpotify).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      view.setSpotify("invalidToken");
+    });
+    expect(view.getByTestId("spotify-card-status")).toHaveTextContent(
+      "Tu sesión de Spotify caducó. Vuelve a conectar.",
+    );
+    fireEvent.press(view.getByTestId("spotify-card-connect"));
+    expect(view.connectSpotify).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      view.setSpotify("notConfigured");
+    });
+    expect(view.getByTestId("spotify-card-status")).toHaveTextContent(
+      "La conexión con Spotify no está configurada en esta instalación.",
+    );
+    fireEvent.press(view.getByTestId("spotify-card-retry"));
+    expect(view.retrySpotify).toHaveBeenCalledTimes(2);
   });
 
   it("sin dependencias de composición se queda en carga en lugar de inventar un almacén", () => {

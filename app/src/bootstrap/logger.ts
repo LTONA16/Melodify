@@ -1,4 +1,5 @@
 import type { SessionLogCode } from "@melodify/app-session";
+import type { SpotifyLogCode } from "@melodify/spotify";
 
 /**
  * Los códigos de diagnóstico de la app: los de C3, los tres que estrenó U2
@@ -18,7 +19,10 @@ export type AppLogCode =
   | "NETWORK_STATE_UNAVAILABLE"
   // El único código que añade U3 (NFR9.6): la búsqueda de Crear declara un defecto
   // del puerto, nunca un `offline` previsto y nunca el texto de la consulta.
-  | "SEARCH_PORT_UNAVAILABLE";
+  | "SEARCH_PORT_UNAVAILABLE"
+  // Los seis códigos de Spotify (NFR9.7) llegan por su tipo: así el logger de la
+  // app se puede inyectar en C7 sin conversión y sin redeclarar el vocabulario.
+  | SpotifyLogCode;
 
 export interface AppLogger {
   warn(code: AppLogCode, message: string): void;

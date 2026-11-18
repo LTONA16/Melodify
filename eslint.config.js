@@ -16,6 +16,7 @@
 const expoConfig = require("eslint-config-expo/flat");
 
 const SECURE_STORE_ADAPTER = "packages/app-session/src/secure-store-adapter.ts";
+const SPOTIFY_DEVICE_ADAPTER = "packages/spotify/src/auth/device.ts";
 const EXPO_NETWORK_ADAPTER = "packages/connectivity/src/expo-network-adapter.ts";
 const PROJECT_LOGGER = "app/src/bootstrap/logger.ts";
 
@@ -121,6 +122,21 @@ module.exports = [
         "error",
         {
           paths: [SECURE_STORE_RESTRICTION, ASYNC_STORAGE_RESTRICTION],
+          patterns: [PACKAGE_TO_APP_RESTRICTION],
+        },
+      ],
+    },
+  },
+  {
+    // El adaptador de dispositivo de Spotify es el único archivo del paquete que
+    // toca módulos nativos (NFR3.11, NFR3.17): almacén seguro, navegador, cripto y
+    // el redirect de Expo. El resto del paquete recibe estos puertos inyectados.
+    files: [SPOTIFY_DEVICE_ADAPTER],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [EXPO_NETWORK_RESTRICTION, ASYNC_STORAGE_RESTRICTION],
           patterns: [PACKAGE_TO_APP_RESTRICTION],
         },
       ],

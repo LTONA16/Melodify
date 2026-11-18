@@ -16,6 +16,26 @@ export interface WorkSummary {
   coverUrl: string | null;
 }
 
+/**
+ * El estado de la conexión con Spotify (C1 1.4.0). Es el único dueño de la unión:
+ * C2 la aliasa y el paquete de Spotify la importa como tipo para
+ * `AuthorizationStateView.status`. Ningún paquete la redeclara ni la envuelve en un
+ * objeto (frontend-components.md § Corrección sobre el contrato de origen).
+ */
+export type SpotifyConnectionStatus =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "connectionError"
+  | "invalidToken"
+  | "notConfigured";
+
+/** Un artista de los resultados de búsqueda; no es una obra y no abre detalle. */
+export interface ArtistSummary {
+  artistId: string;
+  name: string;
+}
+
 export interface CommentModel {
   commentId: string;
   authorName: string;

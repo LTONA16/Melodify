@@ -53,7 +53,10 @@ function newCatalog(overrides: Partial<CreateCatalogOptions> = {}): Catalog {
   return createCatalog({
     content: overrides.content ?? createContentStore({ now: NOW }),
     connectivity: overrides.connectivity ?? fixedConnectivity(true),
-    session: overrides.session ?? null,
+    // Buscar exige sesión (BR19.5): quien dobla el puerto de búsqueda sin decir
+    // otra cosa está describiendo una sesión conectada.
+    session:
+      overrides.session ?? (overrides.search === undefined ? null : sessionPort(true)),
     search: overrides.search ?? null,
     resolve: overrides.resolve ?? null,
   });
@@ -244,20 +247,135 @@ describe("coverFor", () => {
 
     expect(catalog.coverFor(BOHEMIAN)).toEqual({ kind: "initialBlock", value: null });
   });
+
+  it("con sesión y red resuelve de fondo una sola vez y emite al terminar", async () => {
+    const resolve = jest.fn(async (workId: string) => {
+      if (workId !== BOHEMIAN) {
+        return { kind: "failure" as const, failure: "notFound" as const };
+      }
+      return {
+        kind: "ok" as const,
+        work: {
+          workId: BOHEMIAN,
+          title: "Bohemian Rhapsody",
+          artist: "Queen",
+          coverUrl: BOHEMIAN_COVER,
+          origin: "sample" as const,
+        },
+      };
+    });
+    const catalog = newCatalog({
+      session: sessionPort(true),
+      connectivity: fixedConnectivity(true),
+      resolve: { resolve },
+    });
+    const listener: SnapshotListener = jest.fn<void, [CatalogSnapshot]>();
+    catalog.subscribe(listener);
+
+    expect(catalog.coverFor(BOHEMIAN)).toEqual({
+      kind: "initialBlock",
+      value: null,
+    });
+    expect(catalog.coverFor(BOHEMIAN)).toEqual({
+      kind: "initialBlock",
+      value: null,
+    });
+    expect(resolve).toHaveBeenCalledTimes(1);
+
+    await flushMicrotasks();
+
+    expect(resolve).toHaveBeenCalledTimes(1);
+    expect(catalog.coverFor(BOHEMIAN)).toEqual({
+      kind: "url",
+      value: BOHEMIAN_COVER,
+    });
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it("sin sesión o sin red no pide ninguna resolución", async () => {
+    const disconnected = jest.fn(async () => ({
+      kind: "failure" as const,
+      failure: "notFound" as const,
+    }));
+    const offline = jest.fn(async () => ({
+      kind: "failure" as const,
+      failure: "network" as const,
+    }));
+
+    const withoutSession = newCatalog({
+      session: sessionPort(false),
+      connectivity: fixedConnectivity(true),
+      resolve: { resolve: disconnected },
+    });
+    const withoutNetwork = newCatalog({
+      session: sessionPort(true),
+      connectivity: fixedConnectivity(false),
+      resolve: { resolve: offline },
+    });
+
+    withoutSession.coverFor(BOHEMIAN);
+    withoutNetwork.coverFor(BOHEMIAN);
+    await flushMicrotasks();
+
+    expect(disconnected).not.toHaveBeenCalled();
+    expect(offline).not.toHaveBeenCalled();
+  });
+
+  it("un fallo de resolución deja el bloque y enciende el aviso de portadas", async () => {
+    const catalog = newCatalog({
+      session: sessionPort(true),
+      connectivity: fixedConnectivity(true),
+      resolve: failingResolver(),
+    });
+    const listener: SnapshotListener = jest.fn<void, [CatalogSnapshot]>();
+    catalog.subscribe(listener);
+
+    expect(catalog.coverFor(BOHEMIAN)).toEqual({
+      kind: "initialBlock",
+      value: null,
+    });
+    await flushMicrotasks();
+
+    expect(catalog.coverFor(BOHEMIAN)).toEqual({
+      kind: "initialBlock",
+      value: null,
+    });
+    expect(catalog.getCoverFailure()).toBe(true);
+    expect(listener.mock.calls[1]?.[0].coverFailure).toBe(true);
+  });
 });
 
 describe("searchWorks", () => {
   it("sin puerto de búsqueda responde `offline` sin tocar la red", async () => {
     const result = await newCatalog().searchWorks("bad guy");
 
-    expect(result).toEqual({ status: "offline", works: [] });
+    expect(result).toEqual({ status: "offline", works: [], artists: [] });
+  });
+
+  it("sin sesión responde `offline` sin llamar al puerto (BR19.5)", async () => {
+    const { port, calls } = searchPortWith({
+      kind: "ok",
+      works: [spotifyWork("spotify-sin-sesion")],
+    });
+    const catalog = newCatalog({ search: port, session: sessionPort(false) });
+
+    expect(await catalog.searchWorks("bad guy")).toEqual({
+      status: "offline",
+      works: [],
+      artists: [],
+    });
+    expect(calls).toHaveLength(0);
   });
 
   it("una consulta de menos de dos caracteres responde `empty` sin llamar al puerto", async () => {
     const { port, calls } = searchPortWith({ kind: "empty" });
     const catalog = newCatalog({ search: port });
 
-    expect(await catalog.searchWorks(" a ")).toEqual({ status: "empty", works: [] });
+    expect(await catalog.searchWorks(" a ")).toEqual({
+      status: "empty",
+      works: [],
+      artists: [],
+    });
     expect(calls).toHaveLength(0);
   });
 
@@ -282,6 +400,41 @@ describe("searchWorks", () => {
     expect(found.value.origin).toBe("spotify");
     // La lista de ejemplo sigue siendo la de siempre: C5 no la contamina (BR5.1).
     expect(catalog.listSampleWorks().works).toHaveLength(8);
+  });
+
+  it("propaga y cachea artistas junto a las obras, sin registrarlos como obras", async () => {
+    const album: WorkView = {
+      ...spotifyWork("album1", "Un álbum"),
+      workKind: "album",
+    };
+    const calls: string[] = [];
+    const catalog = newCatalog({
+      search: {
+        async search(query) {
+          calls.push(query);
+          return {
+            kind: "ok",
+            works: [album],
+            artists: [{ artistId: "artist1", name: "Luna" }],
+          };
+        },
+      },
+    });
+
+    const first = await catalog.searchWorks("luna");
+    expect(first.artists).toEqual([{ artistId: "artist1", name: "Luna" }]);
+    expect(first.works[0]?.workKind).toBe("album");
+
+    const artist = first.artists?.[0];
+    if (artist === undefined) {
+      throw new Error("La búsqueda no devolvió el artista esperado.");
+    }
+    artist.name = "Cambiado por quien leyó";
+
+    const second = await catalog.searchWorks("luna");
+    expect(calls).toHaveLength(1);
+    expect(second.artists).toEqual([{ artistId: "artist1", name: "Luna" }]);
+    expect(catalog.getWork("artist1").ok).toBe(false);
   });
 
   it("normaliza la consulta para la caché y devuelve copias del resultado guardado", async () => {
@@ -312,8 +465,8 @@ describe("searchWorks", () => {
     const timeout = searchPortWith({ kind: "failure", failure: "timeout" });
     const failed = await newCatalog({ search: timeout.port }).searchWorks("bad guy");
 
-    expect(offline).toEqual({ status: "offline", works: [] });
-    expect(failed).toEqual({ status: "error", works: [] });
+    expect(offline).toEqual({ status: "offline", works: [], artists: [] });
+    expect(failed).toEqual({ status: "error", works: [], artists: [] });
   });
 
   it("no cachea un fallo: la siguiente consulta vuelve a llamar al puerto", async () => {
@@ -331,6 +484,7 @@ describe("searchWorks", () => {
     expect(await catalog.searchWorks("bad guy")).toEqual({
       status: "offline",
       works: [],
+      artists: [],
     });
 
     result = { kind: "ok", works: [spotifyWork("spotify-reintentada")] };
@@ -354,10 +508,12 @@ describe("searchWorks", () => {
     expect(await catalog.searchWorks("bad guy")).toEqual({
       status: "error",
       works: [],
+      artists: [],
     });
     expect(await catalog.searchWorks("bad guy")).toEqual({
       status: "error",
       works: [],
+      artists: [],
     });
     expect(calls).toHaveLength(2);
   });

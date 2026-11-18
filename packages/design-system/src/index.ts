@@ -1,17 +1,16 @@
 /**
- * Superficie pública de `@melodify/design-system` (C1 1.3.0): los tokens, el tema,
+ * Superficie pública de `@melodify/design-system` (C1 1.4.0): los tokens, el tema,
  * los modelos de presentación y las piezas.
  *
- * La 1.3.0 es aditiva: estrena las ocho piezas que pedía U3 —`SearchField`,
- * `RatingInput`, `MultilineField`, `SecondaryButton`, `ConnectionCard`,
- * `WorkResultRow`, `CommentSheet` y `Snackbar`— y añade `SocialActionBar.showLike`,
- * `RatingValue` y la etiqueta de seguir de `OpinionCard`. Ninguna forma anterior
- * deja de compilar, y `SpotifyCard` queda libre para la 1.4.0 de U4.
+ * La 1.4.0 es aditiva: estrena `SpotifyCard` y `ArtistResultRow`, añade
+ * `WorkResultRow.kind?`, el fallback de imagen de `CoverArt` y los modelos
+ * `SpotifyConnectionStatus` y `ArtistSummary`.
  */
 export { contrastRatio, relativeLuminance } from "./contrast";
 export { formatCalendarDate } from "./calendar-date";
 export { formatRelativeTime } from "./relative-time";
 export type {
+  ArtistSummary,
   AuthorSummary,
   AvatarSize,
   CommentModel,
@@ -20,6 +19,7 @@ export type {
   OpinionVariant,
   RatingValue,
   SkeletonShape,
+  SpotifyConnectionStatus,
   TabIcon,
   TabItem,
   WorkSummary,
@@ -32,6 +32,8 @@ export { useTheme } from "./useTheme";
 
 export { AppHeader } from "./components/AppHeader";
 export type { AppHeaderProps } from "./components/AppHeader";
+export { ArtistResultRow } from "./components/ArtistResultRow";
+export type { ArtistResultRowProps } from "./components/ArtistResultRow";
 export { Avatar } from "./components/Avatar";
 export type { AvatarProps } from "./components/Avatar";
 export { Banner } from "./components/Banner";
@@ -72,6 +74,8 @@ export { Snackbar, SNACKBAR_DURATION_MS } from "./components/Snackbar";
 export type { SnackbarProps } from "./components/Snackbar";
 export { SocialActionBar } from "./components/SocialActionBar";
 export type { SocialActionBarProps } from "./components/SocialActionBar";
+export { SpotifyCard } from "./components/SpotifyCard";
+export type { SpotifyCardProps } from "./components/SpotifyCard";
 export { TextField } from "./components/TextField";
 export type { TextFieldProps } from "./components/TextField";
 export { TextButton } from "./components/TextButton";

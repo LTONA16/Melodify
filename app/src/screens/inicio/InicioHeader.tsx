@@ -2,9 +2,9 @@
  * La cabecera de Inicio (F6.2, BR7.9): el título de la pestaña y el chip de Spotify.
  *
  * El chip dice «Conectado», con su punto verde, solo cuando el estado de Spotify es
- * `connected`; en cualquier otro caso dice «Conectar». En U2 nunca hay sesión de
- * Spotify, así que se pinta «Conectar» y tocarlo no inicia nada: la acción la cablea
- * U4 (Q2 = A). Se pinta como control desde ya para reservar el área táctil mínima.
+ * `connected`; en cualquier otro caso dice «Conectar». La acción la decide quien
+ * compone la cabecera (Q2 = A): con sesión lleva a Perfil; sin sesión inicia PKCE.
+ * Se pinta como control desde ya para reservar el área táctil mínima.
  *
  * El punto verde acompaña al texto y no lo sustituye: el color no puede ser el único
  * portador de significado (regla de color del sistema).
@@ -14,20 +14,33 @@ import type { SpotifyStatus } from "@melodify/app-shell";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export interface InicioHeaderProps {
-  /** El estado de Spotify que publica la cáscara; en U2 siempre `disconnected`. */
+  /** El estado de Spotify que publica la cáscara. */
   spotifyStatus: SpotifyStatus;
+  /** Lleva a Perfil si hay sesión; si no, inicia la conexión. */
+  onPress: () => void;
 }
 
-export function InicioHeader({ spotifyStatus }: InicioHeaderProps) {
+export function InicioHeader({ spotifyStatus, onPress }: InicioHeaderProps) {
   return (
     <AppHeader
       title="Inicio"
-      rightSlot={<SpotifyChip connected={spotifyStatus === "connected"} />}
+      rightSlot={
+        <SpotifyChip
+          connected={spotifyStatus === "connected"}
+          onPress={onPress}
+        />
+      }
     />
   );
 }
 
-function SpotifyChip({ connected }: { connected: boolean }) {
+function SpotifyChip({
+  connected,
+  onPress,
+}: {
+  connected: boolean;
+  onPress: () => void;
+}) {
   const theme = useTheme();
   const label = connected ? "Conectado" : "Conectar";
 
@@ -36,7 +49,7 @@ function SpotifyChip({ connected }: { connected: boolean }) {
       testID="spotify-chip"
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={() => undefined}
+      onPress={onPress}
       style={[
         styles.chip,
         {
