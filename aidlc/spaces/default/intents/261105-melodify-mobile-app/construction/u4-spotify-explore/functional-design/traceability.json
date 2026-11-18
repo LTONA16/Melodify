@@ -1,0 +1,252 @@
+{
+  "stage": "functional-design",
+  "unit": "u4-spotify-explore",
+  "upstream_ids": [
+    "AC2.2.1",
+    "AC2.2.2",
+    "AC2.2.3",
+    "AC2.2.4",
+    "AC3.1.1",
+    "AC3.1.2",
+    "AC3.1.3",
+    "AC3.1.4",
+    "AC3.1.5",
+    "AC3.1.6",
+    "AC3.1.7",
+    "AC3.1.8",
+    "AC3.2.1",
+    "AC3.2.2",
+    "AC3.2.3",
+    "AC3.2.4",
+    "AC10.1.1",
+    "AC10.1.2",
+    "AC10.1.3",
+    "AC10.1.4",
+    "AC10.1.5",
+    "AC10.1.6",
+    "AC10.2.1",
+    "AC10.2.2",
+    "AC10.2.3",
+    "AC10.2.4",
+    "AC10.2.5"
+  ],
+  "coverage": [
+    {
+      "id": "AC2.2.1",
+      "status": "OK",
+      "target": "BR18.1, BR18.4 — la portada real aparece con sesión conectada y red. El recorrido en el teléfono depende de que el panel de Spotify acepte el redirect (Q1 = B); si lo rechaza, se anota y la regla sigue probada con dobles"
+    },
+    {
+      "id": "AC2.2.2",
+      "status": "OK",
+      "target": "BR18.1, BR18.2, BR19.5"
+    },
+    {
+      "id": "AC2.2.3",
+      "status": "OK",
+      "target": "BR18.2, BR18.3"
+    },
+    {
+      "id": "AC2.2.4",
+      "status": "OK",
+      "target": "BR18.1, BR18.2, BR18.5"
+    },
+    {
+      "id": "AC3.1.1",
+      "status": "OK",
+      "target": "BR17.1, BR17.4"
+    },
+    {
+      "id": "AC3.1.2",
+      "status": "OK",
+      "target": "BR17.3, BR17.5, BR20.5, BR20.8"
+    },
+    {
+      "id": "AC3.1.3",
+      "status": "OK",
+      "target": "BR17.5, BR20.3"
+    },
+    {
+      "id": "AC3.1.4",
+      "status": "OK",
+      "target": "BR17.7"
+    },
+    {
+      "id": "AC3.1.5",
+      "status": "OK",
+      "target": "BR17.7, BR17.9"
+    },
+    {
+      "id": "AC3.1.6",
+      "status": "OK",
+      "target": "BR17.2"
+    },
+    {
+      "id": "AC3.1.7",
+      "status": "OK",
+      "target": "BR17.7, BR17.10"
+    },
+    {
+      "id": "AC3.1.8",
+      "status": "OK",
+      "target": "BR20.1, BR20.2, BR20.3, BR20.4"
+    },
+    {
+      "id": "AC3.2.1",
+      "status": "OK",
+      "target": "BR19.1"
+    },
+    {
+      "id": "AC3.2.2",
+      "status": "OK",
+      "target": "BR19.1, BR19.5"
+    },
+    {
+      "id": "AC3.2.3",
+      "status": "OK",
+      "target": "BR19.1, BR19.5"
+    },
+    {
+      "id": "AC3.2.4",
+      "status": "OK",
+      "target": "BR17.10, BR19.3"
+    },
+    {
+      "id": "AC10.1.1",
+      "status": "OK",
+      "target": "BR16.1, BR16.2 — la URL de autorización con PKCE S256 se construye y se abre aunque el panel rechace el redirect; la regla se prueba con dobles"
+    },
+    {
+      "id": "AC10.1.2",
+      "status": "Deferred",
+      "target": "BR16.7, BR19.4 — el chip «Conectado» y las portadas reales exigen una sesión real, que depende de que el panel de Spotify acepte `exp://<ip>:8081/--/spotify-callback` (Q1 = B). El estado y sus textos se entregan y se prueban con dobles; la demostración en el teléfono queda para U6"
+    },
+    {
+      "id": "AC10.1.3",
+      "status": "Deferred",
+      "target": "BR16.5 — la persistencia entre reinicios se implementa y se prueba con el almacén seguro doblado; comprobarla en el teléfono exige haber conectado antes, que es la misma dependencia del panel"
+    },
+    {
+      "id": "AC10.1.4",
+      "status": "OK",
+      "target": "BR16.4, BR16.12"
+    },
+    {
+      "id": "AC10.1.5",
+      "status": "OK",
+      "target": "BR16.8, BR19.2"
+    },
+    {
+      "id": "AC10.1.6",
+      "status": "OK",
+      "target": "BR16.7"
+    },
+    {
+      "id": "AC10.2.1",
+      "status": "Deferred",
+      "target": "BR16.9, BR18.1 — desconectar y volver a los bloques se entrega y se prueba con dobles; enseñarlo en el teléfono exige la sesión real del panel"
+    },
+    {
+      "id": "AC10.2.2",
+      "status": "Deferred",
+      "target": "BR16.9, BR18.4 — mismo motivo que AC10.2.1: el estado de partida es una conexión real"
+    },
+    {
+      "id": "AC10.2.3",
+      "status": "Deferred",
+      "target": "BR16.6, BR18.6 — el token caído con resultados se implementa y se prueba con dobles; provocarlo en el teléfono exige una sesión real que caduque"
+    },
+    {
+      "id": "AC10.2.4",
+      "status": "OK",
+      "target": "BR16.3, BR16.10, BR19.2"
+    },
+    {
+      "id": "AC10.2.5",
+      "status": "OK",
+      "target": "BR16.3"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR16.2",
+      "status": "N/A",
+      "target": "el valor del redirect (A6, Q1 = B) no lo observa ninguna AC: se resuelve por entorno con respaldo de `makeRedirectUri` y su registro en el panel es un paso manual de la entrega"
+    },
+    {
+      "id": "BR16.5",
+      "status": "N/A",
+      "target": "la persistencia del token está cubierta por AC10.1.3, que queda `Deferred` porque comprobarla en el teléfono exige haber conectado antes; la regla se entrega y se prueba con el almacén seguro doblado"
+    },
+    {
+      "id": "BR16.9",
+      "status": "N/A",
+      "target": "la desconexión está cubierta por AC10.2.1 y AC10.2.2, ambos `Deferred` por la misma dependencia del panel; la regla se entrega y se prueba con dobles"
+    },
+    {
+      "id": "BR18.6",
+      "status": "N/A",
+      "target": "el token caído con resultados está cubierto por AC10.2.3, que queda `Deferred`; la regla se entrega y se prueba provocando el estado con un doble de `SpotifyAuth`"
+    },
+    {
+      "id": "BR19.4",
+      "status": "N/A",
+      "target": "el chip de Inicio está cubierto por AC10.1.2, `Deferred` porque el estado `connected` exige la sesión real; sus dos lecturas se prueban con estados dobles"
+    },
+    {
+      "id": "BR17.6",
+      "status": "N/A",
+      "target": "el atajo de artista viene de Q5 = A y ninguna AC lo enumera: AC3.1.8 observa la apertura de una obra, no la de un artista, que precisamente no la tiene"
+    },
+    {
+      "id": "BR16.6",
+      "status": "N/A",
+      "target": "la renovación silenciosa a 60 s es un detalle de implementación de C7; lo que una AC observa es su fallo, en AC10.2.3"
+    },
+    {
+      "id": "BR16.11",
+      "status": "N/A",
+      "target": "la independencia entre la sesión de la app y la de Spotify deriva de C3 y del invariante de U1; ninguna historia la enumera"
+    },
+    {
+      "id": "BR16.12",
+      "status": "N/A",
+      "target": "que el token viva solo en `@melodify/spotify/auth` es una restricción de NFR3.11 (y de ADR-004), no un criterio de aceptación"
+    },
+    {
+      "id": "BR17.4",
+      "status": "N/A",
+      "target": "el `type=track,album,artist`, el límite de 20 por clase y el descarte de elementos incompletos son detalle de la petición; lo que se observa es el resultado, en AC3.1.2"
+    },
+    {
+      "id": "BR17.8",
+      "status": "N/A",
+      "target": "el descarte de respuestas tardías viene de `interaction-spec.md`; ninguna AC de US3.1 lo enumera y se prueba en la unidad"
+    },
+    {
+      "id": "BR17.11",
+      "status": "N/A",
+      "target": "vaciar el campo y volver al estado inicial es comportamiento de la vista descrito en `interaction-spec.md`; AC3.1.1 solo observa el disparo por caracteres"
+    },
+    {
+      "id": "BR18.5",
+      "status": "N/A",
+      "target": "el aviso de metadatos con «Reintentar» ya lo entregó U2 (BR7.5) y lo observan las AC de US2.1; U4 solo conserva el comportamiento"
+    },
+    {
+      "id": "BR20.6",
+      "status": "N/A",
+      "target": "que un artista no sea una obra ni abra detalle o Crear es la consecuencia de Q5 = A; AC3.1.8 observa la apertura de una obra, no la ausencia de la de artista"
+    },
+    {
+      "id": "BR20.7",
+      "status": "N/A",
+      "target": "la obra desconocida sin datos de ruta es una ruta defensiva (FR11.1, FR11.2); el camino normal siempre trae `data`"
+    },
+    {
+      "id": "BR20.9",
+      "status": "N/A",
+      "target": "que `workKind` sea opcional y ausente equivalga a canción es una restricción de compatibilidad de C5, no un criterio observable"
+    }
+  ]
+}
