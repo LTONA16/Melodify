@@ -20,3 +20,5 @@
 <!-- example: 2026-05-29T10:14:32Z — confirm the retention window with compliance before the next stage hardens the schema -->
 - 2026-11-12T04:20:00Z — [unit u2-content-core] Para U3: «Seguir» (lo que pinta `OpinionCard`) frente a «Seguir autor» (lo que escriben los mockups). U2 no usa la acción.
 - 2026-11-12T04:20:00Z — [unit u2-content-core] Para la persona, en el gate: alinear `unit-of-work.md`/C2 con el reparto del detalle de opinión y decidir si el atrás en la raíz debe pasar a «sin efecto» como dice la spec de interacción.
+- 2026-11-18T00:50:00Z — [unit u4-spotify-explore] El redirect que fijó U1 (`melodify://spotify-callback`) no lo puede recibir Expo Go: el retorno real depende del panel de Spotify y del canal de ejecución. Se pregunta antes de escribir la especificación porque cambia el alcance demostrable, no el código.
+- 2026-11-18T00:50:00Z — [unit u4-spotify-explore] El catálogo local es hoy la única forma de resolver una obra por identificador; una obra que solo existe en los resultados de Spotify no se puede pintar en el detalle ni en Crear. La pregunta Q2 decide si se transporta la obra o si el catálogo la recuerda.
