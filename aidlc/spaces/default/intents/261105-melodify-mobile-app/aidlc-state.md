@@ -92,6 +92,15 @@
 
 
 
+
+
+
+- **Active Unit**: u4-spotify-explore
+
+- **Unit Stage**: nfr-requirements
+
+- **Unit State**: in-progress
+
 ## Phase Progress
 <!-- Status values: Pending, Active, Verified, Skipped -->
 
@@ -152,7 +161,7 @@
 - **Current Stage**: functional-design
 - **Next Stage**: nfr-requirements
 - **Status**: Running
-- **Last Updated**: 2026-11-17T21:07:29Z
+- **Last Updated**: 2026-11-18T03:46:54Z
 
 - **Construction Autonomy Mode**: autonomous
 

@@ -161,10 +161,13 @@ rules:
     logic: >
       Al construir el paquete, IF el client ID está vacío o no tiene forma de
       identificador THEN el estado inicial es `notConfigured` y no se abre ninguna URL.
-      El resto de la app funciona igual: Inicio, Explorar con sugerencias, Crear,
-      Actividad y Perfil leen el contenido local. Tocar «Conectar» o «Reintentar» vuelve
-      a comprobar la variable y, si sigue faltando, se queda en `notConfigured`. No se
-      bloquea ninguna pantalla ni se muestra un error técnico.
+      El client ID se recibe una sola vez al construir `auth` y no se relee con la app en
+      marcha: por eso `notConfigured` solo sale de sí mismo tras reiniciar la app con la
+      variable puesta (o al recompilar la instancia en desarrollo). El resto de la app
+      funciona igual: Inicio, Explorar con sugerencias, Crear, Actividad y Perfil leen el
+      contenido local. Tocar «Conectar» o «Reintentar» reintenta el flujo completo y, si
+      la variable sigue faltando, se queda en `notConfigured`. No se bloquea ninguna
+      pantalla ni se muestra un error técnico.
     violation: >
       Una instalación sin configurar debe seguir sirviendo; si la falta de una variable
       rompe Explorar o Crear, la app deja de cumplir el recorrido sin sesión (FR12.2).
@@ -368,7 +371,9 @@ rules:
       `empty`: «Sin resultados para «…»» + «Prueba con otra grafía o con el nombre del
       artista.». `error`: «No pudimos buscar en Spotify.» + «Reintentar». `offline`:
       banner de sin conexión y, si hay caché de la consulta, sus resultados; si no, «Sin
-      conexión. No podemos buscar en Spotify ahora mismo.» + «Reintentar».
+      conexión. No podemos buscar en Spotify ahora mismo.» + «Reintentar». Un `401` no es
+      un fallo de búsqueda: no entra en `error` (BR17.9) y levanta la capa `token caído`
+      de BR18.6, que conserva la lista y la consulta que ya estuvieran en pantalla.
     violation: >
       Un estado sin forma deja la pantalla vacía justo cuando la persona necesita saber
       si escribió mal, si no hay red o si Spotify falló.
@@ -403,7 +408,9 @@ rules:
       borrar la consulta. «Reintentar» incrementa el intento y repite la consulta
       vigente tras los mismos 400 ms, sin cambiar el campo. Un `429` y un tiempo de
       espera agotado caen en este mismo estado: la persona reintenta, la app no reintenta
-      sola ni introduce una espera que no puede explicar (OQ2).
+      sola ni introduce una espera que no puede explicar (OQ2). Un `401` no cae aquí: no
+      es un fallo de la búsqueda sino de la sesión, y levanta la capa `token caído`
+      (BR18.6) sin sustituir la lista.
     violation: >
       Borrar el texto obliga a reescribir lo que ya se había escrito; reintentar solo
       sin decirlo deja el mismo error sin explicación.
@@ -445,16 +452,23 @@ rules:
 
   - id: BR18.1
     statement: >
-      Una portada solo es una imagen real cuando hay sesión conectada, hay red y la obra
-      tiene `coverUrl`; en cualquier otro caso es el bloque con la inicial.
+      Una portada es una imagen real cuando hay sesión conectada, hay red y C5 consigue
+      una URL para la obra —porque la obra ya tiene `coverUrl` o porque la resolución se
+      la da—; en cualquier otro caso es el bloque con la inicial.
     category: policy
     applies_to: "Catalog.coverFor (C5), CoverArt (C1), Inicio, detalle y Explorar"
     trigger: "Se pinta una portada o cambia la sesión o la red."
     logic: >
-      La decisión la toma C5 en cada llamada, no la pantalla: `coverFor(workId)` devuelve
-      `url` solo si `session.isConnected()` es verdadero, `connectivity` está en línea y
-      la obra tiene `coverUrl`; si no, `initialBlock`. Las pantallas no leen el token ni
-      deciden por su cuenta.
+      La decisión la toma C5 en cada llamada, no la pantalla:
+      `coverFor(workId)` consulta `session.isConnected()` —el miembro de
+      `SpotifySessionPort` que implementa `SpotifyAuth`— y la conectividad. IF no hay
+      sesión o no hay red THEN `initialBlock`, sin pedir nada a Spotify. IF hay sesión y
+      red y la obra ya trae `coverUrl` THEN devuelve esa `url`. IF hay sesión y red y la
+      obra no trae `coverUrl` THEN pide la resolución a `SpotifyResolvePort` y devuelve
+      la portada que devuelva; es el camino normal de las obras del catálogo de ejemplo,
+      que se siembran con `coverUrl: null`. Un fallo de resolución no cambia la portada a
+      imagen: deja `initialBlock` y enciende `getCoverFailure()` (BR18.5). Las pantallas
+      no leen el token ni deciden por su cuenta.
     violation: >
       Decidir la portada en la pantalla duplica la regla en cinco sitios y produce
       imágenes rotas cuando la sesión cae entre el render y la carga.
@@ -505,8 +519,10 @@ rules:
       C5 emite su catálogo al suscribirse y tras cada cambio de resultado de portada;
       las pantallas se suscriben con `useCatalog` y vuelven a preguntar `coverFor`. La
       sesión entra en la clave de la decisión (C5 pregunta `session.isConnected()` en
-      cada llamada), y `online` entra en la clave del hook del detalle. Al conectar, las
-      portadas reales aparecen; al desconectar o perder la red, vuelven los bloques.
+      cada llamada) y `SpotifyAuth` notifica el cambio por
+      `SpotifySessionPort.onConnectionChange`, que es el mismo par de miembros que C5
+      declara en su puerto; `online` entra en la clave del hook del detalle. Al conectar,
+      las portadas reales aparecen; al desconectar o perder la red, vuelven los bloques.
     violation: >
       Una foto tomada al montar deja la pantalla con portadas de bloque después de
       conectar, o con portadas reales después de desconectar.
@@ -532,17 +548,27 @@ rules:
   - id: BR18.6
     statement: >
       Si la sesión se cae con resultados en pantalla, se conservan la lista y el texto
-      buscado con portadas de bloque, y aparece un aviso con «Volver a conectar».
+      buscado con portadas de bloque, y aparece un aviso con «Volver a conectar». Un `401`
+      nunca se trata como fallo de búsqueda: no sustituye la lista por el bloque de error.
     category: policy
     applies_to: "ExplorarScreen, ExplorarView y ShellServices.spotify"
-    trigger: "El estado de Spotify pasa a `invalidToken` mientras hay resultados."
+    trigger: "El estado de Spotify pasa a `invalidToken` mientras hay resultados, o una búsqueda nueva recibe `401`."
     logic: >
-      La cabecera vuelve a «Conectar» y Perfil pinta el estado `invalidToken`, pero
-      Explorar no borra la lista ni la consulta: las portadas pasan a bloque y sobre la
-      lista aparece «Tu sesión de Spotify caducó. Vuelve a conectar para buscar en el
-      catálogo completo.» con la acción «Volver a conectar», que relanza el flujo PKCE.
-      Tras reconectar, una nueva búsqueda vuelve a pedir a Spotify; los resultados
-      anteriores no se revalidan solos. Es FR11.4 aplicado también al token caído.
+      El `401` de C10 no entra en el estado `error` de BR17.7/BR17.9: `SpotifyAuth` marca
+      el token inválido y Explorar levanta la capa `token caído` sobre el estado de
+      búsqueda vigente. IF había una lista en pantalla THEN se conservan la lista y la
+      consulta tal como estaban —las portadas pasan a bloque porque ya no hay sesión— y
+      el resultado de la petición que devolvió `401` se descarta por BR17.8. IF era la
+      primera búsqueda y no había lista THEN se ve la capa con el aviso y la zona de
+      resultados vacía, sin bloque de error y sin esqueletos: la persona ve el aviso, no
+      un fallo de su consulta. En los dos casos la cabecera vuelve a «Conectar», Perfil
+      pinta el estado `invalidToken`, y sobre la zona de resultados aparece «Tu sesión de
+      Spotify caducó. Vuelve a conectar para buscar en el catálogo completo.» con la
+      acción «Volver a conectar», que relanza el flujo PKCE. El campo de búsqueda sigue
+      visible y editable mientras la capa está puesta; escribir con la capa puesta no
+      lanza petición (BR19.5). Tras reconectar, la capa desaparece, el campo vuelve a
+      buscar y los resultados anteriores no se revalidan solos. Es FR11.4 aplicado
+      también al token caído.
     violation: >
       Sustituir la lista por la tarjeta de conexión borra lo que la persona estaba
       leyendo y su consulta, y la obliga a empezar de cero justo cuando el fallo no es suyo.
@@ -579,8 +605,10 @@ rules:
       La tarjeta recibe el estado vigente de `services.spotify`. En `connecting` el
       botón queda deshabilitado con «Conectando…» y un indicador; en `connectionError`,
       «No pudimos conectar con Spotify.» y «Reintentar»; en `notConfigured`, «La conexión
-      con Spotify no está configurada en esta instalación.» y «Reintentar». Las
-      sugerencias siguen visibles en los cuatro estados.
+      con Spotify no está configurada en esta instalación.» y «Reintentar»; en
+      `notConfigured` la acción reintenta el flujo completo, que vuelve a leer el client
+      ID con el que se construyó `auth` (BR16.8) y, si sigue faltando, deja otra vez el
+      mismo estado. Las sugerencias siguen visibles en los cuatro estados.
     violation: >
       Una tarjeta que no refleja el estado deja a la persona tocando un botón que ya
       está trabajando o que ya falló, sin saberlo.
@@ -824,12 +852,12 @@ rules:
 | **BR17.9** | policy | Error con «Reintentar» conservando el texto. | AC3.1.5, FR11.2 |
 | **BR17.10** | policy | Sin red: banner, caché si existe y ninguna petición. | FR4.6, FR11.4, AC3.2.4 |
 | **BR17.11** | policy | Vaciar el campo vuelve al estado inicial. | FR4.2 |
-| **BR18.1** | policy | Portada real solo con sesión, red y `coverUrl`. | FR3.4, AC2.2.1; C5 § /cover |
+| **BR18.1** | policy | Portada real con sesión, red y URL —propia o resuelta—. | FR3.4, AC2.2.1; C5 § /cover |
 | **BR18.2** | policy | Sin portada, bloque con la inicial; nunca un hueco. | FR11.3, AC2.2.2 |
 | **BR18.3** | policy | Portada que falla → bloque, sin aviso adicional. | AC2.2.3, FR11.3 |
 | **BR18.4** | policy | La decisión se recalcula al cambiar sesión o red. | FR3.4, C5 § /catalog/changes |
 | **BR18.5** | policy | Fallo de metadatos: banner con «Reintentar» y lista visible. | FR3.5; C5 § /catalog/cover-failure |
-| **BR18.6** | policy | Token caído con resultados: se conservan con bloques y «Volver a conectar». | Q4 = A, AC10.2.3, FR11.4 |
+| **BR18.6** | policy | Token caído: ni error ni lista borrada; aviso «Volver a conectar». | Q4 = A, AC10.2.3, FR11.4 |
 | **BR19.1** | policy | Sin sesión: tarjeta de conexión y sugerencias, sin buscador. | FR4.5, AC3.2.1, AC3.2.2 |
 | **BR19.2** | policy | La tarjeta refleja `connecting`, `connectionError` y `notConfigured`. | FR10.7, AC10.1.5, AC10.2.4 |
 | **BR19.3** | policy | Sin sesión y sin red: tarjeta, sugerencias y banner. | AC3.2.4, FR11.4 |

@@ -1,0 +1,31 @@
+<!-- INVARIANT: examples are single-line HTML comments so a fresh template parses to total=0 (MEMORY_EMPTY). Do NOT un-comment or split across lines. t100 guards this. -->
+> This file is kept up to date automatically while the stage runs. Add observations at the review step, not by editing here directly.
+
+## Interpretations
+<!-- example: 2026-05-29T10:14:32Z — chose REST over GraphQL; the consuming team only needs CRUD, revisit if subscriptions land -->
+2026-11-18T03:56:10Z — [unit u4-spotify-explore] «Dos entradas» se leyó como un mapa `exports` con tres rutas (`.`, `./auth`, `./catalog`) y no como dos paquetes: la frontera del token la impone el resolvedor sin duplicar `package.json`, referencia de TS ni entrada de cobertura.
+2026-11-18T03:56:40Z — [unit u4-spotify-explore] La regla «`auth` no importa C1» se leyó como «ninguna de las dos entradas nombra C1»: el tipo `SpotifyConnectionStatus` entra por `import type` en un solo archivo (`src/types.ts`), de donde lo toman las dos, y se borra al compilar. Leída al pie de la letra, la regla habría obligado a redeclarar la unión de seis estados, que es lo que el diseño funcional prohíbe.
+2026-11-18T03:57:05Z — [unit u4-spotify-explore] «Cancelación» del cliente HTTP se leyó como «aborto de los 10 s», no como aborto del socket por consulta: el puerto no lleva señal, así que una respuesta tardía se descarta arriba, en `useWorkSearch` (BR17.8), y se dejó escrito para que nadie confunda las dos cosas.
+2026-11-18T03:57:30Z — [unit u4-spotify-explore] El suelo de cobertura se escribe en `jest.config.js` en esta unidad, ahora que el árbol existe, y `./packages/activity/src/**` se deja para U5: un umbral sobre un árbol inexistente hace fallar la medición sin cubrir nada.
+2026-11-18T04:10:20Z — [unit u4-spotify-explore] Revisión 1 (R-01, Critical): el diagnóstico del paquete se resolvió con un `SpotifyLogPort` inyectado y obligatorio (TS-38), no observando los estados desde la app. Un fallo de guardado o de borrado no cambia el estado visible: desde fuera no se puede ver, así que la app no podía emitir esos cinco códigos de ninguna manera.
+
+## Deviations
+<!-- example: 2026-05-29T10:14:32Z — skipped the optional caching layer the stage prose suggested; the dataset is small enough that it adds risk -->
+2026-11-18T03:58:00Z — [unit u4-spotify-explore] `packages/spotify/package.json` es el único del repositorio con mapa `exports`; los otros siete siguen con `main` y no se tocan. La desviación se justifica sola (es el único con dos superficies públicas), pero queda dicha para que una revisión futura no la lea como descuido.
+2026-11-18T03:58:30Z — [unit u4-spotify-explore] La versión exacta de `expo-crypto`, `expo-web-browser` y `expo-auth-session` no se escribe aquí: el árbol no las tiene y un número de parche inventado sería peor que la regla «la del SDK 57, exacta». Se fijan en Code Generation con `npx expo install`, como U2 hizo con `expo-network`.
+2026-11-18T03:59:00Z — [unit u4-spotify-explore] Los tres artefactos filtrados por `produces_kinds` (`scalability-`, `reliability-`, `observability-requirements.md`) no se producen: la fiabilidad de NFR1 vive en `performance-requirements.md` y la observabilidad de NFR9 en `security-requirements.md`. La escalabilidad no se absorbe porque `requirements.md` no fija ningún objetivo y no hay servidor (RC-02).
+2026-11-18T04:10:20Z — [unit u4-spotify-explore] Revisión 1: `frontend-components.md` § `app/src/bootstrap/` dibuja `createSpotifyAuth({ clientId, redirectUri })` sin logger. Esta etapa añade `log` como parámetro obligatorio (TS-38) y lo deja dicho en ese mismo apartado; es una enmienda aditiva a C7 1.0.0, no un cambio de operación.
+2026-11-18T04:10:20Z — [unit u4-spotify-explore] Revisión 1 (R-07): el token se guarda con los cuatro atributos de `SpotifyToken` de `components.md`, `obtainedAt` incluido, en vez de con tres. Guardar tres dejaba el modelo de dominio y la prueba diciendo cosas distintas por ahorrar un campo que la serialización ya lleva.
+
+## Tradeoffs
+<!-- example: 2026-05-29T10:14:32Z — picked TDD over BDD this run; the team is unit-first and the domain is well-understood -->
+2026-11-18T03:59:30Z — [unit u4-spotify-explore] PKCE a mano con `expo-crypto` + `expo-web-browser` frente a `AuthRequest` de `expo-auth-session`: se pierde la comodidad del hook y se gana poder comprobar el `state` antes del intercambio y afirmar en una prueba que el verificador y el token no aparecen en un log (NFR3.17, NFR3.19). El coste es código propio en `auth`.
+2026-11-18T04:00:00Z — [unit u4-spotify-explore] Sin caché en el paquete: la pone C5, que ya cachea por consulta y registra las obras. El coste es que `spotify` no puede evitar una petición repetida por su cuenta; el beneficio es una sola política de frescura y ninguna arista del paquete hacia C4.
+2026-11-18T04:00:30Z — [unit u4-spotify-explore] Sin mock global de `fetch` en `jest.setup.js`: el doble se pasa por parámetro. El coste es que cada prueba escribe su doble; el beneficio es que una llamada real futura se delata en vez de quedar tapada por un mock que nadie revisa.
+2026-11-18T04:01:00Z — [unit u4-spotify-explore] Las tres piezas nuevas de interfaz van a C1 1.4.0 y no a un `@melodify/spotify-ui`: se evita una octava frontera y la tarjeta de conexión queda disponible para Perfil y Explorar sin que ninguna pantalla la reimplemente. El coste es que C1 crece con una tarjeta que conoce seis estados de Spotify.
+
+## Open questions
+<!-- example: 2026-05-29T10:14:32Z — confirm the retention window with compliance before the next stage hardens the schema -->
+2026-11-18T04:01:30Z — [unit u4-spotify-explore] Queda por ver en el teléfono si Metro de Expo SDK 57 resuelve `@melodify/spotify/auth` sin `metro.config.js`. Si no, se añade la configuración que active `unstable_enablePackageExports`; no se parte el paquete en dos.
+2026-11-18T04:02:00Z — [unit u4-spotify-explore] `expo-web-browser` tiene que devolver el `code` y el `state` con un redirect `exp://…`. Si no vuelve, el flujo acaba en `connectionError` y el recorrido se demuestra sin sesión (FR12.2).
+2026-11-18T04:02:30Z — [unit u4-spotify-explore] Las versiones de parche exactas de los tres módulos de Expo se confirman al instalarlos en Code Generation; este artefacto fija la regla (SDK 57, exacta) y no el número.

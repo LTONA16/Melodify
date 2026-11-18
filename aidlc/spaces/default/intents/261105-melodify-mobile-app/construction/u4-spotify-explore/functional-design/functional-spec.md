@@ -84,6 +84,7 @@ La unidad se construye en este orden (de `unit-of-work-story-map.md`): `SpotifyA
 stateDiagram-v2
   [*] --> connected: token guardado vigente
   [*] --> disconnected: sin token
+  [*] --> notConfigured: sin client ID al construir
   disconnected --> connecting: conectar
   disconnected --> notConfigured: conectar sin client ID
   notConfigured --> connecting: reintentar con client ID
@@ -95,7 +96,7 @@ stateDiagram-v2
   invalidToken --> connecting: volver a conectar
 ```
 
-**Respaldo en texto**: al arrancar, un token guardado y vigente lleva directo a `connected`; sin token se arranca en `disconnected`; si falta el client ID se arranca en `notConfigured`. Conectar abre el navegador (`connecting`) y termina en `connected` si el token se guarda o en `connectionError` si la persona abandona o el intercambio falla. Desconectar vuelve a `disconnected`. Un `401` de C10 o una renovación fallida llevan a `invalidToken`, que solo sale con «Volver a conectar».
+**Respaldo en texto**: al arrancar, un token guardado y vigente lleva directo a `connected`; sin token se arranca en `disconnected`; si falta el client ID se arranca en `notConfigured`. El client ID se recibe una sola vez, al construir `auth`: `notConfigured` solo sale de sí mismo tras reiniciar la app con la variable puesta, porque la instancia no se reconstruye con la app en marcha. Conectar abre el navegador (`connecting`) y termina en `connected` si el token se guarda o en `connectionError` si la persona abandona o el intercambio falla. Desconectar vuelve a `disconnected`. Un `401` de C10 o una renovación fallida llevan a `invalidToken`, que solo sale con «Volver a conectar».
 
 | Estado | Dispara a | Qué ve la persona | Acción disponible |
 |---|---|---|---|
@@ -104,7 +105,7 @@ stateDiagram-v2
 | `connected` | `disconnected`, `invalidToken` | «Conectado» / «Conectado con tu cuenta.» | «Desconectar» |
 | `connectionError` | `connecting` | «No pudimos conectar con Spotify.» | «Reintentar» |
 | `invalidToken` | `connecting` | «Tu sesión de Spotify caducó. Vuelve a conectar.» | «Conectar con Spotify» |
-| `notConfigured` | `connecting` (si aparece el client ID) | «La conexión con Spotify no está configurada en esta instalación.» | «Reintentar» |
+| `notConfigured` | `connecting` (solo tras reiniciar con el client ID) | «La conexión con Spotify no está configurada en esta instalación.» | «Reintentar» |
 
 **Invariantes de la máquina**
 
@@ -118,24 +119,35 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
   [*] --> idle
+  [*] --> sinSesion: sin sesión de Spotify
   idle --> short: 1 carácter
   short --> searching: 2+ caracteres y 400 ms
   idle --> searching: 2+ caracteres y 400 ms
   searching --> results: ok con obras o artistas
   searching --> empty: ok sin resultados
-  searching --> error: fallo o 429
+  searching --> error: fallo (no 401) o 429
   searching --> offline: sin red
+  searching --> tokenCaido: 401
   results --> searching: cambia la consulta
   empty --> searching: cambia la consulta
   error --> searching: reintentar
   offline --> searching: reintentar o vuelve la red
+  results --> short: la consulta baja a 1 carácter
+  empty --> short: la consulta baja a 1 carácter
+  error --> short: la consulta baja a 1 carácter
+  offline --> short: la consulta baja a 1 carácter
+  tokenCaido --> searching: vuelve a conectar y busca
   results --> idle: vaciar el campo
   empty --> idle: vaciar el campo
   error --> idle: vaciar el campo
   offline --> idle: vaciar el campo
+  short --> idle: vaciar el campo
+  tokenCaido --> idle: vaciar el campo
+  sinSesion --> searching: conecta y escribe
+  sinSesion --> idle: conecta
 ```
 
-**Respaldo en texto**: el campo vacío deja el estado inicial con sugerencias; un carácter pide ayuda sin lanzar nada; dos o más esperan 400 ms y pintan cinco esqueletos mientras piden. La respuesta lleva a resultados (obras y artistas), vacío o error; la falta de red lleva a `offline` sin pedir. Cambiar el texto vuelve a `searching`; vaciar vuelve a `idle`; reintentar repite la consulta vigente.
+**Respaldo en texto**: el campo vacío deja el estado inicial con sugerencias; un carácter pide ayuda sin lanzar nada; dos o más esperan 400 ms y pintan cinco esqueletos mientras piden. La respuesta lleva a resultados (obras y artistas), vacío o error; la falta de red lleva a `offline` sin pedir; un `401` no lleva a `error` sino a `tokenCaido`, la capa de sesión caída (BR18.6). Bajar a un carácter desde cualquier estado con lista lleva a `short` y se conserva lo escrito: al volver a dos caracteres se busca de nuevo la consulta vigente. Cambiar el texto vuelve a `searching`; vaciar vuelve a `idle`; reintentar repite la consulta vigente. `sinSesion` es el estado sin campo de búsqueda; al conectar pasa a `idle` con el campo y el foco.
 
 **Estados y textos**
 
@@ -149,12 +161,12 @@ stateDiagram-v2
 | `error` | Bloque de error con el texto conservado | «No pudimos buscar en Spotify.» / «Reintentar» |
 | `offline` | Banner y, si hay, resultados en caché; si no, error | «Sin conexión. No podemos buscar en Spotify ahora mismo.» / «Reintentar» |
 | `sin sesión` | Tarjeta de conexión y sugerencias, sin campo | «Busca en todo Spotify» / «Conecta tu cuenta para buscar en el catálogo completo. Mientras tanto, estas obras del catálogo de ejemplo también se pueden opinar.» / «Conectar con Spotify» |
-| `token caído con resultados` | Lista conservada con bloques y aviso sobre ella | «Tu sesión de Spotify caducó. Vuelve a conectar para buscar en el catálogo completo.» / «Volver a conectar» |
+| `token caído con resultados` | Lista conservada con bloques y aviso sobre ella (si no había lista, la zona de resultados vacía bajo el aviso) | «Tu sesión de Spotify caducó. Vuelve a conectar para buscar en el catálogo completo.» / «Volver a conectar» |
 
 **Invariantes de la pantalla**
 
 1. Sin sesión no se pinta el campo de búsqueda (BR19.1); con sesión, el campo tiene el foco al entrar.
-2. El estado `token caído` no es un estado de búsqueda: es una capa sobre `results` que conserva lista y consulta (BR18.6).
+2. `tokenCaido` no es un estado más de la búsqueda: es una capa de sesión sobre el estado vigente que conserva lista y consulta y deja el campo visible y editable (BR18.6). Si el `401` llega en la primera búsqueda, la capa aparece con la zona de resultados vacía, sin bloque de error.
 3. La lista nunca mezcla obras y artistas sin distinguirlos: las obras usan `WorkResultRow` y los artistas `ArtistResultRow`.
 4. Un cambio de consulta invalida la petición anterior antes de que el efecto vuelva a correr (BR17.8).
 
@@ -179,7 +191,7 @@ stateDiagram-v2
 4. La respuesta se normaliza: las canciones y los álbumes se registran como obras; los artistas se listan después. Cada fila de obra muestra portada (o bloque), título, artista, etiqueta «Canción»/«Álbum» y «N opiniones» o «Sé el primero en opinar». Cada fila de artista muestra su inicial circular, su nombre y «Artista».
 5. Si la consulta ya estaba en caché, los resultados aparecen sin esqueletos y sin petición.
 6. Si no hay resultados: «Sin resultados para «…»» y «Prueba con otra grafía o con el nombre del artista.».
-7. Si falla: «No pudimos buscar en Spotify.» y «Reintentar», conservando el texto. Al tocar «Reintentar» se repite la misma consulta.
+7. Si falla: «No pudimos buscar en Spotify.» y «Reintentar», conservando el texto. Al tocar «Reintentar» se repite la misma consulta. Un `401` no entra aquí: levanta la capa de sesión caída de F25.
 8. Si se cae la red: banner de sin conexión; si la consulta vigente estaba en caché, sus resultados siguen visibles con bloques; si no, el bloque de error de red.
 
 ## Flujo F23 — Abrir una obra de Spotify y opinar sobre ella
@@ -203,9 +215,10 @@ stateDiagram-v2
 
 1. La persona tiene resultados de una búsqueda en pantalla y la sesión está conectada.
 2. Una nueva búsqueda recibe `401`, o la renovación de 60 s falla. `SpotifyAuth` borra el token y emite `invalidToken`.
-3. El chip de Inicio vuelve a «Conectar»; la tarjeta de Perfil muestra «Tu sesión de Spotify caducó. Vuelve a conectar.» + «Conectar con Spotify».
-4. Explorar **no** borra la lista ni la consulta: las portadas pasan a bloque y sobre la lista aparece el aviso «Tu sesión de Spotify caducó. Vuelve a conectar para buscar en el catálogo completo.» con «Volver a conectar» (Q4 = A).
-5. «Volver a conectar» relanza el flujo F21. Al volver a `connected`, la tarjeta y el aviso desaparecen; una nueva búsqueda vuelve a pedir a Spotify. Los resultados anteriores no se revalidan solos.
+3. El `401` no se trata como fallo de búsqueda: la petición se descarta por BR17.8 y Explorar pasa a `tokenCaido`, la capa de sesión caída, sin entrar en `error` ni en `empty`.
+4. El chip de Inicio vuelve a «Conectar»; la tarjeta de Perfil muestra «Tu sesión de Spotify caducó. Vuelve a conectar.» + «Conectar con Spotify».
+5. Explorar **no** borra la lista ni la consulta: las portadas pasan a bloque y sobre la lista aparece el aviso «Tu sesión de Spotify caducó. Vuelve a conectar para buscar en el catálogo completo.» con «Volver a conectar» (Q4 = A). El campo sigue visible y editable, pero mientras la capa está puesta escribir no lanza petición (BR19.5). Si el `401` llega en la primera búsqueda, la zona de resultados queda vacía bajo el aviso, sin bloque de error.
+6. «Volver a conectar» relanza el flujo F21. Al volver a `connected`, la tarjeta y el aviso desaparecen; una nueva búsqueda vuelve a pedir a Spotify. Los resultados anteriores no se revalidan solos.
 
 ## Flujo F26 — Desconectar y recuperarse de un fallo
 
@@ -297,6 +310,8 @@ Las reglas completas, con su lógica y su violación, están en `rules.md` (BR16
 
 `C2` conserva `SpotifyStatus` como alias de `SpotifyConnectionStatus`; las pantallas siguen importándolo de `@melodify/app-shell` y no cambian.
 
+**Corrección sobre el contrato de origen**: la ficha de C1 en `contract-summary.md` declara `SpotifyConnectionStatus` como un modelo con un campo `status`. La 1.4.0 lo publica como la unión de seis cadenas que figura arriba: la forma con campo no tiene ningún consumidor, y `SpotifyCard.status` y `ShellServices.spotify.status` reciben la unión tal cual. Es la única forma del tipo; ni el paquete de Spotify ni C2 la redeclaran.
+
 ### C2 1.4.0 — la obra por la ruta
 
 | Punto | Cómo queda | Por qué |
@@ -356,7 +371,17 @@ x-modules:
         retry: '() => Promise<void>'
         getAccessToken: '() => Promise<string | null>'
         markInvalid: '() => void'
+        isConnected: '() => boolean'
+        onConnectionChange: '(listener: (status: SpotifyConnectionStatus) => void) => () => void'
         implements: [SpotifySessionPort]
+  AuthorizationStateView:
+    status: SpotifyConnectionStatus
+    rule: >
+      `SpotifyConnectionStatus` lo posee C1 (`@melodify/design-system`) y es la unión de
+      seis valores de BR16.7; `@melodify/spotify` la importa como tipo y no la declara
+      ni la reexporta. `SpotifySessionPort` son dos miembros: `isConnected()` es
+      `status === 'connected'` y `onConnectionChange` emite el nuevo `status` en cada
+      cambio; el punto de composición los entrega a C5 como el puerto de sesión.
   catalog:
     entry: '@melodify/spotify/catalog'
     exports:
@@ -417,7 +442,7 @@ x-timeouts:
 3. **`getAccessToken()` es la única puerta al token** y solo la usa `catalog`: renueva si faltan menos de 60 s, comparte la promesa de renovación y devuelve `null` si no hay sesión. `markInvalid()` es la señal de un `401` de C10.
 4. **`search` y `resolve` comparten un cliente HTTP** con tiempo límite de 10 s y sin reintento automático (OQ2). Un `fetch` que lanza por red se mapea a `network`; un aborto por tiempo, a `timeout`.
 5. **La resolución es consciente de la clase**: primero `/tracks/{id}` y, si responde `404`, `/albums/{id}`. Así una obra de ejemplo (que es una canción) se resuelve como antes y un álbum encontrado por búsqueda también.
-6. **La instancia se crea una sola vez** en `app/src/bootstrap/ports.ts`: `spotifyAuth` y `spotifyCatalogPorts`. `instances.ts` construye `Catalog` con esos puertos y `shell-services.ts` mapea `spotifyAuth` a los cinco campos de `ShellServices.spotify`.
+6. **La instancia se crea una sola vez** en `app/src/bootstrap/ports.ts`: `spotifyAuth` y `spotifyCatalogPorts`. `instances.ts` construye `Catalog` con esos puertos y `shell-services.ts` mapea `spotifyAuth` a los cinco campos de `ShellServices.spotify`. El puerto de sesión de C5 se compone de `isConnected` y `onConnectionChange` de `spotifyAuth`; no hay adaptador intermedio ni otra fuente del estado.
 
 ### C10 — la búsqueda de tres clases y la resolución de álbumes
 

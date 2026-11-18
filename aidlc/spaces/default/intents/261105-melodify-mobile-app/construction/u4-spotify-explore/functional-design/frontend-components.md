@@ -83,7 +83,7 @@ graph TD
 | `SpotifyConnectionStatus` | `'disconnected' \| 'connecting' \| 'connected' \| 'connectionError' \| 'invalidToken' \| 'notConfigured'` | `SpotifyCard`. |
 | `ArtistSummary` | `{ artistId: string; name: string }` | `ArtistResultRow`. |
 
-`C2` conserva `SpotifyStatus` como alias de `SpotifyConnectionStatus`; las pantallas siguen importándolo de `@melodify/app-shell` y no cambian de importación. `WorkSummary` **no** gana `workKind`: la etiqueta de clase es una prop de la fila, no un dato del modelo de presentación, y así ninguna pieza existente cambia de forma.
+`C2` conserva `SpotifyStatus` como alias de `SpotifyConnectionStatus`; las pantallas siguen importándolo de `@melodify/app-shell` y no cambian de importación. **Un solo dueño y una sola forma**: la unión de seis cadenas de arriba la declara C1 y la importan los demás como tipo — `ShellServices.spotify.status: SpotifyStatus`, `SpotifyCard.status: SpotifyConnectionStatus` y `AuthorizationStateView.status` del paquete de Spotify son todos esa misma unión; ningún paquete la redeclara ni la envuelve en un objeto, y `@melodify/spotify` no la exporta. `WorkSummary` **no** gana `workKind`: la etiqueta de clase es una prop de la fila, no un dato del modelo de presentación, y así ninguna pieza existente cambia de forma.
 
 **Reglas de uso**: ninguna pantalla pinta una fila de resultado, una tarjeta de conexión ni un bloque de portada por su cuenta; todas usan las piezas. `ExplorarView` no construye estilos de fila fuera de `WorkResultRow` y `ArtistResultRow`, y la portada de una fila la decide C5, no la vista.
 
@@ -91,9 +91,9 @@ graph TD
 
 | Archivo | Responsabilidad |
 |---|---|
-| `src/auth/` | `createSpotifyAuth({ clientId, redirectUri, secureStore, browser, crypto, fetch, clock })`: PKCE S256, apertura del navegador, intercambio del código, guardado, lectura, renovación, borrado y los seis estados. Es el único módulo que conoce `expo-secure-store`. Expone `getState`, `subscribe`, `connect`, `disconnect`, `retry`, `getAccessToken` y `markInvalid`. Implementa `SpotifySessionPort`. |
+| `src/auth/` | `createSpotifyAuth({ clientId, redirectUri, secureStore, browser, crypto, fetch, clock })`: PKCE S256, apertura del navegador, intercambio del código, guardado, lectura, renovación, borrado y los seis estados. Es el único módulo que conoce `expo-secure-store`. Expone `getState`, `subscribe`, `connect`, `disconnect`, `retry`, `getAccessToken`, `markInvalid`, `isConnected` y `onConnectionChange`. Implementa `SpotifySessionPort` con `isConnected` y `onConnectionChange`. |
 | `src/catalog/` | `createSpotifyCatalog({ auth, fetch, clock })`: `search` y `resolve`. Pide el token a `auth` y nunca lo lee del almacén. Implementa `SpotifySearchPort` y `SpotifyResolvePort`. |
-| `src/index.ts` | Superficie del paquete: solo tipos compartidos (`SpotifyConnectionStatus` reexportado para C1) y las dos fábricas. Las pantallas no importan de aquí. |
+| `src/index.ts` | Superficie del paquete: las dos fábricas y el tipo `AuthorizationStateView`. No declara ni reexporta `SpotifyConnectionStatus`: ese tipo lo posee C1 (`@melodify/design-system`) y aquí solo se importa como tipo para `AuthorizationStateView.status`. Las pantallas no importan de aquí. |
 
 **Regla de frontera**: `@melodify/spotify/auth` no importa nada de `@melodify/design-system`, `@melodify/app-shell` ni de las pantallas; `@melodify/spotify/catalog` no importa `expo-secure-store`. La instancia se construye una sola vez en `app/src/bootstrap/ports.ts` (BR16.12, NFR3.11).
 
@@ -144,9 +144,9 @@ graph TD
 
 **Reglas de composición**
 
-- Sin sesión (`disconnected`, `connectionError`, `notConfigured`, `invalidToken` sin resultados) no se pinta `SearchField`: solo `ConnectionCard` y «Sugerencias para empezar» (BR19.1).
+- Sin sesión (`disconnected`, `connectionError`, `notConfigured` e `invalidToken`) y sin lista en pantalla no se pinta `SearchField`: solo `ConnectionCard` y «Sugerencias para empezar» (BR19.1).
 - Con `connecting`, la `ConnectionCard` se pinta en modo compacto con el botón deshabilitado y «Conectando…» (BR19.2).
-- Con `invalidToken` y resultados en pantalla, la lista **no** se sustituye: sobre ella se pinta el aviso de BR18.6 con «Volver a conectar» (Q4 = A).
+- Con `invalidToken` y resultados en pantalla, la lista **no** se sustituye y el campo **sí** se pinta, visible y editable, pero escribir no lanza petición mientras la capa está puesta: sobre la lista se pinta el aviso de BR18.6 con «Volver a conectar» (Q4 = A). Si el `401` llegó en la primera búsqueda, no hay lista: el aviso se pinta sobre una zona de resultados vacía, sin bloque de error y sin esqueletos.
 - Con `results`, las obras van primero y los artistas después; cada clase usa su pieza y su encabezado solo si tiene elementos (BR17.3).
 - La vista nunca decide la portada: recibe `coverUrl` ya resuelto por C5 al construir cada fila.
 - El banner de sin conexión usa `OfflineBanner` con el texto de Explorar y «Reintentar» (BR17.10); sin sesión y sin red, el banner de BR19.3.
