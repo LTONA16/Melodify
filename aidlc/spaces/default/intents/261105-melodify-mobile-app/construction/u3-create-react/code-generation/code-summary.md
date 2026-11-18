@@ -123,7 +123,7 @@ Ninguna prueba sale a la red ni necesita credenciales ni cuenta de Spotify: la A
 5. **`use-card-actions.test.tsx` en lugar de `.test.ts`.** El plan pedía `.test.ts`; el hook consume los contextos de la cáscara, así que la prueba lo monta con `renderHook` dentro de los dos proveedores y necesita TSX. El archivo `.test.ts` que había dejado un intento paralelo con la API antigua se borró para no dejar dos pruebas del mismo hook.
 6. **El detalle de obra resuelve las acciones en el contenedor.** `useDetalleObra` devuelve además `ownView` y `otherViews` (las `OpinionView` de C4) porque `OpinionCardModel` no lleva `isOwn` ni el autor que pide seguir. La vista sigue recibiendo `actionsFor(opinionId)` y no conoce C4.
 7. **Se corrigieron tres errores de tipos en `crear-screen.test.tsx`.** El genérico de `ok()` no aceptaba el `201`, y dos `invocationCallOrder[0]` podían ser `undefined`. `npm run typecheck` tiene que quedar verde, y la corrección no cambia ninguna aserción.
-8. **AC2.2.1 y AC9.1.8 siguen `Deferred`.** La portada real y la tarjeta de Spotify de Perfil necesitan la sesión de Spotify y `SpotifyResolvePort`, que llegan con U4; la razón ya está escrita en `traceability.json`.
+8. **AC2.2.1 y AC9.1.8 quedan fuera de esta unidad.** La portada real y la tarjeta de Spotify de Perfil necesitan la sesión de Spotify y `SpotifyResolvePort`, que llegan con U4; por eso no son objetivos asignados a U3 y no tienen fila en `traceability.json`. Los sigue la unidad que los construye.
 
 ## Avisos conocidos
 

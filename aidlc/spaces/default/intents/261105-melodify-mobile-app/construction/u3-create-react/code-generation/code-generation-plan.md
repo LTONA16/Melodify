@@ -96,17 +96,17 @@ De las cinco capas del perfil, tres aplican y dos no, y conviene decir por qué:
 
 | Historia / criterio | Qué lo cumple | Pasos |
 |---|---|---|
-| US5.1 — Publicar desde Crear con una obra de Spotify | Buscador con 2 caracteres y 400 ms sobre el puerto, fila de resultado, formulario y `createOpinion` | 15, 16, 19–22, 25 |
-| US5.2 — Publicar sin sesión desde el catálogo de ejemplo | Selector de ejemplo con `opinionCount`, modo sin Spotify y publicación desde el formulario | 5–8, 19–22 |
-| US5.3 — Publicar desde el detalle sin perder lo escrito | `openCreate({ workId })` y la entrada de Crear que no reinicia al volver | 10–12, 19–22, 25 |
-| US6.1 — Editar mi opinión y ver la fecha | Carga de la edición, «Guardar» con y sin cambios, `closeCreate` que conserva la pila y fecha de modificación | 3, 4, 10–12, 19–22, 25 |
-| US7.1 — Dar y quitar me gusta | `toggleLike` en `useCardActions`, `showLike` en la barra y la tarjeta propia sin me gusta | 5–9, 17, 18, 23, 24 |
-| US7.2 — Comentar una opinión | `CommentSheet`, `createCommentsController`, montaje en la cáscara y `comentario publicado` dentro del modal | 5–9, 10–14, 23–25 |
-| US7.3 — Seguir a un autor (AC7.3.1, AC7.3.2) | Etiqueta «Seguir autor» / «Siguiendo», `accessibilityLabel` y `toggleFollow` | 5–9, 17, 18, 23, 24 |
-| FR11 / BR15 — Snackbar único y textos en llano | `Snackbar` en C1, montaje y limpieza por pestaña en C2, `showSnackbar` desde los hooks | 5–9, 10–12, 17–25 |
-| NFR3.12–3.16 — fronteras de confianza | `403` de C4 en la edición ajena, «Editar» oculto en la vista, sin secretos ni red | 1, 3, 4, 19–22 |
-| NFR9.6 — diagnóstico acotado | Solo `SEARCH_PORT_UNAVAILABLE`, sin telemetría | 15, 16 |
-| NFR8.8–8.11 — temporizadores y montajes | `setTimeout` propio (400 ms / 4 s), orden de montaje de hoja y snackbar | 10–12, 15–18 |
+| US5.1 — Publicar desde Crear con una obra de Spotify | Buscador con 2 caracteres y 400 ms sobre el puerto, fila de resultado, formulario y `createOpinion` | 14, 15, 18–21, 24, 25 |
+| US5.2 — Publicar sin sesión desde el catálogo de ejemplo | Selector de ejemplo con `opinionCount`, modo sin Spotify y publicación desde el formulario | 6, 7, 18–21 |
+| US5.3 — Publicar desde el detalle sin perder lo escrito | `openCreate({ workId })` y la entrada de Crear que no reinicia al volver | 9–11, 18–21, 24, 25 |
+| US6.1 — Editar mi opinión y ver la fecha | Carga de la edición, «Guardar» con y sin cambios, `closeCreate` que conserva la pila y fecha de modificación | 9–11, 18–21, 24, 25 |
+| US7.1 — Dar y quitar me gusta | `toggleLike` en `useCardActions`, `showLike` en la barra y la tarjeta propia sin me gusta | 6, 7, 16, 17, 22, 23 |
+| US7.2 — Comentar una opinión | `CommentSheet`, `createCommentsController`, montaje en la cáscara y `comentario publicado` dentro del modal | 6–13, 22–25 |
+| US7.3 — Seguir a un autor (AC7.3.1, AC7.3.2) | Etiqueta «Seguir autor» / «Siguiendo», `accessibilityLabel` y `toggleFollow` | 6, 7, 16, 17, 22, 23 |
+| FR11 / BR15 — Snackbar único y textos en llano | `Snackbar` en C1, montaje y limpieza por pestaña en C2, `showSnackbar` desde los hooks | 6, 7, 9–11, 16–25 |
+| NFR3.12–3.16 — fronteras de confianza | `403` de C4 en la edición ajena, «Editar» oculto en la vista, sin secretos ni red | 3, 4, 6, 7, 18–21 |
+| NFR9.6 — diagnóstico acotado | Solo `SEARCH_PORT_UNAVAILABLE`, sin telemetría | 14, 15 |
+| NFR8.8–8.11 — temporizadores y montajes | `setTimeout` propio (400 ms / 4 s), orden de montaje de hoja y snackbar | 6, 7, 9–11, 14–18 |
 
 ## Pasos
 
