@@ -304,5 +304,5 @@ No hay base de datos, migraciones, backend, proxy ni despliegue. El paso de conf
 - [x] Sin cambios en `.github/workflows/ci.yml`: `npm test`, `npm run typecheck` y `npm run lint` siguen siendo la puerta.
 - [x] Ejecutar el comando acotado con cobertura de esta unidad; si falla sólo por umbral global con todas las pruebas en verde, registrarlo en `code-summary.md` sin tocar el umbral.
 - [x] Ejecutar `npm run typecheck` y `npm run lint`; corregir hallazgos reales, nunca relajar reglas.
-- [ ] Preparar la descripción de archivos creados/modificados, decisiones y desviaciones para `code-summary.md`, y el manifiesto de fuentes para el paso posterior a la generación.
-- [ ] Registrar la verificación manual pendiente en Expo Go sobre Android físico: seis pantallas sin sesión y con sesión, persistencia tras reinicio, portadas rotas y búsqueda real.
+- [x] Preparar la descripción de archivos creados/modificados, decisiones y desviaciones para `code-summary.md`, y el manifiesto de fuentes para el paso posterior a la generación.
+- [x] Registrar la verificación manual pendiente en Expo Go sobre Android físico: seis pantallas sin sesión y con sesión, persistencia tras reinicio, portadas rotas y búsqueda real.

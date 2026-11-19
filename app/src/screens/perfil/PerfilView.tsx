@@ -51,7 +51,8 @@ export interface PerfilViewProps {
   author: PerfilAuthorView | null;
   cards: readonly PerfilCard[];
   online: boolean;
-  spotifyStatus: SpotifyStatus;
+  /** `null` mientras la conexión con Spotify aún no ha emitido su estado. */
+  spotifyStatus: SpotifyStatus | null;
   onConnectSpotify: () => void;
   onDisconnectSpotify: () => void;
   onRetrySpotify: () => void;
@@ -141,12 +142,14 @@ export function PerfilView({
               {`${formatOpinionCount(author.opinionCount)} · ${formatFollowingCount(author.followingCount)}`}
             </Text>
 
-            <SpotifyCard
-              status={spotifyStatus}
-              onConnect={onConnectSpotify}
-              onDisconnect={onDisconnectSpotify}
-              onRetry={onRetrySpotify}
-            />
+            {spotifyStatus === null ? null : (
+              <SpotifyCard
+                status={spotifyStatus}
+                onConnect={onConnectSpotify}
+                onDisconnect={onDisconnectSpotify}
+                onRetry={onRetrySpotify}
+              />
+            )}
 
             <Text style={[theme.type.title2, { color: theme.colors.text }]}>
               Mis opiniones

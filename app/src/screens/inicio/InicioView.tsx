@@ -51,7 +51,8 @@ export interface InicioViewProps {
   online: boolean;
   /** Si la última resolución de metadatos falló (BR7.5). */
   metadataError: boolean;
-  spotifyStatus: SpotifyStatus;
+  /** `null` mientras la conexión con Spotify aún no ha emitido su estado. */
+  spotifyStatus: SpotifyStatus | null;
   /** Lleva a Perfil si hay sesión; si no, inicia la conexión (F6.2, Q2 = A). */
   onSpotifyPress: () => void;
   onOpenOpinion: (opinionId: string) => void;

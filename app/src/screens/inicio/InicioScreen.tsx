@@ -98,14 +98,16 @@ function InicioConnected({
   const online = useNetwork();
   const catalogVersion = useCatalog(catalog);
   const { spotify } = useShellServices();
-  const { status: liveSpotifyStatus } = useSpotifyConnection();
-  // La suscripción mantiene el chip al día; el estado actual de la cáscara cubre
-  // el primer render, antes de que el hook reciba su primera emisión (R-07).
-  const spotifyStatus = liveSpotifyStatus ?? spotify.status;
+  // Sin primera emisión no hay chip ni conexión: pintar el estado de la cáscara
+  // aquí afirmaría `disconnected` durante la hidratación (R-07).
+  const { status: spotifyStatus } = useSpotifyConnection();
   const global = useGlobalServices();
   const actionsFor = useCardActions(content, viewerId);
 
   const onSpotifyPress = () => {
+    if (spotifyStatus === null) {
+      return;
+    }
     if (spotifyStatus === "connected") {
       global.goToTab({ name: "perfil" });
       return;

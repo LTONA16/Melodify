@@ -306,7 +306,7 @@ export function ExplorarView({
           value={query}
           onChangeText={onChangeQuery}
           onClear={onClearQuery}
-          placeholder="Busca artistas, álbumes…"
+          placeholder="Busca canciones, álbumes o artistas…"
           autoFocus
           loading={!tokenCaido && searchStatus === "searching"}
         />

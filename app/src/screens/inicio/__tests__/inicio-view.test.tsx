@@ -199,6 +199,13 @@ describe("InicioView", () => {
     expect(screen.getByTestId("spotify-chip-dot")).toBeTruthy();
   });
 
+  it("mientras Spotify hidrata no pinta chip ni afirma un estado", () => {
+    renderView({ spotifyStatus: null });
+
+    expect(screen.queryByTestId("spotify-chip")).toBeNull();
+    expect(screen.queryByText("Conectar")).toBeNull();
+  });
+
   it("tocar una tarjeta abre el detalle de esa opinión", () => {
     const props = renderView();
 

@@ -14,8 +14,12 @@ import type { SpotifyStatus } from "@melodify/app-shell";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export interface InicioHeaderProps {
-  /** El estado de Spotify que publica la cáscara. */
-  spotifyStatus: SpotifyStatus;
+  /**
+   * El estado de Spotify que publica la cáscara; `null` mientras la hidratación
+   * no ha emitido nada. En ese tramo no se pinta chip: decir «Conectar» sería
+   * afirmar un estado que todavía no se conoce (R-07).
+   */
+  spotifyStatus: SpotifyStatus | null;
   /** Lleva a Perfil si hay sesión; si no, inicia la conexión. */
   onPress: () => void;
 }
@@ -25,10 +29,12 @@ export function InicioHeader({ spotifyStatus, onPress }: InicioHeaderProps) {
     <AppHeader
       title="Inicio"
       rightSlot={
-        <SpotifyChip
-          connected={spotifyStatus === "connected"}
-          onPress={onPress}
-        />
+        spotifyStatus === null ? null : (
+          <SpotifyChip
+            connected={spotifyStatus === "connected"}
+            onPress={onPress}
+          />
+        )
       }
     />
   );

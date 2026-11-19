@@ -159,6 +159,13 @@ describe("PerfilView", () => {
     expect(onConnectSpotify).toHaveBeenCalledTimes(1);
   });
 
+  it("mientras Spotify hidrata no pinta la tarjeta ni afirma un estado", () => {
+    renderPerfil({ spotifyStatus: null });
+
+    expect(screen.queryByTestId("spotify-card")).toBeNull();
+    expect(screen.queryByText("Sin conectar")).toBeNull();
+  });
+
   it("conectado desconecta y en error/notConfigured reintenta", () => {
     const onDisconnectSpotify = jest.fn();
     const view = renderPerfil({

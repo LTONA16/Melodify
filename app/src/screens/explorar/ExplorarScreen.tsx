@@ -80,10 +80,18 @@ function ExplorarConnected({ catalog, log }: ExplorarConnectedProps) {
     volverAConectar,
     openWork,
   } = useExplorar(catalog, status);
-  const search = useWorkSearch(catalog, status === "connected" || tokenCaido, log, {
-    includeArtists: true,
-    paused: tokenCaido,
-  });
+  // Durante la reconexión la lista y la consulta también se conservan: F25 pide
+  // que volver de `invalidToken` no borre lo que la persona estaba leyendo.
+  const searchSuspended = tokenCaido || connecting;
+  const search = useWorkSearch(
+    catalog,
+    status === "connected" || searchSuspended,
+    log,
+    {
+      includeArtists: true,
+      paused: searchSuspended,
+    },
+  );
 
   return (
     <ExplorarView

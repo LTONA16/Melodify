@@ -268,6 +268,9 @@ describe("ExplorarView — token caído", () => {
 
     expect(view.getByText(EXPLORAR_TOKEN_MESSAGE)).toBeVisible();
     expect(view.getByTestId("search-field-input").props.value).toBe("bad");
+    expect(view.getByTestId("search-field-input").props.placeholder).toBe(
+      "Busca canciones, álbumes o artistas…",
+    );
     expect(view.getByTestId("work-result-work-1")).toBeVisible();
     expect(view.getByTestId("artist-result-artist-1")).toBeVisible();
     expect(view.queryByText("Sugerencias para empezar")).toBeNull();

@@ -24,8 +24,9 @@
  *   buscador.
  * - **`paused` es la capa de token caído de Explorar** (BR18.6): no pide ni cambia
  *   el estado vigente, para que la lista y la consulta que ya estaban en pantalla
- *   sobrevivan al `401`. Al levantarse la capa, el efecto vuelve a correr con la
- *   consulta que quedó escrita.
+ *   sobrevivan al `401`. Al levantarse la capa no se revalida nada: la consulta
+ *   queda escrita y la siguiente petición la dispara una acción de la persona, que
+ *   es lo que pide F25 («Los resultados anteriores no se revalidan solos»).
  */
 import type { Catalog, WorkView } from "@melodify/catalog";
 import type { ArtistSummary } from "@melodify/design-system";
@@ -49,9 +50,11 @@ export interface WorkSearchOptions {
    */
   includeArtists?: boolean;
   /**
-   * La capa de token caído de Explorar (BR18.6): no lanza peticiones ni toca el
-   * estado vigente, pero deja escribir en el campo. Al volver a `false`, la
-   * consulta actual se busca otra vez.
+   * La capa de token caído de Explorar (BR18.6) y la reconexión mientras dura
+   * `connecting`: no lanza peticiones ni toca el estado vigente, pero deja
+   * escribir en el campo. Al volver a `false` no se busca sola: Explorar no
+   * revalida lo que ya estaba en pantalla, así que la siguiente petición nace de
+   * una acción de la persona (escribir, limpiar o «Reintentar»).
    */
   paused?: boolean;
 }
@@ -102,6 +105,11 @@ export function useWorkSearch(
   // Reintentar no cambia la consulta: este contador es lo que vuelve a disparar el
   // efecto sin tocar el texto del campo.
   const [attempt, setAttempt] = useState(0);
+  // Tras una capa de pausa (token caído o reconexión), la búsqueda no se relanza
+  // sola al volver `enabled`: se espera a que la persona escriba, limpie o pulse
+  // «Reintentar». Sin esto, volver de `invalidToken` a `connected` revalidaría la
+  // lista que F25 manda conservar.
+  const resumeRequiredRef = useRef(false);
 
   // La clave del efecto es la consulta normalizada, no el texto tal cual: un espacio
   // de más al final no reinicia la espera ni repite una petición que C5 ya cacheó.
@@ -114,7 +122,15 @@ export function useWorkSearch(
     pausedRef.current = paused;
 
     if (paused) {
-      // Token caído: ni se pide ni se limpia lo que la persona ya estaba leyendo.
+      // Token caído o reconectando: ni se pide ni se limpia lo que la persona ya
+      // estaba leyendo. Al levantar la capa, la búsqueda espera una acción.
+      resumeRequiredRef.current = true;
+      return undefined;
+    }
+
+    if (resumeRequiredRef.current) {
+      // La pausa terminó: se conserva consulta, lista y estado, y no se revalida
+      // nada por cuenta propia (F25, BR18.6).
       return undefined;
     }
 
@@ -240,11 +256,14 @@ export function useWorkSearch(
     // Invalida la petición en vuelo antes del siguiente render: si su promesa
     // resuelve en ese hueco, ya no se pinta (BR13.4).
     requestRef.current += 1;
+    // Escribir es la acción que vuelve a habilitar la búsqueda tras una pausa.
+    resumeRequiredRef.current = false;
     setQueryState(text);
   }, []);
 
   const clear = useCallback(() => {
     requestRef.current += 1;
+    resumeRequiredRef.current = false;
     setQueryState("");
     setStatus("idle");
     setResults([]);
@@ -252,6 +271,8 @@ export function useWorkSearch(
   }, []);
 
   const retry = useCallback(() => {
+    // «Reintentar» es una acción explícita: también levanta la espera de la pausa.
+    resumeRequiredRef.current = false;
     setAttempt((previous) => previous + 1);
   }, []);
 

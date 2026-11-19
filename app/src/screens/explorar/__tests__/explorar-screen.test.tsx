@@ -260,6 +260,35 @@ describe("ExplorarScreen", () => {
     expect(view.spotify.service.connect).toHaveBeenCalledTimes(1);
   });
 
+  it("al reconectar desde invalidToken conserva la lista y no rebusca sola", async () => {
+    const view = setup();
+
+    await view.findByTestId("search-field");
+    await search(view, "bad");
+    await view.findByTestId("work-result-work-1");
+
+    act(() => {
+      view.spotify.set("invalidToken");
+    });
+    expect(view.getByTestId("work-result-work-1")).toBeVisible();
+    const calls = view.searchWorks.mock.calls.length;
+
+    act(() => {
+      view.spotify.set("connecting");
+    });
+    act(() => {
+      view.spotify.set("connected");
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_MS);
+      await Promise.resolve();
+    });
+
+    expect(view.searchWorks).toHaveBeenCalledTimes(calls);
+    expect(view.getByTestId("work-result-work-1")).toBeVisible();
+    expect(view.getByTestId("search-field-input").props.value).toBe("bad");
+  });
+
   it("con invalidToken escribe en el campo sin lanzar peticiones", async () => {
     const view = setup({ spotify: "invalidToken" });
 

@@ -511,6 +511,17 @@ describe("useWorkSearch — sin buscador montado", () => {
     });
     await advance();
 
+    // Al levantar la pausa no se revalida sola lo que ya estaba en pantalla (F25).
+    expect(searchWorks).toHaveBeenCalledTimes(1);
+    expect(result.current.query).toBe("otra");
+    expect(result.current.status).toBe("results");
+    expect(result.current.results).toEqual(WORKS);
+
+    act(() => {
+      result.current.retry();
+    });
+    await advance();
+
     expect(searchWorks).toHaveBeenCalledTimes(2);
     expect(searchWorks).toHaveBeenLastCalledWith("otra");
   });

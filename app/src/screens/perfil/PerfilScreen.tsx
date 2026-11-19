@@ -96,8 +96,9 @@ function PerfilConnected({
   const catalogVersion = useCatalog(catalog);
   const online = useNetwork();
   const { spotify } = useShellServices();
-  const { status: liveSpotifyStatus } = useSpotifyConnection();
-  const spotifyStatus = liveSpotifyStatus ?? spotify.status;
+  // Sin primera emisión no se pinta la tarjeta: el estado de la cáscara antes de
+  // hidratar diría `disconnected` y ofrecería conectar sin necesidad (R-07).
+  const { status: spotifyStatus } = useSpotifyConnection();
   const global = useGlobalServices();
   const actionsFor = useCardActions(content, viewerId);
 
