@@ -13,31 +13,75 @@
   "coverage": [
     {
       "id": "AC8.1.1",
-      "status": "GAP"
+      "status": "OK",
+      "target": "BR21.1, BR21.2, BR21.3, BR21.4, BR22.1, BR22.2 — los tres tipos de evento se derivan del contenido, se ordenan con desempate estable y se agrupan por día UTC; se prueban con el reloj fijo y la siembra, sin depender de la red"
     },
     {
       "id": "AC8.1.2",
-      "status": "GAP"
+      "status": "OK",
+      "target": "BR21.5 — las tres publicaciones, dos me gusta recibidos y tres comentarios recibidos ya están en la siembra de C4; U5 no escribe semilla y la prueba no fija un número propio"
     },
     {
       "id": "AC8.1.3",
-      "status": "GAP"
+      "status": "OK",
+      "target": "BR23.5, BR22.3 — la suscripción a C4 vuelve a derivar tras cada escritura y los `eventId` estables conservan la lista; se prueba con un almacén real y con dobles"
     },
     {
       "id": "AC8.1.4",
-      "status": "GAP"
+      "status": "OK",
+      "target": "BR24.1 — tocar la fila llama a `openOpinionDetail({ opinionId })` y la cáscara apila el detalle de U2 en la pestaña Actividad; la vuelta conserva la posición porque la pestaña no se desmonta. El recorrido en el teléfono lo cierra U6"
     },
     {
       "id": "AC8.1.5",
-      "status": "GAP"
+      "status": "OK",
+      "target": "BR23.2 — el vacío pinta «Todavía no hay actividad.» con «Crear opinión», que llama a `goToTab({ name: 'crear' })`; se prueba con un almacén sin contenido"
     },
     {
       "id": "AC8.1.6",
-      "status": "GAP"
+      "status": "OK",
+      "target": "BR23.3 — el error pinta «No pudimos cargar tu actividad.» con «Reintentar» y el reintento vuelve a derivar; se prueba con un doble de C4 que falla (ADR-012)"
     },
     {
       "id": "AC8.1.7",
-      "status": "GAP"
+      "status": "OK",
+      "target": "BR23.1 — la carga pinta dos grupos de esqueleto con su encabezado, ocupando el espacio de la lista, sin día inventado ni pantalla en blanco"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR21.6",
+      "status": "N/A",
+      "target": "que la Actividad sea de solo lectura es una restricción de diseño (C8 § rule, NFR3.11); ninguna AC de US8.1 observa una escritura que no ocurre"
+    },
+    {
+      "id": "BR22.3",
+      "status": "N/A",
+      "target": "que `eventId` sea estable y único es la condición que hace posible AC8.1.3, pero la AC observa que la publicación nueva aparece sin recargar, no la forma del identificador"
+    },
+    {
+      "id": "BR22.4",
+      "status": "N/A",
+      "target": "el encabezado pegajoso viene de `mockups.md` § Pantalla 5 y `interaction-spec.md` § DayHeader; ninguna AC lo enumera"
+    },
+    {
+      "id": "BR23.4",
+      "status": "N/A",
+      "target": "leer sin conexión conservando la lista viene de FR11.4 y de la matriz de estados; US8.1 no tiene una AC de red y la pantalla no usa la red para derivar"
+    },
+    {
+      "id": "BR24.2",
+      "status": "N/A",
+      "target": "los tres textos literales, el tiempo relativo y el chevron vienen de `interaction-spec.md` § ActivityRow; AC8.1.1 observa los tres tipos de evento, no la redacción de cada fila"
+    },
+    {
+      "id": "BR24.3",
+      "status": "N/A",
+      "target": "la instancia única y la separación contenedor/vista son restricciones de composición (C8, TS-18); ninguna AC observable las enumera"
+    },
+    {
+      "id": "BR24.4",
+      "status": "N/A",
+      "target": "que `ActivityRow` y `DayHeader` se publiquen en C1 1.5.0 sin reimplementarse es una restricción de contrato, no un criterio de aceptación de US8.1"
     }
   ]
 }

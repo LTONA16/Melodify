@@ -1,0 +1,158 @@
+{
+  "stage": "nfr-design",
+  "unit": "u5-activity",
+  "upstream_ids": [
+    "NFR8.16",
+    "NFR8.15",
+    "NFR2.12",
+    "NFR1.15",
+    "NFR2.13",
+    "NFR1.16",
+    "NFR8.14",
+    "NFR8.17",
+    "NFR8.18",
+    "NFR2.14",
+    "NFR1.17",
+    "NFR1.18",
+    "NFR3.21",
+    "NFR3.18",
+    "NFR3.22",
+    "NFR3.23",
+    "NFR4.11",
+    "NFR4.9",
+    "NFR9.8",
+    "NFR4.6",
+    "NFR9.6",
+    "NFR9.7",
+    "NFR5.12",
+    "NFR6.10",
+    "NFR7.8"
+  ],
+  "coverage": [
+    {
+      "id": "NFR8.16",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.16 — secuencia del primer fotograma paso a paso, composición del esqueleto (2 encabezados y 6 filas) y la lista de mecanismos que no existen (temporizador, debounce, tiempo límite)"
+    },
+    {
+      "id": "NFR8.15",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.16 y § Presupuesto en una línea — el resto del recorrido se sigue juzgando con NFR8 sin mediana ni percentil; U5 no abre ninguna cifra nueva"
+    },
+    {
+      "id": "NFR2.12",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.14 — los cuatro estados con su texto y su acción; el aviso de sin conexión como banner y no como quinto estado"
+    },
+    {
+      "id": "NFR1.15",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.18 — la Actividad se abre y se recorre sin red, sin Spotify y con la siembra; el arranque no depende de ninguna de las tres"
+    },
+    {
+      "id": "NFR2.13",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.13 — tabla de las seis acciones del recorrido, todas a un toque desde la pantalla, con la fila entera como objetivo táctil"
+    },
+    {
+      "id": "NFR1.16",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.16 — máquina de cuatro estados con salida declarada, `error → error` incluido, identidad que se rehace al cambiar de cuenta y `signedOut` como `empty`"
+    },
+    {
+      "id": "NFR8.14",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.16 y § NFR8.17 — la Actividad no hereda el presupuesto de portadas ni el de resolución de obras: no pide ninguna y no tiene red"
+    },
+    {
+      "id": "NFR8.17",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.17 — las cuatro lecturas de la siembra contadas, derivación en una pasada y suscripción perezosa con baja del último observador"
+    },
+    {
+      "id": "NFR8.18",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.18 — `SectionList` con `keyExtractor` por `eventId`, encabezado pegajoso, pestaña que no se desmonta y ausencia de `onRefresh` y de sondeo"
+    },
+    {
+      "id": "NFR2.14",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.14 — tabla de estado, texto, acción y lo que no se usa para distinguirlo; ningún estado se lee solo por color o icono"
+    },
+    {
+      "id": "NFR1.17",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.17 — tabla de los seis orígenes de fallo y su contención en `error`, sin lista parcial y con la contención dentro del contrato"
+    },
+    {
+      "id": "NFR1.18",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.18 — tabla de escenarios (sin red, sin Spotify, con siembra, sin contenido, sin sesión) y qué no cambia en cada uno"
+    },
+    {
+      "id": "NFR3.21",
+      "status": "OK",
+      "target": "security-design.md § NFR3.21 — lista blanca de operaciones con su uso, cuatro compuertas (tipos, linter, prueba, revisión) y lo que la unidad no puede hacer ni queriendo"
+    },
+    {
+      "id": "NFR3.18",
+      "status": "OK",
+      "target": "security-design.md § Lo heredado sigue valiendo — U5 no nombra el almacén ni el token y no añade un tercer adaptador de `expo-secure-store`"
+    },
+    {
+      "id": "NFR3.22",
+      "status": "OK",
+      "target": "security-design.md § NFR3.22 — tabla campo por campo de lo que viaja, llega a C1 y se pinta; `actorHandle` copiado y no pintado; texto como texto; sin `Linking`, `WebView` ni portapapeles"
+    },
+    {
+      "id": "NFR3.23",
+      "status": "OK",
+      "target": "security-design.md § NFR3.23 — tabla de situación, estado, mensaje y registro; la lista parcial como fallo de veracidad y el reintento que no amplía nada"
+    },
+    {
+      "id": "NFR4.11",
+      "status": "OK",
+      "target": "security-design.md § NFR4.11 — inventario de lo que se pinta y de quién es, tabla de persistencia sin filas nuevas y la propiedad de privacidad de derivar en lugar de almacenar"
+    },
+    {
+      "id": "NFR4.9",
+      "status": "OK",
+      "target": "security-design.md § Lo heredado sigue valiendo — U5 no añade ninguna fila al inventario de lo que cruza la frontera porque no envía nada"
+    },
+    {
+      "id": "NFR9.8",
+      "status": "OK",
+      "target": "security-design.md § NFR9.8 — la unión de `AppLogCode` con `ACTIVITY_LOAD_FAILED`, quién lo emite, el mensaje fijo y por qué esta unidad no recibe puerto de diagnóstico"
+    },
+    {
+      "id": "NFR4.6",
+      "status": "OK",
+      "target": "security-design.md § NFR9.8 y § Lo heredado sigue valiendo — el registro lleva un código y una frase fija, sin contenido ni identidades"
+    },
+    {
+      "id": "NFR9.6",
+      "status": "OK",
+      "target": "security-design.md § Lo heredado sigue valiendo — el catálogo de eventos de U2 y U3 se conserva; U5 solo añade un código"
+    },
+    {
+      "id": "NFR9.7",
+      "status": "OK",
+      "target": "security-design.md § NFR9.8 — los seis códigos de Spotify y su puerto quedan intactos y el logger sigue siendo asignable a `SpotifyLogPort`"
+    },
+    {
+      "id": "NFR5.12",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — entrada propia `./packages/activity/src/**` con umbral de 80 % de líneas, no agregada a `app/src`"
+    },
+    {
+      "id": "NFR6.10",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad y seguridad-design § NFR3.22 — `ActivityRow` de 56 con la fila entera tocable, `DayHeader` con tokens, icono decorativo y estados dichos con palabras"
+    },
+    {
+      "id": "NFR7.8",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad — ninguna dependencia nueva; `SectionList` del núcleo de React Native y el paquete sin módulos nativos"
+    }
+  ]
+}
