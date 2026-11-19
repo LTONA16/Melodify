@@ -15,7 +15,7 @@ El mockup fija tres rótulos —«Hoy», «Ayer», «6 nov 2026»— y `DayHeade
 - C. **Ventanas móviles de 24 horas**: «Hoy» son las últimas 24 h y «Ayer» las 24 anteriores, sin fecha en ningún caso. Evita la zona horaria, pero «Ayer» deja de significar el día de ayer y la lista se reordena sola con el paso del tiempo.
 - X. Other (please specify)
 
-[Answer]:
+[Answer]: A
 
 ## Q2. [Producto] ¿Qué dice el texto de cada fila: «A alguien» o el nombre de quien interactuó?
 
@@ -26,7 +26,7 @@ El mockup fija tres rótulos —«Hoy», «Ayer», «6 nov 2026»— y `DayHeade
 - C. **Nombre cuando hay uno y «Alguien» cuando no**: mezcla las dos anteriores y obliga a decidir el caso de varios comentarios del mismo autor en la misma opinión.
 - X. Other (please specify)
 
-[Answer]:
+[Answer]: A
 
 ## Q3. [Producto] ¿Qué hace la acción del estado vacío?
 
@@ -37,7 +37,7 @@ El mockup fija tres rótulos —«Hoy», «Ayer», «6 nov 2026»— y `DayHeade
 - C. **No hace nada y es solo texto**: cumple la letra de AC8.1.5 sin construir una acción, a costa de una pantalla sin salida.
 - X. Other (please specify)
 
-[Answer]:
+[Answer]: A
 
 ## Q4. [Producto] ¿Actividad avisa cuando no hay conexión?
 
@@ -48,7 +48,7 @@ La matriz de estados del mockup incluye una fila «Sin conexión | Se conserva l
 - C. **Sí, pero solo si la lista está vacía**: avisa justo cuando el silencio puede confundirse con un fallo; en cambio, deja sin aviso la lista ya cargada, que es el caso que el mockup describe.
 - X. Other (please specify)
 
-[Answer]:
+[Answer]: A
 
 ## Q5. [Producto] ¿Cómo son los esqueletos de carga?
 
@@ -59,7 +59,7 @@ La matriz de estados del mockup incluye una fila «Sin conexión | Se conserva l
 - C. **Solo filas, sin encabezado**: ahorra el rótulo de día, a costa de contradecir el mockup y de que la lista cambie de forma al cargar.
 - X. Other (please specify)
 
-[Answer]:
+[Answer]: A
 
 ## Q6. [Producto] ¿Qué hace «Reintentar» cuando la derivación falla?
 
@@ -70,7 +70,7 @@ ADR-012 deja el error como ruta real: si la derivación no puede completarse o l
 - C. **Deshabilita el botón sin cambiar de estado hasta el final**: parecido a B con un indicador en el propio botón, y añade un estado visual que ninguna otra pantalla tiene.
 - X. Other (please specify)
 
-[Answer]:
+[Answer]: A
 
 ## Q7. [Producto] ¿Cómo se ordenan los eventos del mismo día?
 
@@ -81,4 +81,4 @@ El orden es «de más reciente a más antiguo» (FR8.1, `then` de AC8.1.1). La s
 - C. **Más reciente primero y, a igual instante, publicaciones antes que reacciones**: agrupa por tipo dentro del segundo, lo que da una lista que no es estrictamente cronológica.
 - X. Other (please specify)
 
-[Answer]:
+[Answer]: A
