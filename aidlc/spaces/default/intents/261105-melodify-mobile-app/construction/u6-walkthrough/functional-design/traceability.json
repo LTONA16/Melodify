@@ -1,0 +1,103 @@
+{
+  "stage": "functional-design",
+  "unit": "u6-walkthrough",
+  "upstream_ids": [
+    "AC11.1.1",
+    "AC11.1.2",
+    "AC11.1.3",
+    "AC11.1.4",
+    "AC11.1.5",
+    "AC11.2.1",
+    "AC11.2.2",
+    "AC11.2.3"
+  ],
+  "coverage": [
+    {
+      "id": "AC11.1.1",
+      "status": "OK",
+      "target": "BR25.2, BR25.3, BR26.1 — el recorrido se ejecuta en Expo Go sobre el teléfono Android físico, arranca limpio en Login por pasada y recorre las seis pantallas más las vistas de paso —detalle de opinión, hoja de comentarios y detalle de obra— sin cierres ni pantallas en blanco"
+    },
+    {
+      "id": "AC11.1.2",
+      "status": "OK",
+      "target": "BR26.2 — la opinión publicada desde el catálogo de ejemplo se comprueba en la misma sesión en Inicio (paso W09), Actividad (W10) y Perfil (W11)"
+    },
+    {
+      "id": "AC11.1.3",
+      "status": "OK",
+      "target": "BR26.3 — se repasa cada pantalla y cada estado provocado y se anota cualquier texto en inglés o técnico como defecto"
+    },
+    {
+      "id": "AC11.1.4",
+      "status": "OK",
+      "target": "BR26.4 — el aviso de sin conexión de R1 con su «Reintentar» probado (W12–W12b), el mismo aviso sin acción en Crear (W12c) y el error de contenido con «Reintentar» en R2 (S07); si R2 se condiciona, ese segundo camino se anota como cubierto por ADR-012 y FR11.6"
+    },
+    {
+      "id": "AC11.1.5",
+      "status": "OK",
+      "target": "BR26.5 — P1 y P2 recorren las seis pantallas en claro y en oscuro, con contraste ≥ 4.5:1 / 3:1 y áreas táctiles ≥ 44×44, y dejan captura de cada pantalla en cada tema"
+    },
+    {
+      "id": "AC11.2.1",
+      "status": "OK",
+      "target": "BR25.4, BR26.6 — la pasada con sesión exige el prerrequisito de Spotify, ejecuta S01 aunque falle y comprueba conexión PKCE, búsqueda real y persistencia al reabrir"
+    },
+    {
+      "id": "AC11.2.2",
+      "status": "OK",
+      "target": "BR26.6 — publicar sobre una obra real y ver su portada real en Inicio, Actividad y Perfil (S03–S05)"
+    },
+    {
+      "id": "AC11.2.3",
+      "status": "OK",
+      "target": "BR26.7, BR28.2 — si falta el prerrequisito, S01 se ejecuta igualmente y se registra el estado literal de la tarjeta con su «Reintentar», R2 queda condicionada con el redirect y el motivo, R1 cierra la unidad y el pendiente queda registrado"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR25.1",
+      "status": "N/A",
+      "target": "el límite de alcance de la unidad (verificar y corregir sin añadir funciones) no lo observa ninguna AC de US11.1/US11.2; viene de unit-of-work.md § U6 y de Q4"
+    },
+    {
+      "id": "BR27.1",
+      "status": "N/A",
+      "target": "la forma del registro y las capturas son una obligación de entrega de la práctica del equipo, no un criterio observable por quien usa la app"
+    },
+    {
+      "id": "BR27.2",
+      "status": "N/A",
+      "target": "la clasificación defecto/pendiente organiza el trabajo de la unidad; ninguna AC observa cómo se clasifica un hallazgo"
+    },
+    {
+      "id": "BR27.3",
+      "status": "N/A",
+      "target": "el bucle de corrección y repetición del tramo es procedimiento de la unidad, no comportamiento de la app"
+    },
+    {
+      "id": "BR27.4",
+      "status": "N/A",
+      "target": "el límite de los arreglos (sin contratos nuevos, pantallas, tokens ni módulos nativos) protege los contratos C1–C8 y CT-05; ninguna AC lo enumera"
+    },
+    {
+      "id": "BR27.5",
+      "status": "N/A",
+      "target": "que ninguna pasada cierre con pasos sin resultado es una regla de completitud del registro, no una AC"
+    },
+    {
+      "id": "BR28.1",
+      "status": "N/A",
+      "target": "el cierre con CI verde y el suelo de cobertura intacto viene de la práctica del equipo (FR12.1, NFR1) y se comprueba en Build and Test, no con una AC de recorrido"
+    },
+    {
+      "id": "BR28.3",
+      "status": "N/A",
+      "target": "registrar los pendientes con su dependencia y no presentarlos como entrega es una obligación de honestidad del cierre; AC11.2.3 solo observa la constancia de la mitad no demostrada"
+    },
+    {
+      "id": "BR28.4",
+      "status": "N/A",
+      "target": "el PR a develop con Conventional Commits es la forma de entrega del equipo y no un criterio de usuario"
+    }
+  ]
+}
