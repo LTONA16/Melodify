@@ -51,7 +51,7 @@ Ninguna fila introduce un umbral nuevo. Si una espera **no termina** —un esque
 | P3 (R2, claro) | 8 (S01–S08) | 6 |
 | P4 (R2, oscuro) | 8 | 6 |
 | **Total con R2 ejecutada** | **52** | **24** (12 de R1 + 12 de R2) |
-| **Total con R2 condicionada** | 36 filas escritas (P3/P4 conservan S01 y S02–S08 como N/A) | **13** (12 de R1 + 1 de la tarjeta en S01) |
+| **Total con R2 condicionada** | **52 filas escritas** (36 de R1 + 16 de P3/P4: S01 observada y S02–S08 registradas como N/A con motivo) | **13** (12 de R1 + 1 de la tarjeta en S01) |
 
 Este recuento **cierra el desvío detectado en la revisión de NFR Requirements (R-02)**: el número de capturas de R2 es doce cuando R2 se ejecuta —seis en P3 y seis en P4— y no una; la captura única de la tarjeta sustituye a esas doce solo en el desenlace condicionado, como dice el functional-spec § El registro de la pasada. La revisión de la evidencia se hace contra **24** en el camino normal y contra **13** en el condicionado, nunca contra doce o trece en abstracto.
 
@@ -171,7 +171,7 @@ Cuatro invariantes, y ninguna admite excepción:
 | Preparar una pasada | Arranque limpio: recarga + sesión cerrada, siete precondiciones o bloqueo escrito | Cabecera de ocho datos + W13 |
 | P1 y P2 (R1) | 18 filas por pasada y 12 capturas entre las dos | Registros `walkthrough-p1.md` y `walkthrough-p2.md` |
 | P3 y P4 (R2) | 8 filas por pasada y 12 capturas si se ejecutan; 1 captura y S01 observada si se condicionan | Registros `walkthrough-p3.md` y `walkthrough-p4.md` |
-| Coste total | 52 filas y 24 capturas; 36 filas escritas y 13 capturas con R2 condicionada | Recuento de las cuatro tablas |
+| Coste total | 52 filas y 24 capturas; con R2 condicionada, 52 filas escritas (36 de R1 + 16 de P3/P4 con S02–S08 en N/A motivadas) y 13 capturas | Recuento de las cuatro tablas |
 | Repetir una pasada | Los ocho datos de cabecera bastan para volver al mismo estado | Relectura del registro por otra persona |
 | Medir el rendimiento | **No se mide**: se juzga que cada estado llega y que ninguna pantalla queda en carga | Filas ✅/❌ y tabla de defectos |
 | Medir contraste | Solo si hay duda: `contrastRatio` sobre los tokens del tema activo, valor y commit en la nota | Comando de § NFR6.11 + `contrast.test.ts` |
