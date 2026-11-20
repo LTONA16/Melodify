@@ -108,12 +108,12 @@ function deriveActivity(content, viewerId) {
     if (opinion.likeCount > 0) events.push(...likeEvents(content, opinion, viewerId));
     if (opinion.commentCount > 0) events.push(...commentEvents(content, opinion, viewerId));
   }
-  return ok(events.sort(byRecencyThenClassThenId));        // una sola ordenación
+  return ok(events.sort(byRecencyThenEventId));            // una sola ordenación
 }
 ```
 
-- **Una pasada por las opiniones propias**, una lectura por lista con contador y **una sola ordenación** al final. Nada de ordenar dentro del bucle ni de buscar en un array por cada evento: el comparador es total (fecha descendente, clase, `eventId`) y el resultado no depende del orden de inserción de ningún `Map` (BR22.1).
-- **La agrupación es una segunda pasada, no una tercera**: `toActivityView` recorre los eventos ya ordenados y abre un grupo cuando cambia el día UTC. Como la entrada está ordenada de más reciente a más antiguo, los grupos salen ordenados sin volver a ordenarlos (BR22.2).
+- **Una pasada por las opiniones propias**, una lectura por lista con contador y **una sola ordenación** al final. Nada de ordenar dentro del bucle ni de buscar en un array por cada evento: el comparador es total (fecha descendente y, a igual instante, `eventId` ascendente) y el resultado no depende del orden de inserción de ningún `Map` (BR22.1).
+- **La agrupación es una segunda pasada, no una tercera**: `toActivityView` recorre los eventos ya ordenados y abre un grupo cuando cambia el día natural del dispositivo en la zona indicada. Como la entrada está ordenada de más reciente a más antiguo, los grupos salen ordenados sin volver a ordenarlos (BR22.2).
 - **`viewerId` filtra dos veces y por razones distintas**: las opiniones propias se filtran por autor —`listOpinions({ viewerId })` puede devolver más de lo que el nombre sugiere— y los me gusta y comentarios se filtran para descartar los de la propia cuenta (BR21.3, BR21.4). La segunda es la que evita que la persona se notifique a sí misma.
 
 ### El arranque no paga nada: suscripción perezosa
@@ -244,7 +244,7 @@ flowchart LR
 |---|---|---|
 | Sin red | La lista completa y el banner «Sin conexión. Estás viendo lo último que cargamos.» con «Reintentar» | El estado sigue `ready`; las filas siguen tocables (BR23.4) |
 | Sin sesión de Spotify | La lista completa y ninguna señal de Spotify | La Actividad no toca Spotify (BR21.6) |
-| Con la siembra | Ocho eventos repartidos por día UTC: los de hace horas en «Hoy», el de hace 1 día en «Ayer» y los de hace 3 y 4 días con su fecha | U5 no escribe semilla (BR21.5) |
+| Con la siembra | Ocho eventos repartidos por día natural del dispositivo: los de hace horas en «Hoy», el de hace 1 día en «Ayer» y los de hace 3 y 4 días con su fecha | U5 no escribe semilla (BR21.5) |
 | Sin contenido | «Todavía no hay actividad.» + «Crear opinión» | Es un estado propio, no un error (BR23.2) |
 | Sin sesión de la app | `empty` | No es un fallo (NFR1.16) |
 

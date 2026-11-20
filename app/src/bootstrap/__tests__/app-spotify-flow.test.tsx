@@ -144,7 +144,11 @@ describe("arranque con Spotify conectado", () => {
 
     const subscriptionsAtStart = ports.__listenerCount();
     expect(subscriptionsAtStart).toBeGreaterThan(0);
-    expect(screen.getByTestId("spotify-chip")).toHaveAccessibleName("Conectar");
+    // El chip aparece con la primera emisión del puerto; "Para ti" solo prueba
+    // que la pestaña montó, no que la hidratación de Spotify ya llegó.
+    expect(await screen.findByTestId("spotify-chip")).toHaveAccessibleName(
+      "Conectar",
+    );
 
     fireEvent.press(screen.getByTestId("spotify-chip"));
 
@@ -160,6 +164,8 @@ describe("arranque con Spotify conectado", () => {
     expect(ports.__listenerCount()).toBe(subscriptionsAtStart);
 
     fireEvent.press(screen.getByTestId("tab-inicio"));
-    expect(screen.getByTestId("spotify-chip")).toHaveAccessibleName("Conectar");
+    expect(await screen.findByTestId("spotify-chip")).toHaveAccessibleName(
+      "Conectar",
+    );
   });
 });

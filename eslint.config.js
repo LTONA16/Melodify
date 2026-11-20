@@ -182,6 +182,71 @@ module.exports = [
     },
   },
   {
+    // C8 solo deriva desde C4 y la identidad de C3. C3 y C4 llegan como tipos y sus
+    // implementaciones se inyectan por constructor; React, C1, C5, C7 y la app
+    // convertirían un reductor en una pieza de interfaz (TS-39…TS-43, BR21.6).
+    files: ["packages/activity/src/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react",
+              message:
+                "ActivityFeed es una fuente sin React: la pantalla se suscribe a ella (TS-39).",
+              allowTypeImports: false,
+            },
+            {
+              name: "react-native",
+              message:
+                "ActivityFeed no pinta: la vista de C1 es quien usa React Native (TS-39).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/design-system",
+              message:
+                "C8 no importa C1: el mapper vive en la app (BR24.4).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/catalog",
+              message:
+                "La actividad lee el título de C4, no el catálogo (BR21.6).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/spotify",
+              message:
+                "La actividad no toca Spotify ni en tiempo de ejecución (BR21.6).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/app-session",
+              message:
+                "C8 recibe C3 por constructor; solo puede nombrar sus tipos.",
+              allowTypeImports: true,
+            },
+            {
+              name: "@melodify/content-store",
+              message:
+                "C8 recibe C4 por constructor; solo puede nombrar sus tipos.",
+              allowTypeImports: true,
+            },
+          ],
+          patterns: [
+            {
+              group: ["@melodify/app", "**/app/**"],
+              message:
+                "Un paquete no importa la app: las dependencias van de la app a los paquetes.",
+              allowTypeImports: false,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // Las pruebas doblan los módulos nativos y por eso los importan para burlarse de
     // ellos: la prohibición es de código de producción, no de los dobles.
     files: ["**/__tests__/**"],

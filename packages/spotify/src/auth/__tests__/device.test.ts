@@ -51,8 +51,10 @@ function sourceFiles(directory: string): string[] {
 describe("adaptador de dispositivo", () => {
   it("es el único módulo de producción que importa Expo", () => {
     const root = join(__dirname, "..", "..");
+    // En Windows `join` produce barras invertidas: normalizar antes de comparar
+    // evita que el propio adaptador se cuente como infractor (NFR3.11).
     const offenders = sourceFiles(root)
-      .filter((path) => !path.endsWith("auth/device.ts"))
+      .filter((path) => !path.replace(/\\/g, "/").endsWith("auth/device.ts"))
       .filter((path) => /from\s+"expo-/.test(readFileSync(path, "utf8")));
 
     expect(offenders).toEqual([]);

@@ -16,6 +16,7 @@ export type AppLogCode =
   | SessionLogCode
   | "CONTENT_SUBSCRIBE_FAILED"
   | "CONTENT_READ_FAILED"
+  | "ACTIVITY_LOAD_FAILED"
   | "NETWORK_STATE_UNAVAILABLE"
   // El único código que añade U3 (NFR9.6): la búsqueda de Crear declara un defecto
   // del puerto, nunca un `offline` previsto y nunca el texto de la consulta.

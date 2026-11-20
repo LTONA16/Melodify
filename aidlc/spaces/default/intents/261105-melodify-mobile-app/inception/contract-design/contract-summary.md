@@ -1108,7 +1108,7 @@ x-token-lifecycle:
 
 ```yaml
 openapi: 3.1.0
-info: { title: ActivityFeed, version: 1.0.0, x-owner: U5, x-transport: in-process }
+info: { title: ActivityFeed, version: 1.1.0, x-owner: U5, x-transport: in-process }
 paths:
   /activity:
     get:
@@ -1126,6 +1126,17 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ActivityView' }
+  /activity/changes:
+    get:
+      operationId: subscribeActivity
+      description: Emite la `ActivityView` vigente nada más suscribirse y la vista completa tras cada recálculo.
+      responses:
+        '200':
+          description: la respuesta es la baja; al llamarla se da de baja a quien se suscribió
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActivityView' }
+      x-unsubscribe: "() => void — se devuelve al suscribirse; la emisión inicial ocurre en el acto, sin esperar un cambio"
 components:
   schemas:
     ActivityView:
@@ -1161,7 +1172,7 @@ x-inputs:
     ambos recorridos para las opiniones del autor actual. `OpinionView.likeCount` y `commentCount`
     solo sirven para saber si hay algo que leer y para no repetir la lectura.
   session: C3 — el autor actual, que actúa como `viewerId` al leer C4.
-  recalculation: se suscribe a `/changes` de C4 y vuelve a derivar los eventos tras cada escritura (AC8.1.3); sin suscripción no hay estado `ready` posterior a un cambio.
+  recalculation: se suscribe a `/changes` de C4 y vuelve a derivar los eventos tras cada escritura (AC8.1.3); sin suscripción no hay estado `ready` posterior a un cambio. La vista resultante se publica por `/activity/changes` (`subscribeActivity`), que emite nada más suscribirse y devuelve la baja.
   work_title: el título viaja en `OpinionView.workTitle`, así que U5 lo copia al evento sin pedir nada más a C5.
   rule: '@melodify/activity importa solo los tipos de C4 y C3 con import type; las implementaciones llegan por constructor, como en C5.'
 ```

@@ -1,4 +1,11 @@
 /**
+ * BR22.2 agrupa por el calendario local del dispositivo. Fijar la zona antes de
+ * cargar cualquier módulo hace que «Hoy», «Ayer» y las etiquetas sean
+ * deterministas en cualquier runner, sin depender de la zona de la máquina de CI.
+ */
+process.env.TZ = "Europe/Madrid";
+
+/**
  * Arnés común de las pruebas: los matchers de Testing Library y los dobles de los
  * módulos nativos que ninguna prueba debe tocar de verdad (TS-10). Cada prueba que
  * necesite otro comportamiento ajusta estos mismos dobles.

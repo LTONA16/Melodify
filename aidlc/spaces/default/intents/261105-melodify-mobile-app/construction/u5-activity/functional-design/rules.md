@@ -134,46 +134,49 @@ rules:
 
   - id: BR22.1
     statement: >
-      Los eventos se ordenan de más reciente a más antiguo con un desempate estable:
-      publicación antes que me gusta antes que comentario, y a igualdad de todo,
-      identificador ascendente.
+      Los eventos se ordenan de más reciente a más antiguo y, a igual instante, por
+      `eventId` ascendente; la clase del evento no desempata.
     category: calculation
     applies_to: "ActivityFeed (C8)"
     trigger: "Se deriva la actividad."
     logic: >
       El criterio primario es `createdAt` descendente. A igual `createdAt` —la siembra usa
       desfases distintos, pero dos escrituras pueden caer en el mismo instante— se ordena
-      por clase con la prioridad `ownOpinion` (0), `likeReceived` (1),
-      `commentReceived` (2). Si aún empatan, `eventId` ascendente por comparación de
-      cadenas. El resultado es determinista: la misma semilla y el mismo reloj pintan
-      siempre la misma lista, y una prueba puede afirmar el orden exacto.
+      por `eventId` ascendente con comparación de cadenas: `comment:cm-001` va antes que
+      `own:op-004`, porque la lista es estrictamente cronológica y la clase no decide.
+      El resultado es determinista: la misma semilla y el mismo reloj pintan siempre la
+      misma lista, y una prueba puede afirmar el orden exacto.
     violation: >
-      Un orden que dependa del orden de inserción de un `Map` o de la lectura de las
-      opiniones hace que la lista cambie entre ejecuciones y que dos eventos del mismo
-      minuto aparezcan y desaparezcan de sitio al republicar.
+      Desempatar por clase —publicaciones antes que reacciones— contradice la decisión
+      aprobada y produce una lista que no es estrictamente cronológica. Un orden que
+      dependa del orden de inserción de un `Map` o de la lectura de las opiniones hace que
+      la lista cambie entre ejecuciones y que dos eventos del mismo minuto aparezcan y
+      desaparezcan de sitio al republicar.
     source: "FR8.1, AC8.1.1, components.md § ActivityFeed (orden cronológico)"
 
   - id: BR22.2
     statement: >
-      Los eventos se agrupan por día de calendario en UTC con la etiqueta «Hoy», «Ayer» o
-      la fecha del día («4 nov 2026»), y cada grupo conserva el orden de BR22.1.
+      Los eventos se agrupan por día natural del dispositivo —la fecha del calendario
+      local, no la UTC del `createdAt`— con la etiqueta «Hoy», «Ayer» o la fecha del día
+      («6 nov 2026»), y cada grupo conserva el orden de BR22.1.
     category: calculation
     applies_to: "ActivityFeed (C8) y DayHeader (C1)"
     trigger: "Se deriva la actividad y hay eventos."
     logic: >
-      La clave del grupo es el día UTC de `createdAt` (`getUTCFullYear`,
-      `getUTCMonth`, `getUTCDate`), el mismo criterio con el que
-      `formatCalendarDate` de C1 pinta una fecha; así la etiqueta de un grupo y la fecha
-      que se escribiría para cualquiera de sus filas nunca discrepan. El grupo del día
-      actual lleva `day: 'today'` y la etiqueta «Hoy»; el del día anterior,
-      `day: 'yesterday'` y «Ayer»; cualquier otro, `day: 'date'` y
-      `formatCalendarDate(createdAt)`. Los grupos se emiten del más reciente al más
-      antiguo y no se parten en columnas.
+      La clave del grupo y el juicio de «Hoy» y «Ayer» salen de la fecha local del
+      dispositivo: `createdAt` se lee en la zona horaria del teléfono (`getFullYear`,
+      `getMonth` y `getDate` sobre el instante) y se compara con el día local de `now` y
+      con el del día local anterior, no con sus días UTC. El grupo del día local actual
+      lleva `day: 'today'` y la etiqueta «Hoy»; el del día local anterior,
+      `day: 'yesterday'` y «Ayer»; cualquier otro, `day: 'date'` y el día y el mes con el
+      año en español, «6 nov 2026». Los grupos se emiten del más reciente al más antiguo
+      y no se parten en columnas.
     violation: >
-      Agrupar en hora local mientras la fecha se escribe en UTC produce grupos cuya
-      etiqueta dice un día que no es el de sus filas; agrupar por «hace 24 h» mete en el
-      mismo grupo dos días de calendario distintos.
-    source: "FR8.1, AC8.1.1, mockups.md § Pantalla 5 (encabezado de día), C1 § formatCalendarDate"
+      Cortar por día UTC contradice la decisión aprobada: un evento de las 23:30 en
+      España aparece como del día siguiente, aunque en el calendario del teléfono sea
+      hoy. Agrupar por «hace 24 h» mete en el mismo grupo dos días de calendario
+      distintos.
+    source: "FR8.1, AC8.1.1, mockups.md § Pantalla 5 (encabezado de día)"
 
   - id: BR22.3
     statement: >
@@ -309,7 +312,9 @@ rules:
       `subscribeActivity`, así que la pantalla repinta con los `eventId` de BR22.3 y
       conserva la posición. Publicar desde Crear y volver a Actividad muestra el evento
       nuevo sin reiniciar la app; también aparecen los me gusta y comentarios que se
-      escriban mientras la pantalla está montada.
+      escriban mientras la pantalla está montada. Si esa derivación falla, el estado pasa
+      a `error` (BR23.3) aunque hubiera una lista o un vacío vigentes, y `retryActivity()`
+      lo intenta otra vez.
     violation: >
       Derivar solo al montar deja la pantalla con la foto del momento en que se abrió y
       obliga a cambiar de pestaña para ver lo que la persona acaba de publicar, que es
@@ -415,8 +420,8 @@ rules:
 | **BR21.4** | calculation | Un comentario recibido por comentario ajeno, con su autor y su fecha. | FR8.1, C4 § comments |
 | **BR21.5** | constraint | La siembra no se toca: 3/2/3 salen de C4. | AC8.1.2, FR8.2 |
 | **BR21.6** | constraint | Solo lectura: no escribe, no guarda eventos, no pide red. | C8, NFR3.11 |
-| **BR22.1** | calculation | Orden descendente con desempate por clase y por identificador. | FR8.1 |
-| **BR22.2** | calculation | Grupos por día UTC: Hoy, Ayer, fecha. | FR8.1, mockups |
+| **BR22.1** | calculation | Orden descendente con desempate por `eventId` ascendente. | FR8.1 |
+| **BR22.2** | calculation | Grupos por día natural del teléfono, en hora local: Hoy, Ayer, fecha. | FR8.1, mockups |
 | **BR22.3** | constraint | `eventId` estable y único como clave de la lista. | AC8.1.3 |
 | **BR22.4** | policy | Encabezado pegajoso por grupo. | mockups, interaction-spec |
 | **BR23.1** | policy | Carga con dos grupos de esqueleto; nunca pantalla en blanco. | AC8.1.7, FR8.4 |

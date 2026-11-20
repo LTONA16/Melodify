@@ -133,7 +133,7 @@ compuerta es, por tanto, fácil de cumplir y fácil de romper por un detalle.
 | `src/index.ts` | La barra solo re-exporta; se cubre **al importar el paquete por su nombre** | Si cada prueba importa `../derive` por ruta relativa, la barra queda a **0 %** y el árbol no llega al 80 % por mucho que el resto esté cubierto |
 | `src/activity.ts` | Fábrica, suscripción perezosa, alta y baja de observadores, identidad | La rama de «último observador se va» necesita una prueba con **dos** suscriptores |
 | `src/derive.ts` | Una opinión, me gusta, comentarios, contadores a cero, `ok: false` en cada lectura | La rama `likeCount === 0` y la de un me gusta propio (`authorId === viewerId`) son las que se olvidan |
-| `src/grouping.ts` | Agrupación por día UTC, un solo grupo, `empty` | Un día UTC distinto del local es justo el caso que hay que fijar con una fecha artificial |
+| `src/grouping.ts` | Agrupación por día natural del dispositivo, desempate por `eventId` ascendente, un solo grupo, `empty` | Un evento cerca de la medianoche local es justo el caso que hay que fijar con reloj y zona artificiales |
 
 **La regla práctica que se deriva de la primera fila**: las pruebas del paquete importan
 `@melodify/activity`, nunca una ruta relativa a `src/`. Es la misma razón por la que el
@@ -288,9 +288,9 @@ prueba de que la tubería sigue siendo de validación y no de despliegue.
 - **Pregunta abierta heredada del diseño de NFR (R-07 de U4)**: la ventana neutra del arranque no tiene
   sitio todavía en la superficie de C2 y C7. No afecta a la tubería —ningún paso la mira—, pero sí a lo
   que se captura para el PR: durante esa ventana no hay chip, ni tarjeta, ni buscador que fotografiar.
-- **Pregunta abierta heredada del diseño de NFR de U5**: la agrupación por día UTC debe coincidir con
-  `formatCalendarDate` de C1. Las pruebas fijan la fecha con un instante artificial; si producto pidiera
-  días locales, cambiarían C1 y C8 en el mismo PR.
+- `[assumption]` La agrupación usa el día natural del teléfono en hora local, no el día que calcula
+  `formatCalendarDate` de C1: C8 no importa C1 (TS-42) y el cambio no arrastra dos paquetes. Las pruebas
+  fijan reloj y zona con un instante artificial cerca de la medianoche local.
 - **Sigue abierta la pregunta de U2 sobre el paso «Detectar directorio del proyecto»**: sus dos ramas
   no se cumplen —`app/package-lock.json` no existe y `Ratetify/package.json` es de otro proyecto—, así
   que resuelve siempre `.`. Simplificarlo es un cambio de una línea, pero es ajeno a esta unidad.

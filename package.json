@@ -6,6 +6,14 @@
     "app",
     "packages/*"
   ],
+  "overrides": {
+    "@melodify/app-shell": {
+      "@melodify/design-system": "1.5.0"
+    },
+    "@melodify/spotify": {
+      "@melodify/design-system": "1.5.0"
+    }
+  },
   "scripts": {
     "test": "jest --coverage",
     "typecheck": "tsc -b",

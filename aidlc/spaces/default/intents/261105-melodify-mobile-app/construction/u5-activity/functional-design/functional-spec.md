@@ -21,7 +21,7 @@ Esta unidad **no introduce entidades**: la vista `ActivityEventView` y sus grupo
 | **Evento** | Un hecho recibido que se puede contar en una fila: publicación propia, me gusta recibido o comentario recibido (BR21.1). |
 | **Evento recibido** | El que produjo otra persona sobre el contenido de la cuenta. El me gusta o el comentario que la cuenta da a otros **no** es un evento. |
 | **Derivación** | Calcular la lista entera a partir del contenido en el momento de leerla. No hay registro de eventos que mantener. |
-| **Grupo** | Los eventos de un mismo día de calendario, con su etiqueta («Hoy», «Ayer», «16 nov 2026»). |
+| **Grupo** | Los eventos de un mismo día del calendario del teléfono, en zona horaria local, con su etiqueta («Hoy», «Ayer», «16 nov 2026»). |
 | **Estado de la pantalla** | Los cuatro de C8: `loading`, `ready`, `empty`, `error`. El vacío es un estado propio —lo declara el contrato— y no una lista de cero filas. |
 
 ## De dónde sale la actividad
@@ -53,26 +53,26 @@ graph TD
 ## Orden y agrupación
 
 1. Se calculan los ocho eventos (o los que haya) con sus fechas.
-2. Se ordenan de más reciente a más antiguo; a igual instante, publicación antes que me gusta antes que comentario, y luego por `eventId` (BR22.1).
-3. Se agrupan por día de calendario **en UTC**, el mismo criterio que `formatCalendarDate` (BR22.2). El grupo del día actual se llama «Hoy»; el del día anterior, «Ayer»; el resto, con su fecha.
+2. Se ordenan de más reciente a más antiguo por `createdAt`; a igual instante, por `eventId` ascendente, sin mirar la clase del evento (BR22.1).
+3. Se agrupan por día natural del dispositivo: la fecha del calendario del teléfono en su zona horaria local, **no la UTC del `createdAt`** (BR22.2). El grupo del día local actual se llama «Hoy»; el del día local anterior, «Ayer»; el resto, con el día y el mes y el año en español, «6 nov 2026».
 4. Los grupos salen del más reciente al más antiguo y cada uno conserva el orden del paso 2.
 
 ### Ejemplo trabajado con la siembra
 
-Con el reloj fijado en `2026-11-19T12:00:00Z` —la siembra de U2 calcula sus edades desde el instante de construcción, así que el ejemplo es reproducible—, la siembra produce exactamente estos ocho eventos:
+Con el reloj fijado en `2026-11-19T12:00:00Z` y la zona horaria del teléfono en `Europe/Madrid` (UTC+1 en noviembre) —la siembra de U2 calcula sus edades desde el instante de construcción, así que el ejemplo es reproducible—, la siembra produce exactamente estos ocho eventos:
 
-| Grupo | Evento | Instante | Por qué ahí |
-|---|---|---|---|
-| **Hoy** | Comentario recibido en `op-004` («El puente es lo mejor.») | `2026-11-19T10:00Z` | 2 h antes |
-| **Hoy** | Me gusta recibido en `op-004` (`ana`) | `2026-11-19T09:00Z` | 3 h antes |
-| **Ayer** | Publicación de `op-004` | `2026-11-18T12:00Z` | 1 d antes; empata con el comentario y gana por ser publicación |
-| **Ayer** | Comentario recibido en `op-001` («Totalmente de acuerdo.») | `2026-11-18T12:00Z` | 1 d antes |
-| **17 nov 2026** | Me gusta recibido en `op-001` (`lucia`) | `2026-11-17T12:00Z` | 2 d antes |
-| **16 nov 2026** | Publicación de `op-001` | `2026-11-16T12:00Z` | 3 d antes; empata y gana por ser publicación |
-| **16 nov 2026** | Comentario recibido en `op-008` («Ese riff no envejece.») | `2026-11-16T12:00Z` | 3 d antes |
-| **15 nov 2026** | Publicación de `op-008` | `2026-11-15T12:00Z` | 4 d antes |
+| Grupo | Evento | `eventId` | Instante | Día local | Por qué ahí |
+|---|---|---|---|---|---|
+| **Hoy** | Comentario recibido en `op-004` («El puente es lo mejor.») | `comment:cm-002` | `2026-11-19T10:00Z` | 19 nov, 11:00 | 2 h antes |
+| **Hoy** | Me gusta recibido en `op-004` (`ana`) | `like:op-004:ana` | `2026-11-19T09:00Z` | 19 nov, 10:00 | 3 h antes |
+| **Ayer** | Comentario recibido en `op-001` («Totalmente de acuerdo.») | `comment:cm-001` | `2026-11-18T12:00Z` | 18 nov, 13:00 | 1 d antes; empata a igual instante y va antes por `eventId` ascendente (`comment:cm-001` < `own:op-004`) |
+| **Ayer** | Publicación de `op-004` | `own:op-004` | `2026-11-18T12:00Z` | 18 nov, 13:00 | 1 d antes; la clase no desempata |
+| **17 nov 2026** | Me gusta recibido en `op-001` (`lucia`) | `like:op-001:lucia` | `2026-11-17T12:00Z` | 17 nov, 13:00 | 2 d antes |
+| **16 nov 2026** | Comentario recibido en `op-008` («Ese riff no envejece.») | `comment:cm-003` | `2026-11-16T12:00Z` | 16 nov, 13:00 | 3 d antes; empata a igual instante y va antes por `eventId` ascendente (`comment:cm-003` < `own:op-001`) |
+| **16 nov 2026** | Publicación de `op-001` | `own:op-001` | `2026-11-16T12:00Z` | 16 nov, 13:00 | 3 d antes; la clase no desempata |
+| **15 nov 2026** | Publicación de `op-008` | `own:op-008` | `2026-11-15T12:00Z` | 15 nov, 13:00 | 4 d antes |
 
-Los dos me gusta de `bruno` y `marcos` sobre opiniones ajenas no aparecen (BR21.1). Las fechas con dos eventos en el mismo instante son el caso que el desempate de BR22.1 resuelve, y por eso el ejemplo lo muestra en vez de esconderlo.
+Los dos me gusta de `bruno` y `marcos` sobre opiniones ajenas no aparecen (BR21.1). Las dos parejas de eventos en el mismo instante son el caso que resuelve el desempate de BR22.1: gana el `eventId` ascendente, no la clase. Los grupos se rotulan con el calendario local; un evento de las 23:30 en España cae en el día del teléfono, aunque en UTC sea ya el día siguiente (BR22.2).
 
 ## Máquina de estados de la pantalla
 
@@ -84,7 +84,9 @@ stateDiagram-v2
     Cargando --> Error: lectura, suscripción o derivación falla
     Lista --> Lista: escritura del contenido o reintento con éxito
     Lista --> Vacio: el contenido deja de tener eventos
+    Lista --> Error: fallo de lectura, suscripción o derivación al recalcular
     Vacio --> Lista: escritura del contenido
+    Vacio --> Error: fallo de lectura, suscripción o derivación al recalcular
     Error --> Cargando: «Reintentar»
     Error --> Error: el reintento vuelve a fallar
 ```
@@ -94,9 +96,9 @@ stateDiagram-v2
 | Estado (C8) | Cómo se llega | Qué ve la persona | Salidas |
 |---|---|---|---|
 | `loading` | Se abre la pestaña; la identidad o la primera derivación aún no están | Cabecera «Actividad» y dos grupos de esqueleto con su encabezado | `ready`, `empty` o `error` |
-| `ready` | La derivación produce al menos un evento | La lista agrupada por día, con encabezados pegajosos | Otra escritura del contenido; el vacío; el error |
-| `empty` | La derivación no produce ningún evento | «Todavía no hay actividad.» y «Crear opinión» | Una publicación nueva; el error |
-| `error` | Una lectura devuelve fallo, la suscripción no se establece o la derivación lanza | «No pudimos cargar tu actividad.» y «Reintentar» | `loading` al reintentar |
+| `ready` | La derivación produce al menos un evento | La lista agrupada por día, con encabezados pegajosos | Otra escritura del contenido; el vacío; el error si falla una lectura, la suscripción o la derivación al recalcular |
+| `empty` | La derivación no produce ningún evento | «Todavía no hay actividad.» y «Crear opinión» | Una publicación nueva; el error si falla una lectura, la suscripción o la derivación al recalcular |
+| `error` | Una lectura devuelve fallo, la suscripción no se establece o la derivación lanza, tanto en la carga inicial como al recalcular desde `ready` o `empty` | «No pudimos cargar tu actividad.» y «Reintentar» | `loading` al reintentar |
 
 El aviso de sin conexión no es un estado de esta máquina: convive con `ready`, `empty` y `error` (BR23.4).
 
@@ -115,7 +117,7 @@ El aviso de sin conexión no es un estado de esta máquina: convive con `ready`,
 
 1. La persona publica en **Crear** (U3). C4 sube su revisión y emite a todos sus suscriptores.
 2. `ActivityFeed` recibe la emisión y vuelve a derivar (BR23.5).
-3. La nueva publicación aparece como evento `ownOpinion` en el grupo de hoy, la primera de su grupo. Los eventos que ya estaban conservan su `eventId`, así que la lista no se remonta (BR22.3).
+3. La nueva publicación aparece como evento `ownOpinion` en el grupo de hoy, delante de los eventos más antiguos; si empata a igual instante, entra por `eventId` ascendente (BR22.1). Los eventos que ya estaban conservan su `eventId`, así que la lista no se remonta (BR22.3).
 4. Lo mismo ocurre con un me gusta o un comentario que otra persona escriba mientras la pantalla está montada: no hay que cambiar de pestaña ni reiniciar.
 
 ### F15 — Abrir una opinión desde Actividad y volver
@@ -138,6 +140,9 @@ El aviso de sin conexión no es un estado de esta máquina: convive con `ready`,
 2. El estado pasa a `error` y el fallo se registra con el logger del proyecto y un código propio, sin el mensaje técnico.
 3. La vista pinta «No pudimos cargar tu actividad.» con «Reintentar» (BR23.3).
 4. «Reintentar» llama a `retryActivity()`: el estado vuelve a `loading`, se repite la derivación y, si sale bien, la lista aparece; si vuelve a fallar, se queda en `error` con la misma acción.
+5. La misma ruta vale cuando el fallo ocurre en un recálculo con la pantalla ya montada: una emisión de C4 llega, una lectura devuelve `ok: false`, la suscripción se cae o la derivación lanza, y el estado pasa de `ready` o de `empty` a `error`.
+6. La persona deja de ver la lista o el vacío y ve «No pudimos cargar tu actividad.» con «Reintentar» (BR23.3). No se le muestra el contenido anterior como si estuviera al día, ni un mensaje técnico.
+7. «Reintentar» vuelve a `loading` y repite la derivación desde C4; si sale bien, la pantalla vuelve a `ready` con la lista recalculada o a `empty` si ya no hay eventos. Si vuelve a fallar, se queda en `error` con la misma acción.
 
 ### F18 — Leer sin conexión
 
@@ -205,8 +210,8 @@ Los títulos de obra se escriben entre comillas angulares «», como en el resto
 | **BR21.4** | Un comentario recibido por comentario ajeno, con autor y fecha. |
 | **BR21.5** | La siembra no se toca: 3/2/3 salen de C4. |
 | **BR21.6** | Solo lectura: no escribe, no guarda, no pide red. |
-| **BR22.1** | Orden descendente con desempate estable. |
-| **BR22.2** | Grupos por día UTC con «Hoy», «Ayer» o fecha. |
+| **BR22.1** | Orden descendente con desempate por `eventId` ascendente. |
+| **BR22.2** | Grupos por día natural del teléfono, en hora local, con «Hoy», «Ayer» o fecha. |
 | **BR22.3** | `eventId` estable y único como clave. |
 | **BR22.4** | Encabezado pegajoso por grupo. |
 | **BR23.1** | Carga con dos grupos de esqueleto. |
@@ -292,6 +297,7 @@ El estado vacío y el de error no se ven con la siembra: se recorren en las prue
 - `[assumption]` La actividad no tiene sentido sin sesión: la pestaña solo existe con la app dentro. Aun así, un `signedOut` en C3 se trata como `empty`, no como error.
 - `[assumption]` El recálculo ocurre en el acto porque C4 emite de forma síncrona; no hay temporizador, ni `setTimeout`, ni espera artificial.
 - `[assumption]` `actorHandle` viaja en el modelo porque C1 lo declara, y se queda sin pintar hasta que una historia pida nombrar a quien interactuó (ver `memory.md` § Interpretations).
+- `[assumption]` El contrato compartido fija C8 en 1.1.0 con `GET /activity/changes` (`subscribeActivity`), que emite la vista vigente al suscribirse y devuelve la baja. Queda para Code Generation publicar `@melodify/activity` en 1.1.0 con esa superficie y para U6 arrancar sobre esa versión; la agrupación por día local y el desempate por `eventId` llegan al código con la misma entrega.
 - `None.`
 
 ## Sources

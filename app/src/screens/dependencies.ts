@@ -14,6 +14,7 @@
  * Mientras falten, la pantalla se queda en carga en lugar de inventar una segunda.
  * La composición las pasa una vez, en el paso 29, y la pantalla deja de estar a medias.
  */
+import type { ActivityFeed } from "@melodify/activity";
 import type { AppSession } from "@melodify/app-session";
 import type { Catalog } from "@melodify/catalog";
 import type { ContentStore } from "@melodify/content-store";
@@ -29,4 +30,6 @@ export interface ScreenDependencies {
   catalog?: Catalog;
   /** El logger del proyecto; sin él se usa el de la app. */
   log?: AppLogger;
+  /** La máquina de actividad (C8), construida una sola vez en bootstrap. */
+  activity?: ActivityFeed;
 }

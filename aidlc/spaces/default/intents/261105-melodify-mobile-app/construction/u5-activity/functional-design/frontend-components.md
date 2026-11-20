@@ -79,7 +79,7 @@ La 1.5.0 es **aditiva**: suma dos exportaciones y un modelo, no cambia ninguna p
 | `src/index.ts` | Superficie del paquete: `createActivity` y los tipos `ActivityFeed`, `ActivityView`, `ActivityGroupView`, `ActivityEventView`, `ActivityStatus`, `ActivityEventKind`. No exporta React ni importa C1. |
 | `src/activity.ts` | La fábrica y su máquina: resuelve la identidad con C3, se suscribe a `subscribeSession` y `subscribeContent({ viewerId })`, guarda la vista vigente, emite por `subscribeActivity` y atiende `getActivity` / `retryActivity`. Es el único archivo que conoce las suscripciones. |
 | `src/derive.ts` | La derivación pura: recibe `viewerId` y las lecturas de C4 y devuelve los eventos (BR21.2–21.4). No conoce la sesión ni las suscripciones, así que se prueba sin dobles de C3. |
-| `src/grouping.ts` | Orden (BR22.1), `eventId` (BR22.3) y agrupación por día UTC (BR22.2). Funciones puras con reloj explícito. |
+| `src/grouping.ts` | Orden por `createdAt` descendente con desempate por `eventId` ascendente (BR22.1), `eventId` estable (BR22.3) y agrupación por día natural del teléfono, en zona horaria local (BR22.2). Funciones puras con reloj y zona explícitos. |
 | `src/__tests__/` | Derivación, orden, agrupación con reloj fijo, estados y recálculo, y un doble de C4 que falla (BR23.3, ADR-012). |
 
 **Superficie**

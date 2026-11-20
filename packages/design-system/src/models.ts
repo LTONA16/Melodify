@@ -79,6 +79,20 @@ export interface TabItem {
  */
 export type RatingValue = 0 | 1 | 2 | 3 | 4 | 5;
 
+/**
+ * La fila de actividad de C1 1.5.0. Es la forma de presentación de un evento de
+ * C8: el sistema de diseño no conoce el paquete de actividad y cada pantalla
+ * traduce su vista a este modelo antes de pintarlo (BR24.4).
+ */
+export interface ActivityEventSummary {
+  eventId: string;
+  kind: "ownOpinion" | "likeReceived" | "commentReceived";
+  opinionId: string;
+  workTitle: string;
+  createdAt: string;
+  actorHandle?: string;
+}
+
 export type OpinionVariant = "feed" | "compact" | "detail";
 export type CoverSize = "card" | "result" | "detail";
 export type AvatarSize = "small" | "medium" | "large";

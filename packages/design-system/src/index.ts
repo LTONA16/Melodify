@@ -1,15 +1,17 @@
 /**
- * Superficie pública de `@melodify/design-system` (C1 1.4.0): los tokens, el tema,
+ * Superficie pública de `@melodify/design-system` (C1 1.5.0): los tokens, el tema,
  * los modelos de presentación y las piezas.
  *
- * La 1.4.0 es aditiva: estrena `SpotifyCard` y `ArtistResultRow`, añade
- * `WorkResultRow.kind?`, el fallback de imagen de `CoverArt` y los modelos
- * `SpotifyConnectionStatus` y `ArtistSummary`.
+ * La 1.5.0 es aditiva: estrena `ActivityRow` y `DayHeader` y el modelo
+ * `ActivityEventSummary` para la Actividad de U5. La 1.4.0 añadió `SpotifyCard`,
+ * `ArtistResultRow`, `WorkResultRow.kind?`, el fallback de `CoverArt` y los
+ * modelos `SpotifyConnectionStatus` y `ArtistSummary`.
  */
 export { contrastRatio, relativeLuminance } from "./contrast";
 export { formatCalendarDate } from "./calendar-date";
 export { formatRelativeTime } from "./relative-time";
 export type {
+  ActivityEventSummary,
   ArtistSummary,
   AuthorSummary,
   AvatarSize,
@@ -30,6 +32,8 @@ export { darkTheme, lightTheme } from "./themes";
 export type { ColorSchemeName, Theme } from "./themes";
 export { useTheme } from "./useTheme";
 
+export { ActivityRow } from "./components/ActivityRow";
+export type { ActivityRowProps } from "./components/ActivityRow";
 export { AppHeader } from "./components/AppHeader";
 export type { AppHeaderProps } from "./components/AppHeader";
 export { ArtistResultRow } from "./components/ArtistResultRow";
@@ -50,6 +54,8 @@ export { ConnectionCard } from "./components/ConnectionCard";
 export type { ConnectionCardProps } from "./components/ConnectionCard";
 export { CoverArt } from "./components/CoverArt";
 export type { CoverArtProps } from "./components/CoverArt";
+export { DayHeader } from "./components/DayHeader";
+export type { DayHeaderProps } from "./components/DayHeader";
 export { EmptyState } from "./components/EmptyState";
 export type { EmptyStateProps } from "./components/EmptyState";
 export { ErrorState } from "./components/ErrorState";

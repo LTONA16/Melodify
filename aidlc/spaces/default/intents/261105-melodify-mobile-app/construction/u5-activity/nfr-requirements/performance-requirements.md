@@ -28,11 +28,11 @@ NFR8 sigue diciendo: «no se fijan objetivos numéricos en esta versión; el cri
 
 ### NFR8.17 — El coste de derivar es proporcional a lo que la cuenta publicó, y no se paga al arrancar
 
-- **Una lectura de opiniones, y una de me gusta y otra de comentarios solo por opinión propia con contador mayor que cero** (BR21.3, BR21.4). Con la siembra son **cuatro** lecturas: `listOpinions` más `listLikes` y `listComments` de las tres opiniones propias con interacción. No se leen las que están a cero y no se lee nada de C5.
-- **`createActivity` no trabaja al construirse**: guarda sus dependencias y no se suscribe hasta que alguien pregunta (`getActivity`) o se suscribe (`subscribeActivity`). El arranque de la app no paga la derivación ni abre una suscripción a C4 que nadie escucha (TS-40).
+- **Una lectura de opiniones, y una de me gusta y otra de comentarios solo por opinión propia con contador mayor que cero** (BR21.3, BR21.4). Con la siembra son **seis** lecturas, según los pasos 3 y 4 de la derivación: `listOpinions`, dos `listLikes` (`op-001` y `op-004`) y tres `listComments` (`op-001`, `op-004` y `op-008`). No se leen las que están a cero y no se lee nada de C5. El resumen «tres en la siembra» de `functional-spec.md` § Derivación cuenta las tres opiniones propias con interacción, no las llamadas; su aclaración queda registrada en § Assumptions & Open Questions.
+- **`createActivity` no trabaja al construirse**: guarda sus dependencias y no lee ni se suscribe a C3 ni a C4 al construirse. La primera suscripción —tanto `subscribeSession` de C3 como `subscribeContent` de C4— se abre en el primer `subscribeActivity(listener)`; `getActivity()` es una lectura puntual y no deja suscripciones abiertas. El arranque de la app no paga la derivación ni retiene fuentes que nadie escucha (TS-40).
 - **La derivación es síncrona y de una sola pasada**: recorre las opiniones propias una vez, lee las dos listas por opinión con interacción, ordena con una comparación total (BR22.1) y agrupa en una pasada (BR22.2). No hay ordenaciones repetidas ni búsquedas lineales dentro de un bucle.
 - **El recálculo no se amortigua ni se acumula**: cada emisión de C4 produce exactamente una derivación y una emisión por `subscribeActivity` (BR23.5). No se encola, no se descarta por «demasiado pronto» y no se ejecuta dos veces por una misma revisión.
-- **Cómo se comprueba**: prueba de `ActivityFeed` con un doble de C4 que cuenta llamadas y comprueba una lectura de opiniones y una por lista de cada opinión con contador; prueba de `createActivity` que comprueba cero lecturas y cero suscripciones antes de la primera observación; prueba de recálculo que comprueba una derivación por emisión.
+- **Cómo se comprueba**: prueba de `ActivityFeed` con un doble de C4 que cuenta las llamadas reales y afirma exactamente seis: una `listOpinions`, dos `listLikes` (`op-001`, `op-004`) y tres `listComments` (`op-001`, `op-004`, `op-008`); prueba de `createActivity` con dobles de C3 y C4 que afirma cero lecturas y cero suscripciones a C3 y a C4 antes del primer `subscribeActivity`, y que tras la baja del último `listener` se cerraron las dos; prueba que cuenta exactamente una derivación y una emisión de vista derivada en la primera suscripción, además de la emisión inmediata `loading` (TS-40).
 
 ### NFR8.18 — Recalcular no remonta la lista ni pierde la posición
 
@@ -72,8 +72,8 @@ Ninguna acción del recorrido exige leer una explicación previa (NFR2). El desp
 - Los cuatro estados de C8 tienen salida (BR23.1–BR23.3): `loading → ready | empty | error`, `ready → ready | empty | error`, `empty → ready | error`, `error → loading` al reintentar. Un reintento que vuelve a fallar se queda en `error` con la misma acción, no en un estado mudo.
 - **`error` siempre se puede repetir**: `retryActivity()` vuelve a `loading` y repite la derivación sobre la misma instancia; no hay que reiniciar la app ni cambiar de pestaña (F17).
 - **Una sesión cerrada no es un error**: `signedOut` produce `empty` (la cuenta no tiene actividad), no `error`. La pantalla no inventa un fallo donde solo falta una cuenta.
-- **Un cambio de cuenta vuelve a derivar**: `subscribeSession` mueve la identidad y la derivación se rehace con el nuevo `viewerId`; no se queda una lista de la cuenta anterior.
-- **Cómo se comprueba**: prueba de `ActivityFeed` que recorre cada transición, incluida `error → error`; prueba con sesión `signedOut` que comprueba `empty`; prueba con dos identidades que comprueba que la segunda emisión no contiene eventos de la primera.
+- **Un cambio de cuenta vuelve a derivar**: la suscripción a `subscribeSession` de C3 se abre en el primer `subscribeActivity(listener)`, junto a la de C4, y cuenta para el objetivo «cero suscripciones antes de la primera observación»; su emisión inmediata con la identidad ya conocida no deriva ni reabre C4. Solo un cambio real de `authorId`/`status` cierra la suscripción a C4 anterior, mueve la identidad y provoca una nueva derivación con el nuevo `viewerId`; no se queda una lista de la cuenta anterior. Al dar de baja el último `listener` se cierran tanto `subscribeSession` de C3 como `subscribeContent` de C4 (TS-40).
+- **Cómo se comprueba**: prueba de `ActivityFeed` que recorre cada transición, incluida `error → error`; prueba con sesión `signedOut` que comprueba `empty`; prueba con dos identidades que comprueba que la segunda emisión no contiene eventos de la primera, que la emisión inmediata de C3 con la misma identidad no deriva, y que la baja del último `listener` cierra las suscripciones a C3 y a C4; prueba con un doble de C3 que cuenta suscripciones antes de observar y después de la baja.
 
 ### NFR1.17 — Ningún fallo se escapa a la pantalla ni deja la lista vieja como si fuera nueva
 
@@ -96,8 +96,8 @@ Ninguna acción del recorrido exige leer una explicación previa (NFR2). El desp
 | Ruta | Objetivo | Cómo se comprueba |
 |---|---|---|
 | Abrir Actividad | Sin espera ajena; la carga dura un fotograma cuando la sesión ya está resuelta | Prueba de `useActividad` con temporizadores falsos. |
-| Derivar la siembra | **Cuatro** lecturas de C4 (opiniones + 2 listas de las 3 opiniones con interacción), una pasada de orden y una de agrupación | Prueba con un doble de C4 que cuenta llamadas. |
-| Arranque de la app | **Cero** derivaciones y **cero** suscripciones hasta que Actividad se observa | Prueba de `createActivity` antes de `getActivity`. |
+| Derivar la siembra | **Seis** lecturas de C4 (`listOpinions` + 2 `listLikes` + 3 `listComments`), una pasada de orden y una de agrupación | Prueba con un doble de C4 que cuenta las llamadas reales por operación. |
+| Arranque de la app | **Cero** derivaciones, **cero** lecturas de C3/C4 y **cero** suscripciones a C3 ni a C4 hasta el primer `subscribeActivity` | Prueba de `createActivity` con dobles de C3 y C4 antes de observar. |
 | Recalcular tras publicar | **Una** derivación y **una** emisión por cambio de C4; sin temporizador | Prueba de `ActivityFeed` con dos emisiones. |
 | Volver del detalle | Sin recarga: la pestaña conserva lista y posición | Prueba de la cáscara con la pestaña montada. |
 | Desplazar la lista | Sin número; sin congelación perceptible | Recorrido en el teléfono (U6). |
@@ -105,9 +105,10 @@ Ninguna acción del recorrido exige leer una explicación previa (NFR2). El desp
 ## Assumptions & Open Questions
 
 - `[assumption]` La derivación es tan barata que no necesita caché propia: el contenido vive en memoria y una pasada por las opiniones propias es más simple que invalidar una caché que C4 ya invalida con su revisión. Si la cuenta creciera a cientos de opiniones, la decisión sería de esa etapa.
-- `[assumption]` `createActivity` no se suscribe hasta que hay un observador. Es una decisión de rendimiento y también de corrección: una suscripción abierta al arrancar sin nadie escuchando retendría el almacén y derivaría en balde.
+- `[assumption]` `createActivity` no se suscribe a C3 ni a C4 hasta que hay un observador: el primer `subscribeActivity` abre las dos. Es una decisión de rendimiento y también de corrección: una suscripción abierta al arrancar sin nadie escuchando retendría el almacén y la sesión, y derivaría en balde.
 - `[assumption]` El esqueleto de fila usa `Skeleton shape="card"` (96) y es algo más alto que una fila real; la lista real puede ser más corta que su esqueleto, nunca más larga. Se acepta antes que añadir una forma a C1 por un solo uso (BR23.1).
 - `[assumption]` La sesión de la app es la única que mira en esta versión, y su resolución es local; por eso el estado `loading` no tiene un tiempo límite. Si alguna vez la identidad viniera de la red, ese tiempo lo fijaría C3, no esta pantalla.
+- **Open question sobre la fuente de la cifra**: el resumen «tres en la siembra» de `functional-spec.md` § Derivación cuenta las tres opiniones propias con contador, pero los pasos 3 y 4 piden `listLikes` y `listComments` por separado: con `op-001` y `op-004` (dos contadores cada una) y `op-008` (solo comentarios) son seis lecturas de C4 incluida `listOpinions`. Este artefacto usa seis porque es lo que afirma la prueba; la fuente queda pendiente de aclarar para que el resumen diga «tres opiniones con interacción» o «seis lecturas».
 - **Open question para U6**: el recorrido en el teléfono es la única verificación de que la lista no se congela al desplazarse con la siembra; los estados vacío y error se demuestran con dobles en las pruebas (FR11.6, ADR-012).
 
 ## Sources

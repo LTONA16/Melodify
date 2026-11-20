@@ -9,11 +9,12 @@
   "dependencies": {
     "@expo/vector-icons": "15.1.1",
     "@melodify/app-session": "1.1.0",
+    "@melodify/activity": "1.1.0",
     "@melodify/app-shell": "1.4.0",
     "@melodify/catalog": "1.2.0",
     "@melodify/connectivity": "1.0.0",
     "@melodify/content-store": "1.2.0",
-    "@melodify/design-system": "1.4.0",
+    "@melodify/design-system": "1.5.0",
     "@melodify/spotify": "1.0.0",
     "@react-navigation/native": "7.5.1",
     "expo": "57.0.32",

@@ -116,11 +116,11 @@
 
 
 
-- **Active Unit**: u5-activity
 
-- **Unit Stage**: infrastructure-design
 
-- **Unit State**: in-progress
+
+
+
 
 ## Phase Progress
 <!-- Status values: Pending, Active, Verified, Skipped -->
@@ -182,7 +182,7 @@
 - **Current Stage**: functional-design
 - **Next Stage**: nfr-requirements
 - **Status**: Running
-- **Last Updated**: 2026-11-19T17:18:45Z
+- **Last Updated**: 2026-11-20T01:02:37Z
 
 - **Construction Autonomy Mode**: autonomous
 

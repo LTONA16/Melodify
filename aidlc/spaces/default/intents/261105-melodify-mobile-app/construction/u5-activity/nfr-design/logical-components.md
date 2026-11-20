@@ -34,7 +34,7 @@
 | **LC-14** | Superficie y tipos del paquete de Spotify | `packages/spotify/src/` | `exports` con tres entradas y los tipos de C7. **U5 solo sube su dependencia de C1 a 1.5.0** en `package.json` (TS-42) | U4 |
 | **LC-15** | Explorar y su estado | `app/src/screens/explorar/` | `ExplorarScreen`, `ExplorarView`, `useExplorar`. **Sin cambios** | U4 |
 | **LC-16** | Piezas de Spotify en el sistema de diseño | `packages/design-system/src/` | `SpotifyCard`, `ArtistResultRow`, `WorkResultRow.kind?`. **Sin cambios** | U4 |
-| **LC-17** | **Actividad (C8)** | `packages/activity/` (`@melodify/activity` **1.1.0**) | `createActivity({ content, session })`: deriva los eventos de la cuenta —publicaciones propias, me gusta y comentarios recibidos—, los ordena, los agrupa por día UTC y los emite por `subscribeActivity`. Cuatro estados con salida y reintento. **Sin dependencias de ejecución**: solo tipos de C4 y C3 | **U5** |
+| **LC-17** | **Actividad (C8)** | `packages/activity/` (`@melodify/activity` **1.1.0**) | `createActivity({ content, session })`: deriva los eventos de la cuenta —publicaciones propias, me gusta y comentarios recibidos—, los ordena de más reciente a más antiguo con desempate por `eventId` ascendente, los agrupa por día natural del dispositivo (hora local) y los emite por `subscribeActivity`. Cuatro estados con salida y reintento. **Sin dependencias de ejecución**: solo tipos de C4 y C3 | **U5** |
 | **LC-18** | **Actividad y su estado** | `app/src/screens/actividad/` y `app/src/state/useActividad.ts` | `ActividadScreen` (contenedor), `ActividadView` (vista pura), `activityModel.ts` (`toActividadSections`) y `useActividad`. La pantalla no deriva: mapea, compone y navega | **U5** |
 | **LC-19** | **Piezas de Actividad en el sistema de diseño** | `packages/design-system/src/` | `ActivityRow` (texto por clase, icono decorativo, tiempo relativo, chevron, 56 de alto) y `DayHeader` (etiqueta del día, pegajosa). **U5 publica la C1 1.5.0** | **U5** (dentro de LC-2) |
 
@@ -125,7 +125,7 @@ La decisión se justifica sola: **una unidad que solo lee puede ser una hoja**, 
 
 - `[assumption]` La Actividad no necesita un componente lógico propio en la cáscara: la pestaña existe desde U1 y solo gana el detalle registrado. Si el detalle de opinión necesitara un contexto distinto al de Inicio o Perfil, sería una decisión de C2, no de esta unidad.
 - `[assumption]` `@melodify/activity` se queda en una sola entrada. Si alguna vez otra pantalla necesitara la derivación —un contador de actividad en Perfil, por ejemplo—, seguiría siendo una entrada y un consumidor más de `subscribeActivity`, no un segundo paquete.
-- `[assumption]` El paquete no publica utilidades de agrupación para que la app las reutilice: `toActividadSections` mapea, no agrupa, y la agrupación por día UTC pertenece a C8 (BR22.2). Exportarla abriría dos formas de agrupar.
+- `[assumption]` El paquete no publica utilidades de agrupación para que la app las reutilice: `toActividadSections` mapea, no agrupa, y la agrupación por día natural del dispositivo pertenece a C8 (BR22.2). Exportarla abriría dos formas de agrupar.
 - **Open question para U6**: el recorrido confirma el radio de impacto real —que un fallo forzado en Actividad no afecta a las demás pestañas y que volver del detalle conserva la posición—; las pruebas afirman la contención, el teléfono afirma la sensación.
 
 ## Sources

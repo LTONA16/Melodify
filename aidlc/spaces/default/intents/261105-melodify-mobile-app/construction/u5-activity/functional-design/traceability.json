@@ -14,7 +14,7 @@
     {
       "id": "AC8.1.1",
       "status": "OK",
-      "target": "BR21.1, BR21.2, BR21.3, BR21.4, BR22.1, BR22.2 — los tres tipos de evento se derivan del contenido, se ordenan con desempate estable y se agrupan por día UTC; se prueban con el reloj fijo y la siembra, sin depender de la red"
+      "target": "BR21.1, BR21.2, BR21.3, BR21.4, BR22.1, BR22.2 — los tres tipos de evento se derivan del contenido, se ordenan por `createdAt` descendente con desempate por `eventId` ascendente y se agrupan por día natural del teléfono (zona horaria local); se prueban con el reloj y la zona fijos y con la siembra, sin depender de la red"
     },
     {
       "id": "AC8.1.2",

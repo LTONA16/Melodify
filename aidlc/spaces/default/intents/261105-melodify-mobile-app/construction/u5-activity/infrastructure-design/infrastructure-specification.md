@@ -133,9 +133,9 @@ de ser ciertas: la decisión tendría que tomarla una etapa, no un PR.
 - **Pregunta abierta heredada del diseño de NFR (R-07 de U4)**: la ventana neutra del arranque sigue
   sin sitio en la superficie que C2 y C7 contratan. No cambia nada de esta etapa —no hay recurso que
   provisionar—, pero sí afecta a qué se ve antes de la primera emisión de C8, y por eso se nombra.
-- **Pregunta abierta heredada del diseño de NFR de U5**: la agrupación por día UTC debe coincidir con
-  `formatCalendarDate` de C1. No es infraestructura, pero es la única decisión de esta unidad que
-  podría exigir tocar dos paquetes a la vez si producto pidiera días locales.
+- `[assumption]` La agrupación usa el día natural del teléfono en hora local, no el día que calcula
+  `formatCalendarDate` de C1: C8 no importa C1 (TS-42), así que la decisión no exige tocar dos paquetes.
+  Las pruebas fijan reloj y zona en lugar de depender del entorno.
 - **Sigue abierta la pregunta de U2 sobre el paso «Detectar directorio del proyecto»**: sus dos ramas
   no se cumplen —`app/package-lock.json` no existe, el lockfile vive en la raíz, y
   `Ratetify/package.json` es de otro proyecto—, así que resuelve `.` y funciona. U5 no lo toca.

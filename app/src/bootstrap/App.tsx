@@ -24,7 +24,7 @@ import { ThemeProvider } from "@melodify/design-system";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 
-import { ActividadScreen } from "../screens/placeholders/ActividadScreen";
+import { ActividadScreen } from "../screens/actividad/ActividadScreen";
 import { CrearScreen } from "../screens/crear/CrearScreen";
 import { ExplorarScreen } from "../screens/explorar/ExplorarScreen";
 import { DetalleObraScreen } from "../screens/detalle-obra/DetalleObraScreen";
@@ -32,7 +32,7 @@ import { DetalleOpinionScreen } from "../screens/detalle-opinion/DetalleOpinionS
 import { InicioScreen } from "../screens/inicio/InicioScreen";
 import { LoginScreen } from "../screens/login/LoginScreen";
 import { PerfilScreen } from "../screens/perfil/PerfilScreen";
-import { catalog, contentStore } from "./instances";
+import { activityFeed, catalog, contentStore } from "./instances";
 import { appSession } from "./session";
 import { defaultShellServices } from "./shell-services";
 
@@ -57,6 +57,10 @@ function InicioRoute() {
       catalog={catalog}
     />
   );
+}
+
+function ActividadRoute() {
+  return <ActividadScreen activity={activityFeed} />;
 }
 
 function DetalleObraRoute({ work }: { work: { workId: string } }) {
@@ -106,8 +110,8 @@ function ExplorarRoute() {
 }
 
 /**
- * Las cinco pestañas en el orden de la barra (F4.1). Inicio, Explorar, Crear y
- * Perfil ya son pantallas reales; Actividad sigue siendo contenedora hasta U5.
+ * Las cinco pestañas en el orden de la barra (F4.1). Las cinco son ya pantallas
+ * reales; Actividad abre además el detalle de la opinión dueña de cada fila.
  *
  * Explorar registra el detalle de obra igual que Inicio: una obra encontrada en
  * Spotify abre su detalle y lleva a Crear la `WorkView` ya resuelta (`data`), sin
@@ -130,7 +134,12 @@ const screens: ScreenModule[] = [
     details: [{ kind: "work", component: DetalleObraRoute }],
   },
   { name: "crear", title: "Crear", component: CrearRoute },
-  { name: "actividad", title: "Actividad", component: ActividadScreen },
+  {
+    name: "actividad",
+    title: "Actividad",
+    component: ActividadRoute,
+    details: [{ kind: "opinion", component: DetalleOpinionRoute }],
+  },
   {
     name: "perfil",
     title: "Perfil",
