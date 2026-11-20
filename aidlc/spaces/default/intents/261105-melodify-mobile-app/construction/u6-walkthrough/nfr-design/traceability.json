@@ -1,0 +1,92 @@
+{
+  "stage": "nfr-design",
+  "unit": "u6-walkthrough",
+  "upstream_ids": [
+    "NFR8.19",
+    "NFR8.18",
+    "NFR2.14",
+    "NFR1.18",
+    "NFR2.15",
+    "NFR1.19",
+    "NFR8.1",
+    "NFR8.20",
+    "NFR1.20",
+    "NFR3.18",
+    "NFR3.24",
+    "NFR3.25",
+    "NFR9.9",
+    "NFR4.12"
+  ],
+  "coverage": [
+    {
+      "id": "NFR8.19",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.19: presupuesto cerrado de 52 filas y 24 capturas (13 si R2 se condiciona); una espera sin salida es defecto en alcance; la unidad no estrena instrumento de medida"
+    },
+    {
+      "id": "NFR8.18",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.19: heredado de U5, la carga de Actividad se confirma cualitativamente en W10 (sale de carga sola, sin esqueleto permanente)"
+    },
+    {
+      "id": "NFR2.14",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.15: heredado de U5, los cuatro estados de Actividad y su salida se confirman en W10; ningún estado se queda mudo"
+    },
+    {
+      "id": "NFR1.18",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.19 y § NFR1.19: heredado de U5, Actividad funciona sin red y sin Spotify en W10; un fallo no aborta la pasada, se clasifica"
+    },
+    {
+      "id": "NFR2.15",
+      "status": "OK",
+      "target": "performance-design.md § NFR2.15: presupuesto de toques apoyado en piezas existentes (barra, tarjeta, «‹ Volver», acciones primarias) y lista de lo prohibido para W14"
+    },
+    {
+      "id": "NFR1.19",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.19: máquina de estados de la pasada con disparador y evidencia por transición; solo se aborta por falta de entorno"
+    },
+    {
+      "id": "NFR8.1",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.19: heredado de U1, el feed sale de carga en W04; la espera se juzga, no se cronometra"
+    },
+    {
+      "id": "NFR8.20",
+      "status": "OK",
+      "target": "performance-design.md § NFR8.20: siete precondiciones con su salida y cabecera de ocho datos (R-04); el arranque limpio es un procedimiento"
+    },
+    {
+      "id": "NFR1.20",
+      "status": "OK",
+      "target": "performance-design.md § NFR1.20: cuatro invariantes de evidencia (sin celdas vacías, 12+12 capturas o 13, siembra comparable, CI en verde con el 80 %)"
+    },
+    {
+      "id": "NFR3.18",
+      "status": "OK",
+      "target": "security-design.md § NFR3.24: heredado de U4, el token no se pinta; S01 y S08 confirman la conexión y el borrado sin exponerlo en la evidencia"
+    },
+    {
+      "id": "NFR3.24",
+      "status": "OK",
+      "target": "security-design.md § NFR3.24: cuatro superficies de evidencia con su control, y regla condicional del redirect con su punto exacto en el mapa (R-01)"
+    },
+    {
+      "id": "NFR3.25",
+      "status": "OK",
+      "target": "security-design.md § NFR3.25: cuatro compuertas del arreglo (superficie, dependencias, contrato y código de demo); el logger no cambia"
+    },
+    {
+      "id": "NFR9.9",
+      "status": "OK",
+      "target": "security-design.md § NFR9.9: tabla de qué se anota por situación; el registro es evidencia, no telemetría, y AppLogCode no crece"
+    },
+    {
+      "id": "NFR4.12",
+      "status": "OK",
+      "target": "security-design.md § NFR4.12: inventario de datos con retención, y resultado esperado de la búsqueda de handles y comentarios (R-03)"
+    }
+  ]
+}
