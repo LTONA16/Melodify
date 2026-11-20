@@ -122,11 +122,8 @@
 
 
 
-- **Active Unit**: u6-walkthrough
 
-- **Unit Stage**: functional-design
 
-- **Unit State**: in-progress
 
 ## Phase Progress
 <!-- Status values: Pending, Active, Verified, Skipped -->
@@ -188,7 +185,7 @@
 - **Current Stage**: functional-design
 - **Next Stage**: nfr-requirements
 - **Status**: Running
-- **Last Updated**: 2026-11-20T03:04:32Z
+- **Last Updated**: 2026-11-20T05:10:57Z
 
 - **Construction Autonomy Mode**: autonomous
 
