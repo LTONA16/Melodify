@@ -1,4 +1,13 @@
 /**
+ * La zona horaria se fija antes de que Jest arranque sus workers: el archivo de
+ * configuración se carga en el proceso padre y los workers heredan el entorno.
+ * Ponerla en `jest.setup.js` no basta: allí llega tarde y la zona del runner
+ * sigue mandando (en el CI, UTC), que es justo lo que hacía fallar la prueba de
+ * la medianoche.
+ */
+process.env.TZ = "Europe/Madrid";
+
+/**
  * Un solo proyecto de Jest para todo el monorepo (TS-10): la raíz manda y ningún
  * paquete tiene script propio. Los paquetes internos se resuelven a su `src`
  * porque Metro y Babel ya compilan TypeScript; así las pruebas no dependen de un
