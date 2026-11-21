@@ -16,7 +16,7 @@
 ## Comando exacto de esta unidad
 
 ```bash
-npx.cmd jest packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
+npx jest packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
 ```
 
 Los seis argumentos son los árboles que esta unidad crea o modifica: los tres paquetes nuevos, las dos versiones 1.2.0 y la app. Ninguna prueba de `packages/app-session/src` se ejecuta aquí, porque esta unidad no toca C3; sus pruebas siguen corriendo en el `npm test` del CI y en la suite completa.
@@ -24,20 +24,20 @@ Los seis argumentos son los árboles que esta unidad crea o modifica: los tres p
 **Con cobertura** (el mismo alcance, más el informe y los umbrales por árbol):
 
 ```bash
-npx.cmd jest --coverage packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
+npx jest --coverage packages/content-store/src packages/catalog/src packages/connectivity/src packages/design-system/src packages/app-shell/src app/src
 ```
 
 ### Comandos por capa, para el ciclo corto
 
 | Capa | Comando |
 |---|---|
-| Modelo y operaciones de C4 | `npx.cmd jest packages/content-store/src` |
-| Catálogo | `npx.cmd jest packages/catalog/src` |
-| Conectividad | `npx.cmd jest packages/connectivity/src` |
-| Sistema de diseño 1.2.0 | `npx.cmd jest packages/design-system/src` |
-| Cáscara 1.2.0 | `npx.cmd jest packages/app-shell/src` |
-| Estado, componentes y pantallas | `npx.cmd jest app/src` |
-| Un archivo concreto | `npx.cmd jest app/src/screens/inicio/__tests__/inicio-view.test.tsx` |
+| Modelo y operaciones de C4 | `npx jest packages/content-store/src` |
+| Catálogo | `npx jest packages/catalog/src` |
+| Conectividad | `npx jest packages/connectivity/src` |
+| Sistema de diseño 1.2.0 | `npx jest packages/design-system/src` |
+| Cáscara 1.2.0 | `npx jest packages/app-shell/src` |
+| Estado, componentes y pantallas | `npx jest app/src` |
+| Un archivo concreto | `npx jest app/src/screens/inicio/__tests__/inicio-view.test.tsx` |
 
 ### El suelo de cobertura no se juzga aquí
 
