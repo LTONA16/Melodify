@@ -5,5 +5,9 @@
     "outDir": "./dist",
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../app-session" },
+    { "path": "../content-store" }
+  ]
 }
