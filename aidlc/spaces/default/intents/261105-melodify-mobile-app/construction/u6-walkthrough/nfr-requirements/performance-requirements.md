@@ -74,7 +74,7 @@ NFR8 sigue diciendo: «no se fijan objetivos numéricos en esta versión; el cri
 - **El contenido de partida es el mismo para todos**: recarga completa → siembra (ocho a diez opiniones, cuatro o cinco autores, tres opiniones propias, dos seguidos, dos me gusta y tres comentarios recibidos). U6 no siembra nada nuevo y no conserva datos entre pasadas.
 - **La evidencia está completa o no hay veredicto**: no quedan celdas vacías, no hay ❌ sin clasificar y cada N/A explica su motivo (BR27.5); las capturas obligatorias son doce de R1 y doce de R2 —o una de la tarjeta en S01 si R2 se condiciona— y se referencian por nombre en el registro (BR27.1).
 - **La unidad cierra con el estado del repositorio en verde**: `npm run typecheck`, `npm run lint` y `npm test` con el suelo del 80 % de líneas sobre `app/src/**` intacto (BR28.1). Un arreglo hecho durante el recorrido no puede bajar el suelo ni dejar la suite en rojo «para arreglar luego» (`team.md` § Testing Posture, § Way of Working).
-- **Cómo se comprueba**: releer cada registro contra las siete precondiciones y el criterio de cierre de siete puntos (functional-spec § Criterio de cierre); ejecutar los tres comandos del CI al final de la última pasada; revisar que el `diff` de cada defecto tocó solo la pantalla que falló.
+- **Cómo se comprueba**: releer cada registro contra las siete precondiciones y el criterio de cierre de ocho puntos (functional-spec § Criterio de cierre); ejecutar los tres comandos del CI al final de la última pasada; revisar que el `diff` de cada defecto tocó solo la pantalla que falló.
 
 ## Presupuesto del recorrido en una línea
 

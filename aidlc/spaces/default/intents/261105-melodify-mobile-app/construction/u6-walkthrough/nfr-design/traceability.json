@@ -7,6 +7,9 @@
     "NFR2.14",
     "NFR1.18",
     "NFR2.15",
+    "NFR5.13",
+    "NFR6.11",
+    "NFR7.9",
     "NFR1.19",
     "NFR8.1",
     "NFR8.20",
@@ -42,6 +45,21 @@
       "id": "NFR2.15",
       "status": "OK",
       "target": "performance-design.md § NFR2.15: presupuesto de toques apoyado en piezas existentes (barra, tarjeta, «‹ Volver», acciones primarias) y lista de lo prohibido para W14"
+    },
+    {
+      "id": "NFR5.13",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad: suelo del 80 % de líneas y los tres comandos del CI sin cambios; un arreglo que cambie lógica añade su prueba"
+    },
+    {
+      "id": "NFR6.11",
+      "status": "OK",
+      "target": "performance-design.md § NFR6.11: contraste medido por contenedor con contrastRatio y 44×44 con size.touch; los dos pares del tema claro que no alcanzan 4.5 quedan como pendiente de C1"
+    },
+    {
+      "id": "NFR7.9",
+      "status": "OK",
+      "target": "logical-components.md § Superficie, cobertura y compatibilidad: ningún módulo, dependencia ni versión nuevos; Android físico, Expo Go y Metro"
     },
     {
       "id": "NFR1.19",

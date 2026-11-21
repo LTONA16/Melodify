@@ -162,7 +162,7 @@ Cuatro invariantes, y ninguna admite excepción:
 3. **El contenido de partida es el mismo para todos.** Recarga completa → siembra: ocho a diez opiniones, cuatro o cinco autores, tres opiniones propias, dos seguidos, dos me gusta y tres comentarios recibidos. U6 no siembra nada y no conserva datos entre pasadas.
 4. **La unidad cierra con el repositorio en verde.** `npm run typecheck`, `npm run lint` y `npm test` al final de la última pasada, con el suelo del **80 % de líneas sobre `app/src/**`** intacto (BR28.1). Un arreglo no baja el suelo ni deja la suite en rojo «para arreglar luego» (`team.md` § Testing Posture, § Way of Working).
 
-**Cómo se comprueba.** Releer cada registro contra las siete precondiciones y el criterio de cierre de siete puntos del functional-spec; ejecutar los tres comandos al final; revisar que el `diff` de cada defecto tocó solo la pantalla que falló (`git diff --stat` del commit del defecto).
+**Cómo se comprueba.** Releer cada registro contra las siete precondiciones y el criterio de cierre de ocho puntos del functional-spec; ejecutar los tres comandos al final; revisar que el `diff` de cada defecto tocó solo la pantalla que falló (`git diff --stat` del commit del defecto).
 
 ## Presupuesto en una línea
 

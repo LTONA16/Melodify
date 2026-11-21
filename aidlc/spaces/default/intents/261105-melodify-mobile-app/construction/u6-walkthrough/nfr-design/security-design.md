@@ -42,14 +42,14 @@ La revisión de NFR Requirements dejó aquí un Major (R-01): NFR3.24 y NFR4.12 
 | Desenlace | Qué se anota | Dónde | Qué se comprueba |
 |---|---|---|---|
 | **R2 se completa** | Nada del redirect: no hay prerrequisito pendiente | Ni el registro ni el mapa | No hay línea que comparar; el criterio de igualdad se cumple por ausencia en ambos |
-| **R2 se condiciona** | El valor literal, el mensaje del panel o del navegador y la fecha | (1) Nota de S01 en `walkthrough-p3.md` y `walkthrough-p4.md`; (2) **una línea inmediatamente debajo de la tabla** de `inception/delivery-planning/external-dependency-map.md`, con la forma `Redirect URI de PKCE — <valor literal> — <fecha>` | Mismo valor y misma fecha en los dos sitios, y la fecha es la de la pasada |
+| **R2 se condiciona** | El valor literal, el mensaje del panel o del navegador y la fecha | (1) Nota de S01 en `walkthrough-p3.md` y `walkthrough-p4.md`; (2) **una línea inmediatamente debajo de la tabla** de `inception/delivery-planning/external-dependency-map.md`, con la forma `Redirect URI de PKCE — <valor literal> — <mensaje del panel o del navegador> — <fecha>` | Mismo valor, mismo mensaje y misma fecha en los dos sitios, y la fecha es la de la pasada |
 
-- **Sin columna nueva y sin fila nueva en el registro.** El mapa es un artefacto de Delivery Planning y su tabla tiene cinco columnas pensadas para planificar; añadir una sexta cambiaría su forma por una constancia puntual. Una línea bajo la tabla dice lo mismo sin tocar el esquema, y BR28.2 ya pide «anotar el mismo valor y motivo en la fila del redirect», que se satisface con esa línea inmediatamente asociada a la fila.
+- **Sin columna nueva y sin fila nueva en el registro.** El mapa es un artefacto de Delivery Planning y su tabla tiene cinco columnas pensadas para planificar; añadir una sexta cambiaría su forma por una constancia puntual. Una línea bajo la tabla dice lo mismo sin tocar el esquema, y BR28.2 pide en los dos sitios **el valor exacto, el mensaje del panel y la fecha**, así que la línea lleva los tres datos y la comprobación los compara los tres.
 - **Sin campo nuevo en la cabecera.** La cabecera tiene ocho datos (NFR1.20) y ninguno es el redirect; meterlo ahí rompería el recuento y obligaría a escribirlo en las cuatro pasadas, incluidas las que no lo necesitan.
 - **De dónde sale el valor.** Es el que la app resuelve con `resolveRedirectUri()`: `exp://<host>:8081/--/spotify-callback`, o el de `EXPO_PUBLIC_SPOTIFY_REDIRECT_URI` si está definido. Se lee del parámetro `redirect_uri` de la URL de autorización que abre el navegador, o del mensaje del panel cuando lo rechaza; nunca del almacén seguro ni de un fichero de token.
 - **Por qué no es un secreto.** Es una URL de retorno con la IP privada del equipo: una dirección de red local, no una credencial. Aun así se anota una sola vez y con fecha, no en cada fila.
 
-**Cómo se verifica (redacción definitiva).** Revisión del `diff` del PR sin `.env`, sin fichero de token y sin `.p12`/`.jks`; revisión de las capturas contra la lista —**24** cuando R2 se ejecuta, **13** cuando se condiciona—; búsqueda de las tres cadenas de token en los cuatro registros, que debe dar cero; revisión de `app/src/**` de que ninguna pantalla lee el token para pintarlo; y, **si y solo si** el mapa lleva la línea del redirect, comprobación de que el registro lleva el mismo valor y la misma fecha.
+**Cómo se verifica (redacción definitiva).** Revisión del `diff` del PR sin `.env`, sin fichero de token y sin `.p12`/`.jks`; revisión de las capturas contra la lista —**24** cuando R2 se ejecuta, **13** cuando se condiciona—; búsqueda de las tres cadenas de token en los cuatro registros, que debe dar cero; revisión de `app/src/**` de que ninguna pantalla lee el token para pintarlo; y, **si y solo si** el mapa lleva la línea del redirect, comprobación de que el registro lleva **el mismo valor, el mismo mensaje del panel o del navegador y la misma fecha**.
 
 ## NFR3.25 — Un arreglo de U6 no abre una puerta nueva
 
@@ -78,7 +78,7 @@ El diseño del «arreglo» es lo que separa una unidad de verificación de una u
 | Títulos y portadas reales de Spotify (R2) | Sí, si R2 se ejecuta | Capturas del PR | Catálogo público; la AC pide demostrar portadas reales (AC11.2.2) | El PR |
 | Historial de escucha, perfil, correo o nombre de la cuenta de Spotify | **Nada** | — | La app no lo pide ni lo pinta; el token solo autoriza catálogo (FR10.4) | — |
 | Modelo de teléfono y versión de Android | Sí | Cabecera de los cuatro registros | Reproducibilidad (NFR1.20); no identifica a una persona | El registro, versionado con el intento |
-| IP privada en el redirect | Sí, literal y con fecha | Registro y mapa, **solo si R2 se condiciona** | BR26.7 lo exige; es una dirección de red local | Ficheros del intento |
+| IP privada en el redirect | Sí: valor literal, mensaje y fecha | Registro y mapa, **solo si R2 se condiciona** | BR26.7 y BR28.2 lo exigen; es una dirección de red local | Ficheros del intento |
 | Token y almacén seguro | **No** | — | NFR3.24 | — |
 
 ### La búsqueda de handles: qué resultado espera
