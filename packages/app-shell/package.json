@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@melodify/catalog": "1.2.0",
-    "@melodify/design-system": "1.4.0",
+    "@melodify/design-system": "1.5.0",
     "@react-navigation/native": "7.5.1",
     "react-native-safe-area-context": "5.7.0",
     "react-native-screens": "4.26.2"
