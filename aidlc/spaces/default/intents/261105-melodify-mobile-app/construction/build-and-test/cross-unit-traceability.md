@@ -4,6 +4,8 @@
 > Fuente: `aidlc engine sensor-traceability --stage build-and-test` (exit 0, `pass: false`)
 > Alcance: los seis `traceability.json` de `construction/*/code-generation/` y los criterios de `inception/requirements-analysis/requirements.md` y `inception/user-stories/stories.md`.
 
+> **Corrección 2026-11-21 (CI Pipeline):** la causa B se cerró re-registrando `AC1.3.1` en U2 y `AC9.1.8` en U4. El sensor volvió a correr: **32 → 21 IDs sin cubrir**, todos de la causa A. El análisis de abajo es el estado original de Build and Test; la cifra vigente está en `verification/phase-check-construction.md`.
+
 ## Veredicto
 
 **FALLA — con matiz.** El sensor devuelve `pass: false`: de **197 identificadores** trazados, **165 están cubiertos** y **32 no**. Ninguno de los 32 es un hueco de código nuevo; se reparten en dos causas, y solo una de ellas exige trabajo:

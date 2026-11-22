@@ -120,6 +120,7 @@
     { "id": "AC3.2.2", "status": "OK", "target": "packages/spotify/src/catalog/spotify-catalog.ts" },
     { "id": "AC3.2.3", "status": "OK", "target": "packages/spotify/src/catalog/spotify-catalog.ts" },
     { "id": "AC3.2.4", "status": "OK", "target": "app/src/state/useWorkSearch.ts" },
+    { "id": "AC9.1.8", "status": "OK", "target": "packages/design-system/src/__tests__/spotify-card.test.tsx" },
     { "id": "AC10.1.1", "status": "OK", "target": "packages/spotify/src/auth/pkce.ts" },
     { "id": "AC10.1.2", "status": "OK", "target": "packages/spotify/src/auth/spotify-auth.ts" },
     { "id": "AC10.1.3", "status": "OK", "target": "packages/spotify/src/auth/token.ts" },
