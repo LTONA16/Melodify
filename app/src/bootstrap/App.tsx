@@ -22,6 +22,7 @@
 import { AppShell, type ScreenModule } from "@melodify/app-shell";
 import { ThemeProvider } from "@melodify/design-system";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
 import { ActividadScreen } from "../screens/actividad/ActividadScreen";
@@ -199,6 +200,9 @@ export function App() {
 
   return (
     <ThemeProvider>
+      {/* Android pinta a sangre por el borde: los iconos del sistema deben
+          contrastar con el fondo del tema, no con el contenido que va debajo. */}
+      <StatusBar style="auto" />
       <AppShell
         screens={screens}
         initialRoute="inicio"

@@ -38,6 +38,13 @@ import type { ExplorarSuggestion } from "./useExplorar";
 export const EXPLORAR_CONNECT_BODY =
   "Conecta tu cuenta para buscar en el catálogo completo. Mientras tanto, estas obras del catálogo de ejemplo también se pueden opinar.";
 
+/**
+ * Sin client ID no hay nada que reintentar: el valor se fija al empaquetar la app,
+ * así que la tarjeta informa del hueco en vez de ofrecer un botón que no hace nada.
+ */
+export const EXPLORAR_NOT_CONFIGURED_BODY =
+  "Falta el client ID de Spotify en esta instalación. Las obras del catálogo de ejemplo se pueden buscar y opinar igual.";
+
 /** El aviso de red de Explorar cuando ya hay sesión (BR17.10). */
 export const EXPLORAR_OFFLINE_MESSAGE =
   "Sin conexión. No podemos buscar en Spotify ahora mismo.";
@@ -277,28 +284,31 @@ export function ExplorarView({
       ) : null}
 
       {showConnectionCard ? (
-        <ConnectionCard
-          title={
-            spotifyStatus === "connectionError"
-              ? "No pudimos conectar con Spotify."
-              : spotifyStatus === "notConfigured"
-                ? "La conexión con Spotify no está configurada en esta instalación."
+        spotifyStatus === "notConfigured" ? (
+          <ConnectionCard
+            title="La conexión con Spotify no está configurada en esta instalación."
+            body={EXPLORAR_NOT_CONFIGURED_BODY}
+          />
+        ) : (
+          <ConnectionCard
+            title={
+              spotifyStatus === "connectionError"
+                ? "No pudimos conectar con Spotify."
                 : "Busca en todo Spotify"
-          }
-          body={EXPLORAR_CONNECT_BODY}
-          actionLabel={
-            spotifyStatus === "connectionError" ||
-            spotifyStatus === "notConfigured"
-              ? "Reintentar"
-              : "Conectar con Spotify"
-          }
-          onAction={
-            spotifyStatus === "connectionError" ||
-            spotifyStatus === "notConfigured"
-              ? onRetryConnection
-              : onConnect
-          }
-        />
+            }
+            body={EXPLORAR_CONNECT_BODY}
+            actionLabel={
+              spotifyStatus === "connectionError"
+                ? "Reintentar"
+                : "Conectar con Spotify"
+            }
+            onAction={
+              spotifyStatus === "connectionError"
+                ? onRetryConnection
+                : onConnect
+            }
+          />
+        )
       ) : null}
 
       {showSearch ? (

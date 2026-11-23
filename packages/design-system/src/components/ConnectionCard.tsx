@@ -14,8 +14,15 @@ import { PrimaryButton } from "./PrimaryButton";
 export interface ConnectionCardProps {
   title: string;
   body: string;
-  actionLabel: string;
-  onAction: () => void;
+  /**
+   * La acción es opcional a propósito: cuando no hay nada que la persona pueda
+   * hacer —una instalación sin client ID, por ejemplo— un botón que no cambia
+   * nada se lee como una app rota. Sin `actionLabel` la tarjeta informa y calla.
+   */
+  actionLabel?: string;
+  onAction?: () => void;
+  /** Mientras la acción está en curso se muestra, pero no se puede repetir. */
+  actionDisabled?: boolean;
 }
 
 export function ConnectionCard({
@@ -23,6 +30,7 @@ export function ConnectionCard({
   body,
   actionLabel,
   onAction,
+  actionDisabled = false,
 }: ConnectionCardProps) {
   const theme = useTheme();
 
@@ -52,11 +60,14 @@ export function ConnectionCard({
       >
         {body}
       </Text>
-      <PrimaryButton
-        testID="connection-card-action"
-        label={actionLabel}
-        onPress={onAction}
-      />
+      {actionLabel === undefined ? null : (
+        <PrimaryButton
+          testID="connection-card-action"
+          label={actionLabel}
+          onPress={onAction ?? (() => undefined)}
+          disabled={actionDisabled}
+        />
+      )}
     </View>
   );
 }

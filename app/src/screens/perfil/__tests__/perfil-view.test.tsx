@@ -194,7 +194,8 @@ describe("PerfilView", () => {
         "La conexión con Spotify no está configurada en esta instalación.",
       ),
     ).toBeVisible();
-    expect(screen.getByTestId("spotify-card-retry")).toBeVisible();
+    // Sin client ID no hay reintento posible: la tarjeta informa y calla.
+    expect(screen.queryByTestId("spotify-card-retry")).toBeNull();
   });
 
   it("sin conexión pinta el aviso y la identidad sigue visible", () => {

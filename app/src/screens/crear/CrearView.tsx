@@ -19,6 +19,7 @@
  * - **El aviso de sin conexión no lleva acción en Crear**: no hay nada que
  *   reintentar, el catálogo de ejemplo es local y el formulario funciona (BR15.4).
  */
+import type { SpotifyStatus } from "@melodify/app-shell";
 import type { WorkSummary } from "@melodify/design-system";
 import {
   ConnectionCard,
@@ -49,6 +50,17 @@ import { CrearHeader } from "./CrearHeader";
 export const CREAR_OFFLINE_MESSAGE =
   "Sin conexión. Puedes opinar sobre las obras de ejemplo.";
 
+/** La invitación a conectar Spotify desde la rama de ejemplo (BR13.5). */
+export const CREAR_CONNECT_BODY =
+  "Conecta Spotify para buscar en el catálogo completo. Mientras tanto, estas obras de ejemplo también se pueden opinar.";
+
+/**
+ * Sin client ID no hay nada que reintentar —el valor se fija al empaquetar—, así
+ * que la tarjeta informa del hueco en vez de ofrecer un botón muerto.
+ */
+export const CREAR_NOT_CONFIGURED_BODY =
+  "Falta el client ID de Spotify en esta instalación. Las obras de ejemplo se pueden opinar igual.";
+
 /** Desde cuántos caracteres se enseña el contador del campo (BR11.3). */
 export const CREAR_COUNTER_FROM = MAX_OPINION_LENGTH - 100;
 
@@ -68,8 +80,16 @@ export interface CrearViewProps {
   screenStatus: CrearScreenStatus;
   /** Si hay red; con `false` se pinta el aviso informativo y se puede publicar. */
   online: boolean;
-  /** Si hay sesión de Spotify; sin ella no se monta el buscador (BR13.5). */
-  spotifyConnected: boolean;
+  /**
+   * El estado de la conexión con Spotify, no un booleano: sin él la tarjeta no
+   * podría decir «Conectando…», ni distinguir un fallo de una instalación sin
+   * client ID. `null` es «todavía no sabemos» y se pinta como desconectado.
+   */
+  spotifyStatus: SpotifyStatus | null;
+  /** Abre la autorización de Spotify desde la tarjeta de la rama de ejemplo. */
+  onConnectSpotify: () => void;
+  /** Repite la última conexión fallida. */
+  onRetrySpotify: () => void;
 
   work: SelectedWork | null;
   text: string;
@@ -223,20 +243,88 @@ function SearchBranch({
 
 interface SampleBranchProps {
   sampleWorks: readonly CrearSampleWork[];
+  spotifyStatus: SpotifyStatus | null;
+  onConnect: () => void;
+  onRetry: () => void;
   onChooseWork: (work: SelectedWork) => void;
 }
 
-function SampleBranch({ sampleWorks, onChooseWork }: SampleBranchProps) {
+/** El estado de conexión se dice con palabras: el botón solo existe si sirve. */
+function connectionCardFor(
+  spotifyStatus: SpotifyStatus | null,
+  onConnect: () => void,
+  onRetry: () => void,
+) {
+  if (spotifyStatus === null) {
+    // Antes de la primera emisión de C7 no sabemos si hay sesión: invitar a
+    // conectar cuando quizá ya lo está sería un botón de más (R-07).
+    return <Skeleton shape="card" count={1} />;
+  }
+
+  if (spotifyStatus === "notConfigured") {
+    return (
+      <ConnectionCard
+        title="La conexión con Spotify no está configurada en esta instalación."
+        body={CREAR_NOT_CONFIGURED_BODY}
+      />
+    );
+  }
+
+  if (spotifyStatus === "connecting") {
+    return (
+      <ConnectionCard
+        title="Conectando…"
+        body="Termina la autorización en Spotify; volverás aquí solo."
+        actionLabel="Conectando…"
+        actionDisabled
+      />
+    );
+  }
+
+  if (spotifyStatus === "invalidToken") {
+    return (
+      <ConnectionCard
+        title="Tu sesión de Spotify caducó. Vuelve a conectar."
+        body={CREAR_CONNECT_BODY}
+        actionLabel="Conectar con Spotify"
+        onAction={onConnect}
+      />
+    );
+  }
+
+  if (spotifyStatus === "connectionError") {
+    return (
+      <ConnectionCard
+        title="No pudimos conectar con Spotify."
+        body={CREAR_CONNECT_BODY}
+        actionLabel="Reintentar"
+        onAction={onRetry}
+      />
+    );
+  }
+
+  return (
+    <ConnectionCard
+      title="Busca en todo Spotify"
+      body={CREAR_CONNECT_BODY}
+      actionLabel="Conectar con Spotify"
+      onAction={onConnect}
+    />
+  );
+}
+
+function SampleBranch({
+  sampleWorks,
+  spotifyStatus,
+  onConnect,
+  onRetry,
+  onChooseWork,
+}: SampleBranchProps) {
   const theme = useTheme();
 
   return (
     <View style={{ gap: theme.space[3] }}>
-      <ConnectionCard
-        title="Busca en todo Spotify"
-        body="Conecta Spotify para buscar en el catálogo completo."
-        actionLabel="Conectar con Spotify"
-        onAction={NO_ACTION}
-      />
+      {connectionCardFor(spotifyStatus, onConnect, onRetry)}
 
       {sampleWorks.map(({ work, opinionCount }) => (
         <WorkResultRow
@@ -254,7 +342,9 @@ export function CrearView({
   mode,
   screenStatus,
   online,
-  spotifyConnected,
+  spotifyStatus,
+  onConnectSpotify,
+  onRetrySpotify,
   work,
   text,
   rating,
@@ -325,7 +415,7 @@ export function CrearView({
               {sectionTitle(theme, "Obra")}
 
               {showPicker ? (
-                spotifyConnected ? (
+                spotifyStatus === "connected" ? (
                   <SearchBranch
                     query={query}
                     searchStatus={searchStatus}
@@ -338,6 +428,9 @@ export function CrearView({
                 ) : (
                   <SampleBranch
                     sampleWorks={sampleWorks}
+                    spotifyStatus={spotifyStatus}
+                    onConnect={onConnectSpotify}
+                    onRetry={onRetrySpotify}
                     onChooseWork={onChooseWork}
                   />
                 )

@@ -351,8 +351,9 @@ describe("PerfilScreen", () => {
     expect(view.getByTestId("spotify-card-status")).toHaveTextContent(
       "La conexión con Spotify no está configurada en esta instalación.",
     );
-    fireEvent.press(view.getByTestId("spotify-card-retry"));
-    expect(view.retrySpotify).toHaveBeenCalledTimes(2);
+    // Sin client ID el reintento no cambiaría nada, así que la tarjeta no lo ofrece.
+    expect(view.queryByTestId("spotify-card-retry")).toBeNull();
+    expect(view.retrySpotify).toHaveBeenCalledTimes(1);
   });
 
   it("sin dependencias de composición se queda en carga en lugar de inventar un almacén", () => {

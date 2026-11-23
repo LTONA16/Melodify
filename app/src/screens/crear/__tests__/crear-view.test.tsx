@@ -2,7 +2,13 @@ import { fireEvent, render } from "@testing-library/react-native";
 import type { WorkSummary } from "@melodify/design-system";
 import { ThemeProvider } from "@melodify/design-system";
 
-import { CrearView, CREAR_OFFLINE_MESSAGE, type CrearViewProps } from "../CrearView";
+import {
+  CrearView,
+  CREAR_CONNECT_BODY,
+  CREAR_NOT_CONFIGURED_BODY,
+  CREAR_OFFLINE_MESSAGE,
+  type CrearViewProps,
+} from "../CrearView";
 
 /**
  * La vista pura de Crear y Editar (BR11.1–BR11.11, BR12.1–BR12.7, BR13.1–BR13.5):
@@ -36,7 +42,9 @@ function props(overrides: Partial<CrearViewProps> = {}): CrearViewProps {
     mode: "create",
     screenStatus: "ready",
     online: true,
-    spotifyConnected: false,
+    spotifyStatus: "disconnected",
+    onConnectSpotify: jest.fn(),
+    onRetrySpotify: jest.fn(),
     work: null,
     text: "",
     rating: 0,
@@ -111,9 +119,7 @@ describe("CrearView — sin Spotify (selector de ejemplo)", () => {
   it("pinta la tarjeta de conexión y las obras de ejemplo con su recuento", () => {
     const view = setup();
 
-    expect(
-      view.getByText("Conecta Spotify para buscar en el catálogo completo."),
-    ).toBeVisible();
+    expect(view.getByText(CREAR_CONNECT_BODY)).toBeVisible();
     expect(view.getByText("Conectar con Spotify")).toBeVisible();
     expect(view.getByTestId("work-result-work-1")).toBeVisible();
     expect(view.getByTestId("work-result-work-2")).toBeVisible();
@@ -123,6 +129,44 @@ describe("CrearView — sin Spotify (selector de ejemplo)", () => {
     expect(view.getAllByTestId("work-result-opinions")[1]).toHaveTextContent(
       "Sé el primero en opinar",
     );
+  });
+
+  it("mientras C7 hidrata no invita a conectar: pinta un esqueleto", () => {
+    const view = setup({ spotifyStatus: null });
+
+    expect(view.queryByTestId("connection-card-action")).toBeNull();
+    expect(view.getByTestId("skeleton-card-1")).toBeVisible();
+  });
+
+  it("«Conectar con Spotify» abre la autorización de verdad", () => {
+    const onConnectSpotify = jest.fn();
+    const view = setup({ onConnectSpotify });
+
+    fireEvent.press(view.getByTestId("connection-card-action"));
+
+    expect(onConnectSpotify).toHaveBeenCalledTimes(1);
+  });
+
+  it("un fallo de conexión se puede reintentar desde la tarjeta", () => {
+    const onRetrySpotify = jest.fn();
+    const view = setup({ spotifyStatus: "connectionError", onRetrySpotify });
+
+    expect(view.getByText("No pudimos conectar con Spotify.")).toBeVisible();
+    fireEvent.press(view.getByTestId("connection-card-action"));
+
+    expect(onRetrySpotify).toHaveBeenCalledTimes(1);
+  });
+
+  it("sin client ID lo explica y no ofrece un botón que no hace nada", () => {
+    const view = setup({ spotifyStatus: "notConfigured" });
+
+    expect(
+      view.getByText(
+        "La conexión con Spotify no está configurada en esta instalación.",
+      ),
+    ).toBeVisible();
+    expect(view.getByText(CREAR_NOT_CONFIGURED_BODY)).toBeVisible();
+    expect(view.queryByTestId("connection-card-action")).toBeNull();
   });
 
   it("tocar una obra de ejemplo la elige", () => {
@@ -155,7 +199,7 @@ describe("CrearView — sin Spotify (selector de ejemplo)", () => {
 
 describe("CrearView — con Spotify (buscador)", () => {
   it("escribe el aviso de dos caracteres y no monta la tarjeta de conexión", () => {
-    const view = setup({ spotifyConnected: true, searchStatus: "short" });
+    const view = setup({ spotifyStatus: "connected", searchStatus: "short" });
 
     expect(view.getByText("Escribe al menos 2 caracteres.")).toBeVisible();
     expect(
@@ -164,7 +208,7 @@ describe("CrearView — con Spotify (buscador)", () => {
   });
 
   it("mientras busca pinta esqueletos de fila", () => {
-    const view = setup({ spotifyConnected: true, searchStatus: "searching" });
+    const view = setup({ spotifyStatus: "connected", searchStatus: "searching" });
 
     expect(view.getAllByTestId(/^skeleton-row-/)).toHaveLength(3);
   });
@@ -178,7 +222,7 @@ describe("CrearView — con Spotify (buscador)", () => {
     }));
 
     const view = setup({
-      spotifyConnected: true,
+      spotifyStatus: "connected",
       query: "bad",
       searchStatus: "results",
       results,
@@ -192,7 +236,7 @@ describe("CrearView — con Spotify (buscador)", () => {
 
   it("sin resultados lo dice con la frase exacta", () => {
     const view = setup({
-      spotifyConnected: true,
+      spotifyStatus: "connected",
       query: "zzz",
       searchStatus: "empty",
     });
@@ -206,7 +250,7 @@ describe("CrearView — con Spotify (buscador)", () => {
     const onSearchRetry = jest.fn();
 
     const view = setup({
-      spotifyConnected: true,
+      spotifyStatus: "connected",
       query: "bad",
       searchStatus: "error",
       onSearchRetry,
@@ -220,7 +264,7 @@ describe("CrearView — con Spotify (buscador)", () => {
   it("«Cambiar» pliega el buscador y vuelve a desplegarlo", () => {
     const onToggleSearch = jest.fn();
 
-    const view = setup({ spotifyConnected: true, work: WORK, onToggleSearch });
+    const view = setup({ spotifyStatus: "connected", work: WORK, onToggleSearch });
 
     expect(view.queryByTestId("search-field")).toBeNull();
     fireEvent.press(view.getByTestId("crear-change-work"));
@@ -352,7 +396,7 @@ describe("CrearView — edición", () => {
   });
 
   it("en edición la obra es fija y no hay selector aunque no haya Spotify", () => {
-    const view = setup({ mode: "edit", work: WORK, spotifyConnected: true });
+    const view = setup({ mode: "edit", work: WORK, spotifyStatus: "connected" });
 
     expect(view.getByTestId("work-result-work-1")).toBeVisible();
     expect(

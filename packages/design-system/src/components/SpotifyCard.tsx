@@ -12,7 +12,8 @@
  * - `connected`: «Conectado» + desconectar en tono de peligro.
  * - `connectionError`: «No pudimos conectar con Spotify.» + reintentar.
  * - `invalidToken`: sesión caducada + conectar otra vez.
- * - `notConfigured`: instalación sin client ID + reintentar.
+ * - `notConfigured`: instalación sin client ID. Informa y no ofrece acción: reintentar
+ *   no cambiaría nada, porque el client ID se fija al empaquetar la app.
  */
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
@@ -54,7 +55,7 @@ function copyFor(status: SpotifyConnectionStatus): CardCopy {
     case "notConfigured":
       return {
         title: "La conexión con Spotify no está configurada en esta instalación.",
-        body: null,
+        body: "Falta el client ID de Spotify en esta instalación. Puedes seguir usando el catálogo de ejemplo y publicar opiniones.",
       };
   }
 }
@@ -143,14 +144,6 @@ export function SpotifyCard({
           testID="spotify-card-connect"
           label="Conectar con Spotify"
           onPress={onConnect}
-        />
-      ) : null}
-
-      {status === "notConfigured" ? (
-        <PrimaryButton
-          testID="spotify-card-retry"
-          label="Reintentar"
-          onPress={onRetry}
         />
       ) : null}
     </View>

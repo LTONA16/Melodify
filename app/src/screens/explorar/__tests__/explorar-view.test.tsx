@@ -5,6 +5,7 @@ import { fireEvent, render } from "@testing-library/react-native";
 
 import {
   EXPLORAR_CONNECT_BODY,
+  EXPLORAR_NOT_CONFIGURED_BODY,
   EXPLORAR_OFFLINE_MESSAGE,
   EXPLORAR_TOKEN_MESSAGE,
   ExplorarView,
@@ -120,7 +121,7 @@ describe("ExplorarView — sin sesión", () => {
     expect(view.queryByTestId("search-field")).toBeNull();
   });
 
-  it("connectionError y notConfigured muestran su mensaje y reintentan", () => {
+  it("connectionError y notConfigured muestran su mensaje; solo el error reintenta", () => {
     const onRetryConnection = jest.fn();
     const error = setup({ spotifyStatus: "connectionError", onRetryConnection });
 
@@ -136,6 +137,9 @@ describe("ExplorarView — sin sesión", () => {
         "La conexión con Spotify no está configurada en esta instalación.",
       ),
     ).toBeVisible();
+    expect(notConfigured.getByText(EXPLORAR_NOT_CONFIGURED_BODY)).toBeVisible();
+    // Sin client ID no hay nada que reintentar: un botón aquí no cambiaría nada.
+    expect(notConfigured.queryByTestId("connection-card-action")).toBeNull();
   });
 });
 

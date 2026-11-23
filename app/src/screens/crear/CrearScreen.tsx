@@ -18,11 +18,7 @@
  *   se pide snackbar (BR11.7, BR12.5).
  */
 import type { AppSession } from "@melodify/app-session";
-import {
-  useCreateEntry,
-  useGlobalServices,
-  useShellServices,
-} from "@melodify/app-shell";
+import { useCreateEntry, useGlobalServices } from "@melodify/app-shell";
 import type { Catalog } from "@melodify/catalog";
 import type { ContentStore } from "@melodify/content-store";
 import { useEffect, useMemo, useState } from "react";
@@ -30,6 +26,7 @@ import { useEffect, useMemo, useState } from "react";
 import { logger, type AppLogger } from "../../bootstrap/logger";
 import { useContent } from "../../state/useContent";
 import { useNetwork } from "../../state/useNetwork";
+import { useSpotifyConnection } from "../../state/useSpotifyConnection";
 import { useViewerId } from "../../state/useViewerId";
 import { useWorkSearch } from "../../state/useWorkSearch";
 import type { ScreenDependencies } from "../dependencies";
@@ -54,7 +51,9 @@ export function CrearScreen({
         mode="create"
         screenStatus="loading"
         online
-        spotifyConnected={false}
+        spotifyStatus={null}
+        onConnectSpotify={NO_ACTION}
+        onRetrySpotify={NO_ACTION}
         work={null}
         text=""
         rating={0}
@@ -113,13 +112,16 @@ function CrearConnected({
 }: CrearConnectedProps) {
   const entry = useCreateEntry();
   const global = useGlobalServices();
-  const shell = useShellServices();
   const viewerId = useViewerId(session);
   const online = useNetwork();
   // La revisión de C4 es la clave del recuento de las obras de ejemplo: publicar
   // cambia el número que pinta su fila, y sin suscripción se quedaría en el viejo.
   const { revision } = useContent(viewerId, content, log);
-  const spotifyConnected = shell.spotify.status === "connected";
+  // La tarjeta de la rama de ejemplo es la misma pieza que la de Explorar: lee el
+  // estado real de C7 para poder decir «Conectando…» o «No pudimos conectar» y
+  // ofrecer conectar de verdad, no un botón que no hace nada.
+  const { status: spotifyStatus, connect, retry } = useSpotifyConnection();
+  const spotifyConnected = spotifyStatus === "connected";
   const search = useWorkSearch(catalog, spotifyConnected, log);
 
   const [searchVisible, setSearchVisible] = useState(
@@ -201,7 +203,9 @@ function CrearConnected({
       mode={state.mode}
       screenStatus={state.status}
       online={online}
-      spotifyConnected={spotifyConnected}
+      spotifyStatus={spotifyStatus}
+      onConnectSpotify={connect}
+      onRetrySpotify={retry}
       work={state.work}
       text={state.text}
       rating={state.rating}

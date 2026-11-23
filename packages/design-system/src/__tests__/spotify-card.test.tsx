@@ -80,13 +80,16 @@ describe("SpotifyCard", () => {
     expect(onConnect).toHaveBeenCalledTimes(1);
   });
 
-  it("una instalación sin configurar ofrece reintentar", () => {
-    const { onRetry } = renderCard("notConfigured");
+  it("una instalación sin client ID lo explica y no ofrece una acción muerta", () => {
+    renderCard("notConfigured");
 
     expect(screen.getByTestId("spotify-card-status")).toHaveTextContent(
       "La conexión con Spotify no está configurada en esta instalación.",
     );
-    fireEvent.press(screen.getByTestId("spotify-card-retry"));
-    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("spotify-card-body")).toHaveTextContent(
+      /Falta el client ID de Spotify en esta instalación\./,
+    );
+    expect(screen.queryByTestId("spotify-card-retry")).toBeNull();
+    expect(screen.queryByTestId("spotify-card-connect")).toBeNull();
   });
 });

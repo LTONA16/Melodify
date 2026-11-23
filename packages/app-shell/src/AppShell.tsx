@@ -144,6 +144,10 @@ function renderEntry(entry: StackEntry | undefined): ReactNode {
 
 function EntryBranch({ entry }: { entry: ReactNode }) {
   const theme = useTheme();
+  // Android pinta a sangre por el borde (edge-to-edge) desde RN 0.86, así que la
+  // barra de estado se superpone al contenido si nadie reserva su alto. El área
+  // segura de arriba se aplica una sola vez, aquí: Login también la necesita.
+  const insets = useSafeAreaInsets();
 
   // En Login el gesto atrás no hace nada: la app no se cierra ni cambia de
   // pantalla (BR1.5, F5).
@@ -159,7 +163,14 @@ function EntryBranch({ entry }: { entry: ReactNode }) {
   return (
     <View
       testID="app-shell-entry"
-      style={[styles.fill, { backgroundColor: theme.colors.bg }]}
+      style={[
+        styles.fill,
+        {
+          backgroundColor: theme.colors.bg,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        },
+      ]}
     >
       {entry}
     </View>
@@ -417,7 +428,14 @@ function TabShell({
         <NavigationContainer>
           <View
             testID="app-shell-tabs"
-            style={[styles.fill, { backgroundColor: theme.colors.bg }]}
+            style={[
+              styles.fill,
+              // La franja de la barra de estado se reserva aquí, una sola vez
+              // para las cinco pestañas y la cabecera de detalle. Sin esto, en
+              // Android el reloj y los iconos del sistema se pintan encima del
+              // título y del primer control de cada pantalla.
+              { backgroundColor: theme.colors.bg, paddingTop: insets.top },
+            ]}
           >
             {showsDetailHeader ? (
               <AppHeader
@@ -519,7 +537,7 @@ function TabShell({
               />
             ) : null}
 
-            <View style={{ paddingBottom: insets.bottom }}>
+            <View testID="app-shell-tabbar" style={{ paddingBottom: insets.bottom }}>
               <BottomTabBar
                 items={items}
                 activeIndex={activeIndex}

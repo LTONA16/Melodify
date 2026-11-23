@@ -50,4 +50,19 @@ describe("ConnectionCard", () => {
 
     expect(onAction).toHaveBeenCalledTimes(1);
   });
+
+  it("sin acción solo informa: no pinta un botón que no haría nada", () => {
+    renderCard({ actionLabel: undefined, onAction: undefined });
+
+    expect(screen.getByTestId("connection-card-title")).toBeVisible();
+    expect(screen.queryByTestId("connection-card-action")).toBeNull();
+  });
+
+  it("una etiqueta sin callback pinta el botón y pulsarlo no rompe nada", () => {
+    renderCard({ onAction: undefined });
+
+    fireEvent.press(screen.getByTestId("connection-card-action"));
+
+    expect(screen.getByTestId("connection-card-action")).toBeVisible();
+  });
 });

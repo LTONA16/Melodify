@@ -25,6 +25,7 @@ import { ThemeProvider } from "@melodify/design-system";
 
 import type { AppLogger } from "../../../bootstrap/logger";
 import { CrearScreen } from "../CrearScreen";
+import { CREAR_CONNECT_BODY } from "../CrearView";
 import { SEARCH_DEBOUNCE_MS } from "../../../state/useWorkSearch";
 
 /**
@@ -215,14 +216,21 @@ function shellServices(options: {
   spotify?: SpotifyStatus;
   online?: boolean;
 }): ShellServices {
+  const spotifyStatus = options.spotify ?? "disconnected";
+
   return {
     network: {
       online: options.online ?? true,
       subscribe: () => () => undefined,
     },
     spotify: {
-      status: options.spotify ?? "disconnected",
-      subscribe: () => () => undefined,
+      status: spotifyStatus,
+      // C7 emite el estado vigente al suscribirse; el doble hace lo mismo para
+      // que `useSpotifyConnection` deje de ver `null` en la primera emisión.
+      subscribe: (listener: (status: SpotifyStatus) => void) => {
+        listener(spotifyStatus);
+        return () => undefined;
+      },
       connect: () => undefined,
       disconnect: () => undefined,
       retry: () => undefined,
@@ -330,9 +338,7 @@ describe("CrearScreen — composición y carga", () => {
   it("con identidad y catálogo pinta el selector de ejemplo y las ocho filas con su recuento", async () => {
     const view = setup();
 
-    await view.findByText(
-      "Conecta Spotify para buscar en el catálogo completo.",
-    );
+    await view.findByText(CREAR_CONNECT_BODY);
 
     expect(view.getAllByTestId(/^work-result-work-/)).toHaveLength(3);
     expect(view.getAllByTestId("work-result-opinions")[0]).toHaveTextContent(
