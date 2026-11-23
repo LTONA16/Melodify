@@ -361,7 +361,7 @@ export function ExplorarView({
         data={data}
         keyExtractor={(item) => item.key}
         ListHeaderComponent={header}
-        ListEmptyComponent={empty}
+        ListEmptyComponent={empty ?? undefined}
         style={styles.fill}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
