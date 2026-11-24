@@ -26,6 +26,7 @@ describe("PKCE", () => {
   it("codifica base64url sin padding", () => {
     expect(toBase64Url(new Uint8Array([0, 0, 0]))).toBe("AAAA");
     expect(toBase64Url(new Uint8Array([255, 255]))).toBe("__8");
+    expect(toBase64Url(new Uint8Array([255]))).toBe("_w");
     expect(toBase64Url(new Uint8Array())).toBe("");
   });
 

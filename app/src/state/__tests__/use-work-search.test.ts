@@ -551,6 +551,37 @@ describe("useWorkSearch — sin buscador montado", () => {
     expect(result.current.results).toEqual([]);
   });
 
+  it("pausar con una petición que falla no la registra ni la pinta como error", async () => {
+    let fail: (error: Error) => void = () => undefined;
+    const pending = new Promise<SearchResult>((_resolve, reject) => {
+      fail = reject;
+    });
+    const { result, rerender, logger } = renderSearch({
+      handler: () => pending,
+    });
+
+    act(() => {
+      result.current.setQuery("ba");
+    });
+    await advance();
+
+    expect(result.current.status).toBe("searching");
+
+    act(() => {
+      rerender({ enabled: true, paused: true });
+    });
+    await act(async () => {
+      fail(new Error("sin red"));
+      await Promise.resolve();
+    });
+
+    // La pausa también silencia el fallo del puerto: no hay error que pintar ni
+    // defecto interno que registrar mientras dura la capa de BR18.6.
+    expect(result.current.status).toBe("searching");
+    expect(result.current.results).toEqual([]);
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
   it("apagarlo con una búsqueda en vuelo descarta lo que llegue después", async () => {
     const slow = deferred<SearchResult>();
     const { result, rerender } = renderSearch({

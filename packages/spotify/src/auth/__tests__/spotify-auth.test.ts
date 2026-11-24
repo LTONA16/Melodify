@@ -47,6 +47,7 @@ function harness(options: {
   refreshResponse?: unknown;
   setItemFails?: boolean;
   getItemFails?: boolean;
+  deleteItemFails?: boolean;
   cryptoFails?: boolean;
   browserResult?: unknown;
 } = {}): Harness {
@@ -71,6 +72,9 @@ function harness(options: {
       values.set(key, value);
     }),
     deleteItem: jest.fn(async (key: string) => {
+      if (options.deleteItemFails) {
+        throw new Error("llavero bloqueado");
+      }
       values.delete(key);
     }),
   };
@@ -89,14 +93,21 @@ function harness(options: {
 
   const fetchMock = jest.fn(async (url: string) => {
     if (url.includes("/api/token")) {
-      return response(
-        options.refreshResponse ??
-          options.tokenResponse ?? {
-            access_token: "access-new",
-            refresh_token: "refresh-new",
-            expires_in: 3600,
-          },
-      );
+      // `null` es una respuesta legítima que la máquina debe rechazar, así que se
+      // compara con `undefined` y no con `??`: si no, el doble devolvería un token
+      // válido donde la prueba pide un cuerpo nulo.
+      const body =
+        options.refreshResponse !== undefined
+          ? options.refreshResponse
+          : options.tokenResponse !== undefined
+            ? options.tokenResponse
+            : {
+                access_token: "access-new",
+                refresh_token: "refresh-new",
+                expires_in: 3600,
+              };
+
+      return response(body);
     }
     throw new Error(`petición inesperada: ${url}`);
   }) as unknown as FetchLike & jest.Mock;
@@ -242,6 +253,51 @@ describe("máquina de autorización de Spotify", () => {
     expect(h.fetchMock).not.toHaveBeenCalled();
   });
 
+  it("un redirect sin código no se intercambia", async () => {
+    const h = harness({
+      browserResult: {
+        type: "success",
+        url: "exp://127.0.0.1:8081/--/spotify-callback?state=algo",
+      },
+    });
+    await h.auth.whenReady();
+
+    h.auth.connect();
+    await flush();
+
+    expect(h.auth.getState()).toEqual({ status: "connectionError" });
+    expect(h.fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("un redirect sin query no se intercambia", async () => {
+    const h = harness({
+      browserResult: {
+        type: "success",
+        url: "exp://127.0.0.1:8081/--/spotify-callback",
+      },
+    });
+    await h.auth.whenReady();
+
+    h.auth.connect();
+    await flush();
+
+    expect(h.auth.getState()).toEqual({ status: "connectionError" });
+    expect(h.fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("un token sin refresh_token en la primera conexión no se guarda", async () => {
+    const h = harness({
+      tokenResponse: { access_token: "access-new", expires_in: 3600 },
+    });
+    await h.auth.whenReady();
+
+    h.auth.connect();
+    await flush();
+
+    expect(h.auth.getState()).toEqual({ status: "connectionError" });
+    expect(h.values.has(TOKEN_STORAGE_KEY)).toBe(false);
+  });
+
   it("cancelar en el navegador termina en connectionError, sin fetch", async () => {
     const h = harness({ browserResult: { type: "cancel" } });
     await h.auth.whenReady();
@@ -250,6 +306,88 @@ describe("máquina de autorización de Spotify", () => {
     await flush();
 
     expect(h.auth.getState()).toEqual({ status: "connectionError" });
+    expect(h.fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("un navegador que lanza termina en connectionError, sin fetch", async () => {
+    const h = harness();
+    await h.auth.whenReady();
+    h.browser.openAuthSessionAsync.mockRejectedValueOnce(
+      new Error("sin navegador"),
+    );
+
+    h.auth.connect();
+    await flush();
+
+    expect(h.auth.getState()).toEqual({ status: "connectionError" });
+    expect(h.fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("un segundo connect mientras autoriza no abre otro navegador", async () => {
+    const h = harness();
+    await h.auth.whenReady();
+    h.browser.openAuthSessionAsync.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    h.auth.connect();
+    await flush();
+    h.auth.connect();
+    await flush();
+
+    expect(h.browser.openAuthSessionAsync).toHaveBeenCalledTimes(1);
+    expect(h.auth.getState()).toEqual({ status: "connecting" });
+  });
+
+  it("una respuesta de token ilegible termina en connectionError", async () => {
+    const h = harness({ tokenResponse: { error: "invalid_grant" } });
+    await h.auth.whenReady();
+
+    h.auth.connect();
+    await flush();
+
+    expect(h.auth.getState()).toEqual({ status: "connectionError" });
+    expect(h.values.has(TOKEN_STORAGE_KEY)).toBe(false);
+  });
+
+  it("una respuesta de token nula termina en connectionError", async () => {
+    const h = harness({ tokenResponse: null });
+    await h.auth.whenReady();
+
+    h.auth.connect();
+    await flush();
+
+    expect(h.auth.getState()).toEqual({ status: "connectionError" });
+    expect(h.values.has(TOKEN_STORAGE_KEY)).toBe(false);
+  });
+
+  it("al arrancar renueva en silencio un token dentro de la ventana de 60 s", async () => {
+    const h = harness({ token: tokenAt({ expiresAt: NOW + 30_000 }) });
+    const states: string[] = [];
+    h.auth.subscribe((view) => states.push(view.status));
+
+    await h.auth.whenReady();
+
+    // La hidratación no pinta `connecting`: el primer estado ya es el real (BR16.6).
+    expect(states).toEqual(["connected"]);
+    expect(h.fetchMock).toHaveBeenCalledTimes(1);
+    expect(h.auth.isConnected()).toBe(true);
+    expect(h.values.get(TOKEN_STORAGE_KEY)).toContain("access-new");
+  });
+
+  it("getAccessToken devuelve null sin sesión y no pide nada", async () => {
+    const h = harness();
+    await h.auth.whenReady();
+
+    await expect(h.auth.getAccessToken()).resolves.toBeNull();
+    expect(h.fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("getAccessToken devuelve el token vigente sin renovarlo", async () => {
+    const h = harness({ token: tokenAt() });
+    await h.auth.whenReady();
+
+    await expect(h.auth.getAccessToken()).resolves.toBe("access-old");
     expect(h.fetchMock).not.toHaveBeenCalled();
   });
 
@@ -272,6 +410,23 @@ describe("máquina de autorización de Spotify", () => {
 
     expect(h.auth.getState()).toEqual({ status: "disconnected" });
     expect(h.values.has(TOKEN_STORAGE_KEY)).toBe(false);
+  });
+
+  it("si el llavero no deja borrar, desconectar avisa y deja el estado igual", async () => {
+    const h = harness({ token: tokenAt(), deleteItemFails: true });
+    await h.auth.whenReady();
+
+    h.auth.disconnect();
+    await flush();
+
+    // No se puede borrar del almacén, pero la sesión en memoria sí se cierra:
+    // la persona ve `disconnected` y el aviso explica lo que ha pasado (R-09).
+    expect(h.auth.getState()).toEqual({ status: "disconnected" });
+    expect(h.auth.isConnected()).toBe(false);
+    expect(h.logger.warn).toHaveBeenCalledWith(
+      "SPOTIFY_TOKEN_DELETE_FAILED",
+      expect.any(String),
+    );
   });
 
   it("renueva una sola vez en vuelo 60 s antes de caducar", async () => {
@@ -359,6 +514,19 @@ describe("máquina de autorización de Spotify", () => {
     h.auth.retry();
     await flush();
     expect(h.browser.openAuthSessionAsync).toHaveBeenCalledTimes(2);
+  });
+
+  it("retry con sesión vigente no abre el navegador y renueva si toca", async () => {
+    const h = harness({ token: tokenAt() });
+    await h.auth.whenReady();
+    h.advance(HOUR);
+
+    h.auth.retry();
+    await flush();
+
+    expect(h.browser.openAuthSessionAsync).not.toHaveBeenCalled();
+    expect(h.fetchMock).toHaveBeenCalledTimes(1);
+    expect(h.auth.getState()).toEqual({ status: "connected" });
   });
 
   it("retry sin client ID se queda en notConfigured", async () => {

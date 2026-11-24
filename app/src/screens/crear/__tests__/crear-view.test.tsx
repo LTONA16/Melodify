@@ -7,6 +7,7 @@ import {
   CREAR_CONNECT_BODY,
   CREAR_NOT_CONFIGURED_BODY,
   CREAR_OFFLINE_MESSAGE,
+  CREAR_SEARCH_OFFLINE_MESSAGE,
   type CrearViewProps,
 } from "../CrearView";
 
@@ -157,6 +158,29 @@ describe("CrearView — sin Spotify (selector de ejemplo)", () => {
     expect(onRetrySpotify).toHaveBeenCalledTimes(1);
   });
 
+  it("mientras autoriza dice «Conectando…» y no deja repetir la acción", () => {
+    const view = setup({ spotifyStatus: "connecting" });
+
+    expect(view.getAllByText("Conectando…")).toHaveLength(2);
+    expect(
+      view.getByText("Termina la autorización en Spotify; volverás aquí solo."),
+    ).toBeVisible();
+    expect(view.getByTestId("connection-card-action")).toBeDisabled();
+  });
+
+  it("con el token caducado invita a volver a conectar desde la tarjeta", () => {
+    const onConnectSpotify = jest.fn();
+    const view = setup({ spotifyStatus: "invalidToken", onConnectSpotify });
+
+    expect(
+      view.getByText("Tu sesión de Spotify caducó. Vuelve a conectar."),
+    ).toBeVisible();
+    expect(view.getByText(CREAR_CONNECT_BODY)).toBeVisible();
+    fireEvent.press(view.getByTestId("connection-card-action"));
+
+    expect(onConnectSpotify).toHaveBeenCalledTimes(1);
+  });
+
   it("sin client ID lo explica y no ofrece un botón que no hace nada", () => {
     const view = setup({ spotifyStatus: "notConfigured" });
 
@@ -258,6 +282,23 @@ describe("CrearView — con Spotify (buscador)", () => {
 
     expect(view.getByText("No pudimos buscar en Spotify.")).toBeVisible();
     fireEvent.press(view.getByTestId("crear-search-retry"));
+    expect(onSearchRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("sin conexión el buscador lo dice y deja reintentar la consulta vigente", () => {
+    const onSearchRetry = jest.fn();
+
+    const view = setup({
+      spotifyStatus: "connected",
+      query: "bad",
+      searchStatus: "offline",
+      onSearchRetry,
+    });
+
+    expect(view.getByTestId("crear-search-offline")).toHaveTextContent(
+      CREAR_SEARCH_OFFLINE_MESSAGE,
+    );
+    fireEvent.press(view.getByTestId("crear-search-offline-retry"));
     expect(onSearchRetry).toHaveBeenCalledTimes(1);
   });
 

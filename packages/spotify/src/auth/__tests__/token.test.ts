@@ -59,6 +59,8 @@ describe("token de Spotify", () => {
     expect(parseToken(null)).toBeNull();
     expect(parseToken("")).toBeNull();
     expect(parseToken("{")).toBeNull();
+    expect(parseToken("null")).toBeNull();
+    expect(parseToken("42")).toBeNull();
     expect(parseToken("[]")).toBeNull();
     expect(
       parseToken(

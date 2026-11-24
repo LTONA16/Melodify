@@ -16,8 +16,9 @@
  *   ocho obras de ejemplo con su recuento (BR13.5, AC5.2.1).
  * - **El error de envío se pinta sobre el botón principal** y no oculta los campos
  *   (BR11.7, BR12.5); «Reintentar» repite la misma escritura.
- * - **El aviso de sin conexión no lleva acción en Crear**: no hay nada que
- *   reintentar, el catálogo de ejemplo es local y el formulario funciona (BR15.4).
+ * - **El banner de sin conexión de la pantalla no lleva acción**: con el catálogo de
+ *   ejemplo no hay nada que reintentar y el formulario funciona (BR15.4). El
+ *   buscador real sí la lleva, y por eso su estado `offline` se pinta aparte.
  */
 import type { SpotifyStatus } from "@melodify/app-shell";
 import type { WorkSummary } from "@melodify/design-system";
@@ -49,6 +50,14 @@ import { CrearHeader } from "./CrearHeader";
 /** El texto propio de Crear sin red; el de Editar es el aviso único de U2 (BR15.4). */
 export const CREAR_OFFLINE_MESSAGE =
   "Sin conexión. Puedes opinar sobre las obras de ejemplo.";
+
+/**
+ * El mismo aviso, pero dentro del buscador: aquí sí hay algo que reintentar —la
+ * consulta vigente—, y sin este estado la zona quedaba en blanco cuando la red se
+ * caía a mitad de una búsqueda real (BR13.4, BR17.10).
+ */
+export const CREAR_SEARCH_OFFLINE_MESSAGE =
+  "Sin conexión. No podemos buscar en Spotify ahora mismo.";
 
 /** La invitación a conectar Spotify desde la rama de ejemplo (BR13.5). */
 export const CREAR_CONNECT_BODY =
@@ -233,6 +242,22 @@ function SearchBranch({
           <TextButton
             label="Reintentar"
             testID="crear-search-retry"
+            onPress={onSearchRetry}
+          />
+        </View>
+      ) : null}
+
+      {searchStatus === "offline" ? (
+        <View style={{ gap: theme.space[2] }}>
+          <Text
+            testID="crear-search-offline"
+            style={[theme.type.bodySmall, { color: theme.colors.text }]}
+          >
+            {CREAR_SEARCH_OFFLINE_MESSAGE}
+          </Text>
+          <TextButton
+            label="Reintentar"
+            testID="crear-search-offline-retry"
             onPress={onSearchRetry}
           />
         </View>
