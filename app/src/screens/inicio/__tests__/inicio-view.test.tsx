@@ -26,7 +26,7 @@ function opinionCard(
     authorName: "Lucía Ferrer",
     authorHandle: "lucia",
     followedByMe: true,
-    workId: "4u7EnebtmKWzUH433Rbtpz",
+    workId: "7tFiyTwD0nx5a1eklYtX2J",
     workTitle: "Bohemian Rhapsody",
     workArtist: "Queen",
     coverUrl: null,

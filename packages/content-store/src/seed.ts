@@ -83,7 +83,7 @@ export const SEED_AUTHORS: SeedAuthor[] = [
  * inicial (BR5.3).
  */
 export const SEED_WORKS: SeedWork[] = [
-  { workId: "4u7EnebtmKWzUH433Rbtpz", title: "Bohemian Rhapsody", artist: "Queen" },
+  { workId: "7tFiyTwD0nx5a1eklYtX2J", title: "Bohemian Rhapsody", artist: "Queen" },
   { workId: "0VjIjW4GlUZAMYd2vXMi3b", title: "Blinding Lights", artist: "The Weeknd" },
   { workId: "2Fxmhks0bxGSBdJ92vM42m", title: "bad guy", artist: "Billie Eilish" },
   { workId: "7qiZfU4dY1lWllzX7mPBI3", title: "Shape of You", artist: "Ed Sheeran" },
@@ -102,7 +102,7 @@ export const SEED_OPINIONS: SeedOpinion[] = [
   {
     opinionId: "op-001",
     authorId: "demo",
-    workId: "4u7EnebtmKWzUH433Rbtpz",
+    workId: "7tFiyTwD0nx5a1eklYtX2J",
     rating: 5,
     ageMs: 3 * DAY,
     text: "Seis minutos que no se sienten como seis minutos. Cada vez que la pongo encuentro una capa nueva: el piano, las voces, ese silencio antes del final.",
@@ -110,7 +110,7 @@ export const SEED_OPINIONS: SeedOpinion[] = [
   {
     opinionId: "op-002",
     authorId: "lucia",
-    workId: "4u7EnebtmKWzUH433Rbtpz",
+    workId: "7tFiyTwD0nx5a1eklYtX2J",
     rating: 4,
     ageMs: 2 * HOUR,
     text: "La escuché por primera vez en un viaje largo y desde entonces es mi canción de carretera. La segunda mitad es otra canción y las dos funcionan.",

@@ -412,7 +412,7 @@ refresh:
   on_success: 'token nuevo guardado; el estado sigue connected'
   on_failure: 'token borrado; estado invalidToken'
 search:
-  request: 'GET https://api.spotify.com/v1/search?q=<consulta>&type=track,album,artist&limit=20'
+  request: 'GET https://api.spotify.com/v1/search?q=<consulta>&type=track,album,artist&limit=10'
   mapping:
     track: 'WorkView { workId: id, title: name, artist: artists[0].name, coverUrl: album.images[0].url ?? null, origin: spotify, workKind: track }'
     album: 'WorkView { workId: id, title: name, artist: artists[0].name, coverUrl: images[0].url ?? null, origin: spotify, workKind: album }'
@@ -452,10 +452,12 @@ x-timeouts:
 | `GET /search` respuesta | `tracks.items[]` | `tracks.items[]`, `albums.items[]`, `artists.items[]` |
 | `GET /tracks/{id}` | Resuelve una canción | Igual; si `404`, el consumidor prueba `/albums/{id}` |
 | `GET /albums/{id}` | No declarado | Metadatos y portada de un álbum (mismo esquema que un track, sin `album` anidado) |
-| Límite | `default: 20` | `20` por clase |
+| Límite | `default: 20` | `10` por clase (enmienda del 2026-11-24: Spotify acotó el rango a 0–10 y un `20` devuelve `400`) |
 | Tiempo y reintento | 10 s, sin reintento | Igual |
 
-**Compatibilidad**: C10 es una API externa, no un paquete versionado; el cambio se registra en `contract-summary.md` § Revisión 17 y en la tabla de C10.
+**Compatibilidad**: C10 es una API externa, no un paquete versionado; el cambio se registra en `contract-summary.md` § Revisión 17 y § Revisión 18, y en la tabla de C10.
+
+**Enmienda del 2026-11-24 — el `limit` baja a 10**: la referencia vigente de Spotify acota `limit` a 0–10 por tipo (antes llegaba a 50). El `20` de la revisión 17 devolvía `400` y dejaba la búsqueda sin ejecutar, así que esta especificación y la petición de C7 quedan en **10 por clase** —hasta treinta filas: diez canciones, diez álbumes y diez artistas—, sin paginación. Verificado en Android con Expo Go.
 
 ## Puntos de integración con las unidades siguientes
 

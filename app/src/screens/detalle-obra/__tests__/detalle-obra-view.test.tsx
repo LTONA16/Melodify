@@ -29,7 +29,7 @@ function card(overrides: Partial<OpinionCardModel> = {}): OpinionCardModel {
     authorName: "Lucía Ferrer",
     authorHandle: "lucia",
     followedByMe: true,
-    workId: "4u7EnebtmKWzUH433Rbtpz",
+    workId: "7tFiyTwD0nx5a1eklYtX2J",
     workTitle: "Bohemian Rhapsody",
     workArtist: "Queen",
     coverUrl: null,
@@ -61,7 +61,7 @@ const OWN_BOHEMIAN = card({
 const OTHER_BOHEMIAN = card();
 
 const BOHEMIAN = {
-  workId: "4u7EnebtmKWzUH433Rbtpz",
+  workId: "7tFiyTwD0nx5a1eklYtX2J",
   title: "Bohemian Rhapsody",
   artist: "Queen",
 };

@@ -305,13 +305,13 @@ rules:
 
   - id: BR17.4
     statement: >
-      C10 se consulta con `type=track,album,artist`, hasta 20 resultados por clase, y la
+      C10 se consulta con `type=track,album,artist`, hasta 10 resultados por clase, y la
       respuesta se normaliza a `works` y `artists` antes de cruzar C5.
     category: constraint
     applies_to: "SpotifyCatalog (C7) y C10"
     trigger: "Se ejecuta una búsqueda con sesión."
     logic: >
-      La petición es `GET /search?q=<consulta>&type=track,album,artist&limit=20`. La
+      La petición es `GET /search?q=<consulta>&type=track,album,artist&limit=10`. La
       canción toma `name`, el primer artista y la primera imagen de su álbum; el álbum
       toma `name`, su primer artista y su primera imagen; el artista toma `id` y `name`.
       Los elementos sin `id` o sin `name` se descartan en vez de pintarse a medias. Los
@@ -844,7 +844,7 @@ rules:
 | **BR17.1** | validation | 2 caracteres y 400 ms; nada por debajo. | FR4.2, AC3.1.1 |
 | **BR17.2** | policy | Caché por consulta normalizada; repetir no pide. | FR4.2, AC3.1.6, OQ2 |
 | **BR17.3** | policy | Canciones y álbumes son obras; artistas son atajos; orden por clase. | Q3 = B, Q5 = A |
-| **BR17.4** | constraint | `type=track,album,artist`, 20 por clase y normalización. | Q3 = B, C10 |
+| **BR17.4** | constraint | `type=track,album,artist`, 10 por clase y normalización. | Q3 = B, C10 |
 | **BR17.5** | policy | Portada, título, artista, etiqueta de clase y recuento o invitación. | FR4.3, AC3.1.2, AC3.1.3 |
 | **BR17.6** | policy | Tocar artista rellena el campo y relanza la búsqueda. | Q5 = A |
 | **BR17.7** | policy | Siete estados de búsqueda con texto exacto. | FR4.6, AC3.1.4, AC3.1.5, AC3.1.7 |
@@ -872,6 +872,10 @@ rules:
 | **BR20.7** | validation | Obra desconocida sin datos: error con «Reintentar». | FR11.1, FR11.2 |
 | **BR20.8** | policy | La obra buscada queda registrada en C5 para su recuento y portada. | C5 § searchWorks |
 | **BR20.9** | constraint | `workKind` opcional; sin él se asume canción. | C5 1.2.0 |
+
+## Enmienda del 2026-11-24 — el `limit` de BR17.4 baja a 10
+
+La referencia de Spotify para `/search` acota `limit` a **0–10 por tipo**; el `20` con el que nació BR17.4 devolvía `400` y la búsqueda no llegaba a ejecutarse. BR17.4 queda en **10 por clase** (hasta treinta filas) y sin paginación, igual que su fuente en `contract-summary.md` § C10, § «Enmienda del 2026-11-24» (revisión 18). El resto de la regla —normalización a `works` y `artists`, descarte de elementos incompletos y mapeo de fallos— no cambia.
 
 ## Assumptions & Open Questions
 

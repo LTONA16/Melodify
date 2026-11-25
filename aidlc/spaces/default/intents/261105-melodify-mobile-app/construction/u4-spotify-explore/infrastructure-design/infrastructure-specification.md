@@ -38,7 +38,7 @@ decidió. Lo que sí cambia respecto a U3 es el borde: U4 estrena **salida a dos
 | **Almacenamiento** | Nada provisionado. `expo-secure-store` es del dispositivo y pasa de **una** clave a **dos**: `melodify.session` (U1) y `melodify.spotify.token` (U4) | El llavero lo aporta el sistema operativo; U4 añade exactamente una fila persistida y es una credencial, no contenido (NFR4.9, NFR3.18) |
 | **Entornos** | Uno: el teléfono con Metro. Sin staging ni producción | `team.md` § Deployment; dos entornos sin backend solo añadirían configuración que nadie usa |
 | **Infraestructura como código** | Ninguna. Los artefactos de automatización son **configuración de repositorio**: `.github/workflows/ci.yml` (no cambia), `tsconfig.json`, `jest.config.js`, `eslint.config.js` y los `package.json` | No hay recursos que declarar. La validación de esos archivos es el propio CI, y su detalle está en `cicd-pipeline.md` |
-| **Dimensionamiento** | No aplica: no hay servidor que dimensionar. El presupuesto real es el de NFR8 (400 ms de disparo, 10 s de tiempo límite, 5 esqueletos, 60 resultados, 20 por clase) | Sin recurso remoto no hay CPU ni memoria que aprovisionar; el límite es el teléfono y ya está presupuestado en `performance-design.md` |
+| **Dimensionamiento** | No aplica: no hay servidor que dimensionar. El presupuesto real es el de NFR8 (400 ms de disparo, 10 s de tiempo límite, 5 esqueletos, 30 resultados, 10 por clase) | Sin recurso remoto no hay CPU ni memoria que aprovisionar; el límite es el teléfono y ya está presupuestado en `performance-design.md` |
 | **Dependencias** | **Tres nuevas, todas de Expo y del SDK 57**: `expo-crypto`, `expo-web-browser` y `expo-auth-session`. **El lockfile se mueve por primera vez desde U2** | La versión la fija `npx expo install` y queda exacta (TS-01, TS-32). Las tres son públicas, se instalan sin credenciales y ninguna exige `prebuild` (NFR7.7) |
 | **Servicios de terceros** | Dos hosts de Spotify y su CDN de imágenes, con **cliente público sin secreto** y PKCE S256 | No hay contrato, ni cuenta de servicio, ni clave que repartir: el client ID es público y el token pertenece a la persona que autoriza (NFR3.17, `project.md` § Forbidden) |
 
@@ -51,7 +51,7 @@ decidió. Lo que sí cambia respecto a U3 es el borde: U4 estrena **salida a dos
 | **Expo Go** (teléfono Android) | Runtime del cliente | Cliente de Expo instalado a mano en el dispositivo | Debe traer los tres módulos del SDK 57; si Metro avisara de un módulo ausente, la unidad no se cierra (NFR7.7) |
 | **`expo-secure-store`** (dispositivo) | Almacenamiento seguro del sistema operativo | **Dos claves, dos dueños**: `melodify.session` (`authorId` y `startedAt`, de U1) y **`melodify.spotify.token`** (`accessToken`, `refreshToken`, `expiresAt`, `obtainedAt`) | La segunda es nueva y la escribe solo `packages/spotify/src/auth/device.ts`; se borra entera al desconectar, al fallar la renovación y ante un `401` (NFR3.18, NFR4.9) |
 | **`accounts.spotify.com`** (C9) | Servicio de autorización de terceros | `GET /authorize` con `code_challenge_method=S256` y `state`; `POST /api/token` con `application/x-www-form-urlencoded` y **sin** `Authorization` ni `client_secret`; 10 s de tiempo límite | Única llamada sin `Bearer`; el intercambio sale por la misma puerta HTTP que el catálogo (TS-34, NFR3.17) |
-| **`api.spotify.com`** (C10) | Catálogo de terceros | `GET /v1/search` (`type=track,album,artist`, `limit=20`), `GET /v1/tracks/{id}` y `GET /v1/albums/{id}`; `Authorization: Bearer`; 10 s; **sin reintento automático** | Solo lectura del catálogo público y solo con sesión: sin token no hay petición (NFR8.14, NFR8.12) |
+| **`api.spotify.com`** (C10) | Catálogo de terceros | `GET /v1/search` (`type=track,album,artist`, `limit=10`), `GET /v1/tracks/{id}` y `GET /v1/albums/{id}`; `Authorization: Bearer`; 10 s; **sin reintento automático** | Solo lectura del catálogo público y solo con sesión: sin token no hay petición (NFR8.14, NFR8.12) |
 | **CDN de imágenes de Spotify** | Origen de las portadas | La `coverUrl` que devuelve la API se pasa a `Image` como fuente | No se construye ninguna URL de imagen en el cliente ni se aprovisiona caché: es un dato de la respuesta (NFR3.20) |
 | **Registro del dispositivo** | Sumidero de diagnóstico | Consola del teléfono, visible en Metro; **catorce códigos** desde esta unidad | Efímero y sin agregación; U4 añade seis códigos y ningún destino remoto (`monitoring-design.md`) |
 
@@ -115,6 +115,10 @@ La pregunta que un revisor de infraestructura hace primero cuando entra una cred
 `project.md` § Mandated manda y se borra en tres caminos declarados. Si alguien propusiera guardar
 también la caché de búsquedas «para no repetir peticiones», esta tabla y RC-03 dejarían de ser
 ciertas: la decisión tendría que tomarla una etapa, no un PR.
+
+## Enmienda del 2026-11-24 — `limit` de C10
+
+Spotify acotó `limit` de `/search` a **0–10 por tipo**; el `20` de esta especificación devolvía `400` y ninguna búsqueda llegaba a ejecutarse. La fila de `api.spotify.com` y el dimensionamiento quedan en **10 por clase** (hasta treinta filas, no sesenta), sin paginación. No cambia ningún recurso de infraestructura: la superficie sigue siendo un host fijo y el CDN de portadas.
 
 ## Assumptions & Open Questions
 

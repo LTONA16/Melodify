@@ -36,7 +36,7 @@ import { DetalleObraScreen } from "../DetalleObraScreen";
  */
 const NOW = "2026-11-12T09:00:00.000Z";
 const DEMO = "demo";
-const BOHEMIAN = "4u7EnebtmKWzUH433Rbtpz";
+const BOHEMIAN = "7tFiyTwD0nx5a1eklYtX2J";
 const BAD_GUY = "2Fxmhks0bxGSBdJ92vM42m";
 
 const SIGNED_IN: SessionView = {

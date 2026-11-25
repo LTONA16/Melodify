@@ -38,6 +38,7 @@ export interface ArtistHit {
 
 export type SearchPortFailure =
   | "unauthorized"
+  | "forbidden"
   | "rateLimited"
   | "timeout"
   | "network"
@@ -45,7 +46,10 @@ export type SearchPortFailure =
 
 export type ResolvePortFailure = SearchPortFailure | "notFound";
 
-/** Resultado de una búsqueda; el catálogo normaliza `failure` a `offline` o `error`. */
+/**
+ * Resultado de una búsqueda; el catálogo normaliza `network` a `offline`,
+ * `rateLimited` a su propio estado y el resto a `error`.
+ */
 export interface SearchPortResult {
   kind: "ok" | "empty" | "failure";
   works?: WorkView[];

@@ -22,7 +22,7 @@ const NOW = "2026-11-12T09:00:00.000Z";
 const HOUR_MS = 60 * 60 * 1000;
 
 const AS_IT_WAS = "4LRPiXqCikLlN15c3yImP7";
-const BOHEMIAN_RHAPSODY = "4u7EnebtmKWzUH433Rbtpz";
+const BOHEMIAN_RHAPSODY = "7tFiyTwD0nx5a1eklYtX2J";
 const BLINDING_LIGHTS = "0VjIjW4GlUZAMYd2vXMi3b";
 const BAD_GUY = "2Fxmhks0bxGSBdJ92vM42m";
 const SHAPE_OF_YOU = "7qiZfU4dY1lWllzX7mPBI3";

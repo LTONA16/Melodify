@@ -54,7 +54,7 @@ describe("instancias de la app", () => {
 
   it("con los puertos reales pero sin sesión no hay búsqueda ni portada real", async () => {
     const search = await catalog.searchWorks("queen");
-    const cover = catalog.coverFor("4u7EnebtmKWzUH433Rbtpz");
+    const cover = catalog.coverFor("7tFiyTwD0nx5a1eklYtX2J");
 
     expect(search).toEqual({ status: "offline", works: [], artists: [] });
     expect(cover).toEqual({ kind: "initialBlock", value: null });

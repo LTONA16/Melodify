@@ -47,7 +47,7 @@ export interface CatalogFailure {
 
 export type CatalogResult<T> = CatalogSuccess<T> | CatalogFailure;
 
-export type SearchStatus = "ok" | "empty" | "offline" | "error";
+export type SearchStatus = "ok" | "empty" | "offline" | "rateLimited" | "error";
 
 /** `GET /works`: el estado de la búsqueda, sus obras y los artistas encontrados. */
 export interface SearchResult {
@@ -100,8 +100,10 @@ function isRecordableWork(work: WorkView | undefined): work is WorkView {
 
 /**
  * Normaliza lo que devuelve el puerto de búsqueda. `network` es falta de cobertura
- * —`offline`— y el resto de fallos son `error`; el error de Spotify nunca se
- * propaga (C5 § `x-ports`).
+ * —`offline`—, `rateLimited` conserva su identidad para que la pantalla pueda decir
+ * que es un límite temporal y ofrecer «Reintentar» —lo que ya prometía el `429` del
+ * contrato—, y el resto de fallos son `error`. El error de Spotify nunca se propaga
+ * (C5 § `x-ports`).
  */
 function toSearchResult(result: SearchPortResult): SearchResult {
   if (result.kind === "ok") {
@@ -113,6 +115,9 @@ function toSearchResult(result: SearchPortResult): SearchResult {
   }
   if (result.kind === "empty") {
     return { status: "empty", works: [], artists: [] };
+  }
+  if (result.failure === "rateLimited") {
+    return { status: "rateLimited", works: [], artists: [] };
   }
   return {
     status: result.failure === "network" ? "offline" : "error",

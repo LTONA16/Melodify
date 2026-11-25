@@ -10,13 +10,18 @@
  *
  * El orden es parte de la vista: `listSampleWorks` lo devuelve tal cual para que dos
  * lecturas seguidas no cambien la lista (BR5.1).
+ *
+ * Los identificadores son de Spotify y se comprobaron uno a uno contra la API: un ID
+ * inventado no rompe la lista —la obra se pinta igual—, pero `resolve` devuelve `404`
+ * en la canción y en el álbum y la portada no llega nunca (incidente del 2026-11-24:
+ * «Bohemian Rhapsody» tenía un ID que no existía).
  */
 import type { WorkView } from "./ports";
 
 /** Las obras de ejemplo, ya en su orden estable. */
 export const SAMPLE_WORKS: readonly WorkView[] = Object.freeze([
   {
-    workId: "4u7EnebtmKWzUH433Rbtpz",
+    workId: "7tFiyTwD0nx5a1eklYtX2J",
     title: "Bohemian Rhapsody",
     artist: "Queen",
     coverUrl: null,

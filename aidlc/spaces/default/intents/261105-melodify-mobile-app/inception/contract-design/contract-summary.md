@@ -995,7 +995,7 @@ paths:
       parameters:
         - { name: query, in: query, schema: { type: string } }
         - { name: type, in: query, schema: { const: 'track,album,artist' } }
-        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+        - { name: limit, in: query, schema: { type: integer, default: 10 } }
       responses:
         '200':
           description: resultados normalizados a `works` y `artists` (revisión 17)
@@ -1252,7 +1252,7 @@ paths:
       parameters:
         - { name: q, in: query, required: true, schema: { type: string } }
         - { name: type, in: query, schema: { enum: [track, album, artist] } }
-        - { name: limit, in: query, schema: { type: integer, default: 20, description: por clase } }
+        - { name: limit, in: query, schema: { type: integer, default: 10, description: por clase } }
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -1345,6 +1345,16 @@ x-timeouts:
   retry: nunca automático; reintenta la persona
 ```
 
+### Enmienda del 2026-11-24 — el `limit` de C10 baja a 10
+
+La referencia de Spotify para `/search` acota hoy `limit` a **0–10 por tipo** (antes llegaba a 50). La app pedía `20` y la API respondía `400` antes de buscar nada, así que **ninguna** búsqueda llegaba a ejecutarse; el primer recorrido real con sesión lo destapó (`SPOTIFY_SEARCH_FAILED: error, HTTP 400`).
+
+- `limit` pasa a **10 por clase** en las dos declaraciones del contrato y en la respuesta de OQ2, con hasta **30 filas** por pantalla —diez canciones, diez álbumes y diez artistas— en lugar de 60.
+- No se añade paginación: OQ2 sigue cerrada y el presupuesto de una sola petición por consulta no cambia.
+- El tope lo fija Spotify, no la app: si vuelve a mover el rango, se ajusta el valor y se anota aquí, que es donde se lee el contrato.
+
+Implementado en `@melodify/spotify` y verificado en Android con Expo Go: búsqueda de artista con resultados, portadas resueltas y publicación sobre un resultado.
+
 ## Reglas de propiedad y versionado
 
 - **Dueño**: cada contrato pertenece a la unidad que crea el paquete. Un consumidor propone, no cambia: si necesita otra cosa, se acuerda con el dueño en el PR.
@@ -1374,7 +1384,7 @@ x-timeouts:
 |---|---|---|
 | C7, C9 | El redirect URI exacto de PKCE (A6) — **cerrada en la revisión 17**: se resuelve de `EXPO_PUBLIC_SPOTIFY_REDIRECT_URI` o `makeRedirectUri({ path: 'spotify-callback' })`, se intenta registrar en el panel y, si lo rechaza, se anota y el recorrido se demuestra sin sesión (FR12.2). | Ya no bloquea el diseño; el registro en el panel es un paso manual de la entrega |
 | C4 | Límite de texto de la opinión y obligatoriedad de la valoración (OQ1, A1) — **cerrada en la revisión 15**: 500 caracteres para una opinión, 300 para un comentario y valoración 1–5 obligatoria. | Ya no bloquea nada |
-| C10 | Límite de resultados por búsqueda y si se pagina — **cerrada en la revisión 17**: 20 por clase y sin paginación en esta versión. | Ya no bloquea nada |
+| C10 | Límite de resultados por búsqueda y si se pagina — **cerrada en la revisión 17**: 20 por clase y sin paginación en esta versión; **ajustada a 10 por clase el 2026-11-24** porque Spotify acotó el rango del parámetro (revisión 18). | Ya no bloquea nada |
 
 ## Assumptions & Open Questions
 
@@ -1586,8 +1596,18 @@ El Functional Design de `u4-spotify-explore` cierra las cuatro preguntas que que
 | C2 sube a `1.4.0` con la obra completa por la ruta | `WorkDetailScreen.component` recibe `{ workId, data?: WorkView }`; `openWorkDetail` y `openCreate` aceptan `data?`; `CreateEntry` gana `preselectedWork: WorkView \| null`. Es lo que permite abrir y opinar sobre una obra que el catálogo local todavía no conoce (Q2 = A, AC3.1.8). `WorkView` se importa con `import type`, así que no aparece ninguna arista de ejecución hacia C5 ni hacia Spotify. Los llamadores actuales de `openWorkDetail({ workId })` y `openCreate({ workId })` siguen compilando. |
 | C5 sube a `1.2.0` con clase de obra y artistas | `WorkView.workKind?: 'track' \| 'album'`, `ArtistHit { artistId, name }`, `SearchResult.artists?` y `SearchPortResult.artists?`. `searchWorks` propaga los artistas y los cachea con las obras; `registerSearchedWork` sigue registrando solo obras. Todo es aditivo y opcional: las pruebas que construyen un `SearchResult` sin `artists` siguen valiendo. |
 | C7 queda declarada como `1.0.0` con lo que U4 entrega | Se corrige el esquema a lo que la unidad realmente construye: `x-modules` con `auth` y `catalog`, `x-redirect` (entorno o `makeRedirectUri`, decisión Q1 = B), `x-pkce` (S256, `state`, sin scopes), `x-search-mapping` (canción, álbum y artista) y `x-token-lifecycle` ya existente. `/search` declara `type=track,album,artist` y devuelve `works` y `artists`; se añade `/albums/{workId}` como segunda mitad de la resolución cuando `/tracks/{workId}` responde `404`. Ninguna unidad anterior consume C7, así que no hay migración. |
-| C10 amplía la búsqueda y la resolución | `GET /search` pasa de `type: track` a `enum: [track, album, artist]`, con `limit: 20` por clase y `albums.items[]` y `artists.items[]` en la respuesta; se añade `GET /albums/{id}`. No hay paginación en esta versión (OQ2), y el tiempo límite y la ausencia de reintento automático no cambian. |
-| Se cierran A6, OQ2 y la pregunta de C10 | A6 (redirect) queda resuelta por entorno con respaldo de `makeRedirectUri` y el intento de registro en el panel; OQ2 (peticiones) queda resuelta con una página de 20 por clase, 400 ms de espera y caché por consulta; la pregunta de paginación de C10 queda cerrada en «no en esta versión». |
+| C10 amplía la búsqueda y la resolución | `GET /search` pasa de `type: track` a `enum: [track, album, artist]`, con `limit: 10` por clase —el valor de la revisión 17 era 20, ajustado en la revisión 18 al rango que Spotify acepta— y `albums.items[]` y `artists.items[]` en la respuesta; se añade `GET /albums/{id}`. No hay paginación en esta versión (OQ2), y el tiempo límite y la ausencia de reintento automático no cambian. |
+| Se cierran A6, OQ2 y la pregunta de C10 | A6 (redirect) queda resuelta por entorno con respaldo de `makeRedirectUri` y el intento de registro en el panel; OQ2 (peticiones) queda resuelta con una página de 10 por clase desde la revisión 18 (20 en la 17), 400 ms de espera y caché por consulta; la pregunta de paginación de C10 queda cerrada en «no en esta versión». |
 | Por qué es aditivo | `workKind`, `artists`, `data` y `preselectedWork` son opcionales o campos nuevos de estructuras que la unidad dueña amplía en su propia versión menor; `SpotifyCard` y `ArtistResultRow` se publican por primera vez; `CoverArt` gana comportamiento sin cambiar props; y los únicos cambios de forma (`DetailScreen.component`, `openWorkDetail`, `openCreate`) dejan compilando a todos los llamadores actuales porque el campo nuevo es opcional. C9 y C10 son fronteras externas: se adapta `@melodify/spotify` y ninguna otra unidad se entera. |
+
+### Revisión 18 — El `limit` de C10 baja a 10 (2026-11-24)
+
+Spotify acotó `limit` de `/search` a **0–10 por tipo** y la app seguía pidiendo `20`: toda búsqueda respondía `400` y Explorar y Crear mostraban su error genérico. Se corrigen las dos declaraciones de C10 y el valor de OQ2 a **10 por clase** —hasta treinta filas—, sin paginación. C10 es una API externa, así que no hay cambio de versión de paquete ni consumidor afectado; el detalle está en C10, § «Enmienda del 2026-11-24».
+
+| Cambio | Qué se cambió |
+|---|---|
+| `limit` de `/search` | De `20` a `10` por clase en C7 (`searchSpotify`) y en C10 (`searchCatalog`). Un `20` devuelve `400` desde el cambio de Spotify y deja la búsqueda sin ejecutar. |
+| Presupuesto de filas | De 60 a 30 por pantalla: diez canciones, diez álbumes y diez artistas. OQ2 sigue cerrada y no se añade paginación. |
+
 
 

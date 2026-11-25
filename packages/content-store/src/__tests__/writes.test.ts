@@ -19,7 +19,7 @@ import type {
 
 const NOW = "2026-11-12T09:00:00.000Z";
 
-const BOHEMIAN_RHAPSODY = "4u7EnebtmKWzUH433Rbtpz";
+const BOHEMIAN_RHAPSODY = "7tFiyTwD0nx5a1eklYtX2J";
 const BLINDING_LIGHTS = "0VjIjW4GlUZAMYd2vXMi3b";
 const SMELLS_LIKE_TEEN_SPIRIT = "5ghIJDpPoe3CfHMGu71E6T";
 const AS_IT_WAS = "4LRPiXqCikLlN15c3yImP7";

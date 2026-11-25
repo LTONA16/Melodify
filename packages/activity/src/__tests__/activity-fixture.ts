@@ -76,7 +76,7 @@ const OPINION_RECORDS: OpinionRecord[] = [
   {
     opinionId: "op-001",
     authorId: "demo",
-    workId: "4u7EnebtmKWzUH433Rbtpz",
+    workId: "7tFiyTwD0nx5a1eklYtX2J",
     workTitle: "Bohemian Rhapsody",
     workArtist: "Queen",
     text: "Seis minutos que no se sienten como seis minutos.",
@@ -87,7 +87,7 @@ const OPINION_RECORDS: OpinionRecord[] = [
   {
     opinionId: "op-002",
     authorId: "lucia",
-    workId: "4u7EnebtmKWzUH433Rbtpz",
+    workId: "7tFiyTwD0nx5a1eklYtX2J",
     workTitle: "Bohemian Rhapsody",
     workArtist: "Queen",
     text: "Mi canción de carretera.",
