@@ -2,17 +2,22 @@
  * ESLint del monorepo (NFR3.2 y R-03 de NFR Design). Un solo archivo en la raíz,
  * que es lo que ejecuta el CI: `eslint .` recorre `app/` y `packages/*`.
  *
- * Las tres prohibiciones de importación no son estilo, son límites de la
- * arquitectura:
+ * Las prohibiciones de importación no son estilo, son límites de la arquitectura:
  * - `expo-secure-store` solo lo toca el adaptador de la sesión; una pantalla que lo
  *   importe estaría saltándose C3.
+ * - `expo-network` solo lo toca el adaptador de C6; el resto lee la red por el
+ *   contrato de conectividad, que es lo único que las pruebas pueden doblar.
  * - Un paquete no importa la app: las dependencias van de `app/` hacia los paquetes.
  * - `@react-native-async-storage/async-storage` no se usa en ningún sitio: el
  *   recuerdo de sesión y el token de Spotify viven en el almacenamiento seguro.
+ * - `@melodify/catalog` y `@melodify/spotify` no se conocen en tiempo de ejecución
+ *   (NFR3.11). La segunda regla solo morderá cuando U4 cree el paquete de Spotify.
  */
 const expoConfig = require("eslint-config-expo/flat");
 
 const SECURE_STORE_ADAPTER = "packages/app-session/src/secure-store-adapter.ts";
+const SPOTIFY_DEVICE_ADAPTER = "packages/spotify/src/auth/device.ts";
+const EXPO_NETWORK_ADAPTER = "packages/connectivity/src/expo-network-adapter.ts";
 const PROJECT_LOGGER = "app/src/bootstrap/logger.ts";
 
 const ASYNC_STORAGE_RESTRICTION = {
@@ -25,6 +30,23 @@ const PACKAGE_TO_APP_RESTRICTION = {
   group: ["@melodify/app", "**/app/**"],
   message:
     "Un paquete no importa la app: las dependencias van de la app a los paquetes (C1–C3).",
+};
+
+const CACHE_FIRST_RESTRICTIONS = {
+  paths: [ASYNC_STORAGE_RESTRICTION],
+  patterns: [PACKAGE_TO_APP_RESTRICTION],
+};
+
+const SECURE_STORE_RESTRICTION = {
+  name: "expo-secure-store",
+  message:
+    "Solo el adaptador de @melodify/app-session toca el almacenamiento seguro (NFR3.3).",
+};
+
+const EXPO_NETWORK_RESTRICTION = {
+  name: "expo-network",
+  message:
+    "Solo el adaptador de @melodify/connectivity lee la red del sistema (NFR4.5).",
 };
 
 module.exports = [
@@ -61,11 +83,8 @@ module.exports = [
         "error",
         {
           paths: [
-            {
-              name: "expo-secure-store",
-              message:
-                "Solo el adaptador de @melodify/app-session toca el almacenamiento seguro (NFR3.3).",
-            },
+            SECURE_STORE_RESTRICTION,
+            EXPO_NETWORK_RESTRICTION,
             ASYNC_STORAGE_RESTRICTION,
           ],
           patterns: [PACKAGE_TO_APP_RESTRICTION],
@@ -82,28 +101,160 @@ module.exports = [
   },
   {
     // El adaptador es el único archivo autorizado a importar `expo-secure-store`;
-    // las otras dos prohibiciones siguen aplicándose dentro de él.
+    // las otras prohibiciones siguen aplicándose dentro de él.
     files: [SECURE_STORE_ADAPTER],
     rules: {
       "no-restricted-imports": [
         "error",
         {
-          paths: [ASYNC_STORAGE_RESTRICTION],
+          paths: [EXPO_NETWORK_RESTRICTION, ASYNC_STORAGE_RESTRICTION],
           patterns: [PACKAGE_TO_APP_RESTRICTION],
         },
       ],
     },
   },
   {
-    // Las pruebas doblan el módulo nativo y por eso lo importan para burlarse de
-    // él: la prohibición es de código de producción, no de los dobles.
+    // Y este es el único autorizado a importar `expo-network`, por la misma razón:
+    // el resto de la app lee la red por el contrato de C6 (NFR4.5).
+    files: [EXPO_NETWORK_ADAPTER],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [SECURE_STORE_RESTRICTION, ASYNC_STORAGE_RESTRICTION],
+          patterns: [PACKAGE_TO_APP_RESTRICTION],
+        },
+      ],
+    },
+  },
+  {
+    // El adaptador de dispositivo de Spotify es el único archivo del paquete que
+    // toca módulos nativos (NFR3.11, NFR3.17): almacén seguro, navegador, cripto y
+    // el redirect de Expo. El resto del paquete recibe estos puertos inyectados.
+    files: [SPOTIFY_DEVICE_ADAPTER],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [EXPO_NETWORK_RESTRICTION, ASYNC_STORAGE_RESTRICTION],
+          patterns: [PACKAGE_TO_APP_RESTRICTION],
+        },
+      ],
+    },
+  },
+  {
+    // Los dos paquetes que se tocarán en U4 no se conocen en ejecución: el catálogo
+    // puede nombrar tipos de Spotify, nunca importar su código; Spotify no puede
+    // importar el catálogo ni siquiera como tipo (NFR3.11).
+    files: ["packages/catalog/src/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@melodify/spotify",
+              message:
+                "El catálogo no importa Spotify: le habla por sus puertos (NFR3.11).",
+              allowTypeImports: false,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["packages/spotify/src/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@melodify/catalog",
+              message:
+                "Spotify no importa el catálogo, ni sus tipos: los tipos de los puertos viven en el catálogo (NFR3.11).",
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // C8 solo deriva desde C4 y la identidad de C3. C3 y C4 llegan como tipos y sus
+    // implementaciones se inyectan por constructor; React, C1, C5, C7 y la app
+    // convertirían un reductor en una pieza de interfaz (TS-39…TS-43, BR21.6).
+    files: ["packages/activity/src/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react",
+              message:
+                "ActivityFeed es una fuente sin React: la pantalla se suscribe a ella (TS-39).",
+              allowTypeImports: false,
+            },
+            {
+              name: "react-native",
+              message:
+                "ActivityFeed no pinta: la vista de C1 es quien usa React Native (TS-39).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/design-system",
+              message:
+                "C8 no importa C1: el mapper vive en la app (BR24.4).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/catalog",
+              message:
+                "La actividad lee el título de C4, no el catálogo (BR21.6).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/spotify",
+              message:
+                "La actividad no toca Spotify ni en tiempo de ejecución (BR21.6).",
+              allowTypeImports: false,
+            },
+            {
+              name: "@melodify/app-session",
+              message:
+                "C8 recibe C3 por constructor; solo puede nombrar sus tipos.",
+              allowTypeImports: true,
+            },
+            {
+              name: "@melodify/content-store",
+              message:
+                "C8 recibe C4 por constructor; solo puede nombrar sus tipos.",
+              allowTypeImports: true,
+            },
+          ],
+          patterns: [
+            {
+              group: ["@melodify/app", "**/app/**"],
+              message:
+                "Un paquete no importa la app: las dependencias van de la app a los paquetes.",
+              allowTypeImports: false,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Las pruebas doblan los módulos nativos y por eso los importan para burlarse de
+    // ellos: la prohibición es de código de producción, no de los dobles.
     files: ["**/__tests__/**"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
-          paths: [ASYNC_STORAGE_RESTRICTION],
-          patterns: [PACKAGE_TO_APP_RESTRICTION],
+          ...CACHE_FIRST_RESTRICTIONS,
         },
       ],
     },

@@ -82,7 +82,7 @@ melodify/
 ```yaml
 shared-schema:
   package: '@melodify/design-system'
-  version: 1.1.0
+  version: 1.4.0
   owner: U1
   transport: import en proceso
   exports:
@@ -99,16 +99,18 @@ shared-schema:
       radius: { sm, md, lg, xl, pill }
       size: { header, tabBar, touch, cover, field, button, avatar, icon }
     components:
-      AppHeader:            { title: string, rightSlot?: ReactNode }
+      AppHeader:            { title: string, leftSlot?: ReactNode, rightSlot?: ReactNode }
       BottomTabBar:         { items: "TabItem[]", activeIndex: number, onSelect: "(index: number) => void" }
       OpinionCard:          { opinion: OpinionCardModel, variant: "feed | compact | detail",
                               isOwn: boolean, onPress?: "() => void", onLike?: "() => void",
                               onComment?: "() => void", onFollow?: "() => void", onEdit?: "() => void" }
       CoverArt:             { title: string, coverUrl: "string | null", size: "card | result | detail" }
+                            # 1.4.0: si la imagen no carga, pinta el mismo bloque con la inicial (BR18.3)
       RatingStars:          { rating: number, max?: number, showValue?: boolean }
       RatingInput:          { value: number, onChange: "(value: number) => void", disabled?: boolean }
       Avatar:               { author: AuthorSummary, size?: "small | medium | large" }
       SocialActionBar:      { likeCount: number, commentCount: number, likedByMe: boolean,
+                              showLike?: boolean,
                               onLike?: "() => void", onComment?: "() => void" }
       ConnectionCard:       { title: string, body: string, actionLabel: string, onAction: "() => void" }
       SpotifyCard:          { status: "disconnected | connecting | connected | connectionError | invalidToken | notConfigured",
@@ -118,20 +120,30 @@ shared-schema:
       Skeleton:             { shape: "card | row | header", count: number }
       Snackbar:             { message: string, visible: boolean, onDismiss: "() => void" }
       CommentSheet:         { opinionId: string, comments: "CommentModel[]", status: "loading | ready | empty | error",
+                              failed?: boolean, maxLength?: number, counterFrom?: number,
+                              snackbar?: "{ message: string, visible: boolean, onDismiss: () => void }",
                               onRetry: "() => void", onSubmit: "(text: string) => void", onClose: "() => void" }
-      SearchField:          { value: string, placeholder: string, onChange: "(text: string) => void" }
+      SearchField:          { value: string, placeholder?: string, onChangeText: "(text: string) => void",
+                              autoFocus?: boolean, disabled?: boolean, loading?: boolean,
+                              onClear?: "() => void" }
       TextField:            { label: string, value: string, onChange: "(text: string) => void",
                               error?: string, maxLength?: number, placeholder?: string,
                               secureTextEntry?: boolean,
                               autoCapitalize?: "none | sentences | words | characters",
                               autoFocus?: boolean, testID?: string }
-      MultilineField:       { label: string, value: string, onChange: "(text: string) => void",
-                              error?: string, maxLength?: number }
+      MultilineField:       { label: string, value: string, onChangeText: "(text: string) => void",
+                              placeholder?: string, error?: string, maxLength?: number,
+                              counterFrom?: number, editable?: boolean,
+                              minHeight?: number, testID?: string }
       PrimaryButton:        { label: string, onPress: "() => void", disabled?: boolean, loading?: boolean,
                               testID?: string }
       SecondaryButton:      { label: string, onPress: "() => void", disabled?: boolean }
       TextButton:           { label: string, onPress: "() => void", tone?: "default | danger", disabled?: boolean }
-      WorkResultRow:        { work: WorkSummary, opinionCount: number, onPress: "() => void" }
+      WorkResultRow:        { work: WorkSummary, opinionCount: number, onPress: "() => void",
+                              kind?: "track | album" }
+                            # 1.4.0: `kind` añade la etiqueta «Canción»/«Álbum»; sin él, igual que 1.3.0
+      ArtistResultRow:      { artist: ArtistSummary, onPress: "() => void" }
+                            # 1.4.0: bloque circular con la inicial, nombre y «Artista»; no es una obra
       ActivityRow:          { event: ActivityEventSummary, onPress: "() => void" }
       DayHeader:            { label: string }
       Banner:               { message: string, actionLabel?: string, onAction?: "() => void" }
@@ -146,6 +158,8 @@ shared-schema:
         fields: { commentId: string, authorName: string, authorHandle: string, text: string, createdAt: string }
       WorkSummary:
         fields: { workId: string, title: string, artist: string, coverUrl: string | null }
+      ArtistSummary:
+        fields: { artistId: string, name: string }
       ActivityEventSummary:
         fields: { eventId: string, kind: "ownOpinion | likeReceived | commentReceived",
                   opinionId: string, workTitle: string, createdAt: string, actorHandle?: string }
@@ -153,6 +167,11 @@ shared-schema:
         fields: { displayName: string, handle: string }
       TabItem:
         fields: { name: string, label: string, icon: "home | search | plus | activity | profile" }
+      SpotifyConnectionStatus:
+        fields: { status: "disconnected | connecting | connected | connectionError | invalidToken | notConfigured" }
+        rule: >
+          Lo usa `SpotifyCard`. C2 conserva `SpotifyStatus` como alias, así que las pantallas
+          siguen importándolo de `@melodify/app-shell` sin cambiar.
       rule: >
         Los modelos de presentación son de C1 y viven en `@melodify/design-system`; son la
         única forma de datos que el sistema de diseño conoce. No importa `OpinionView`,
@@ -188,8 +207,8 @@ La 1.0.0 —la versión que U1 publica— exporta los **tokens completos** (`col
 | 1.0.0 | — (borrador de la revisión 9) | tokens, `ThemeProvider` y las doce piezas del esqueleto | Base planificada antes de construir U1; ninguna unidad la consumió. |
 | 1.1.0 | U1 | la base más las props aditivas y las utilidades de la § Revisión 11 | Es lo que el tramo mínimo pinta y prueba de verdad. |
 | 1.2.0 | U2 | `ErrorState`, `TextButton`; y, en la misma versión, tres adiciones opcionales de la revisión 12: `AppHeader.leftSlot?`, `EmptyState.body?` y el estado `own` de `OpinionCard` con `formatCalendarDate` | Los estados de error del feed y de Perfil (FR11.1, FR11.2); el botón de reintento es el `TextButton` de `ErrorState`. Las tres adiciones son las que hacen falta para el «‹ Volver» del detalle, el vacío de Perfil y la opinión propia «destacada» (AC2.3.2, AC9.1.5, AC4.2.1, AC4.2.4). |
-| 1.3.0 | U4 | `SearchField`, `ConnectionCard`, `SpotifyCard`, `WorkResultRow` | Explorar busca, conecta y lista resultados (FR4.1, FR4.5); U4 se construye antes que U3 en la secuencia acordada. |
-| 1.4.0 | U3 | `RatingInput`, `MultilineField`, `SecondaryButton`, `CommentSheet`, `Snackbar` | El formulario de Crear, la hoja de comentarios y los avisos que la acompañan (FR5.1, FR5.4, FR7.x). `SecondaryButton` aparece con el «Cancelar» de Crear; `SearchField` de Crear se reutiliza de la 1.3.0. |
+| 1.3.0 | U3 | `SearchField`, `ConnectionCard`, `WorkResultRow` (las tres que la tabla asignaba a U4), más `RatingInput`, `MultilineField`, `SecondaryButton`, `CommentSheet` y `Snackbar` | El formulario de Crear, su buscador, el selector de ejemplo y la hoja de comentarios (FR5.1, FR5.4, FR5.5, FR7.x). U3 se construye antes que U4 en la secuencia **unit-major** de `unit-of-work.md`, así que necesita ya las tres piezas que se habían planificado para U4 (revisión 15). |
+| 1.4.0 | U4 | `SpotifyCard`, `ArtistResultRow`, `WorkResultRow.kind?` y el fallback de carga de `CoverArt` | La tarjeta de conexión de Perfil (FR9.2, AC9.1.8), la fila de artista y la etiqueta de clase de los resultados (Q3 = B, Q5 = A), y la portada que cae a bloque cuando la imagen falla (AC2.2.3). Revisión 17. |
 | 1.5.0 | U5 | `ActivityRow`, `DayHeader` | La lista de Actividad y sus encabezados por día (FR8.x). |
 
 Cada fila es un cambio **aditivo**: añade exportaciones y sube la versión menor; las props de una pieza existente solo cambian cuando lo añadido es opcional, como `AppHeader.leftSlot?`, `EmptyState.body?` y el estado `own` de `OpinionCard` de la revisión 12, que dejan compilando a quien use la forma anterior. Un consumidor que importe una pieza antes de su versión no compila, y eso es deliberado: obliga a que la unidad que la necesita la haya entregado antes. `Snackbar` y `CommentSheet` siguen siendo de U3 aunque la cáscara de U1 ya declare sus puntos de montaje: en U1 ninguno de los dos llega a pintarse, porque el aviso nunca se dispara y la hoja solo se pinta con un `opinionId` que en el esqueleto nunca existe.
@@ -199,7 +218,7 @@ Cada fila es un cambio **aditivo**: añade exportaciones y sube la versión meno
 ```yaml
 shared-schema:
   package: '@melodify/app-shell'
-  version: 1.2.0
+  version: 1.4.0
   owner: U1
   transport: import en proceso
   exports:
@@ -226,21 +245,23 @@ shared-schema:
           open: "(opinionId: string) => void"
           close: "() => void"
           retry: "() => void"
-          submit: "(text: string) => void"
+          submit: "(text: string) => boolean"
       hook: 'useShellServices(): ShellServices — las pantallas leen estado y acciones por aquí'
       default_by_owner: >
         U1 arranca con `{ network: { online: true, subscribe: () => noop } }`,
         `{ spotify: { status: 'disconnected', subscribe: () => noop, connect: noop,
         disconnect: noop, retry: noop } }` y una hoja de comentarios vacía
-        (`{ state: { opinionId: null, comments: [], status: 'empty' }, subscribe: () => noop,
-        open: noop, close: noop, retry: noop, submit: noop }`) desde
+        (`{ state: { opinionId: null, comments: [], status: 'empty', failed: false, maxLength: 0,
+        counterFrom: 0 }, subscribe: () => noop, open: noop, close: noop, retry: noop,
+        submit: () => false }`) desde
         `app/src/bootstrap/shell-services.ts`. U2 y U4 sustituyen las implementaciones de red y
         de Spotify en el punto de composición; U3 sustituye el controlador de comentarios por el
         que construye con `createCommentsController({ content, session })` en
         `app/src/comments/`: `content` es C4 (`listComments`, `addComment`) y `session` es C3, de
         donde toma el `authorId` que exige `addComment`. La cáscara y las pantallas no cambian.
     CommentSheetState:
-      fields: { opinionId: "string | null", comments: "CommentModel[]", status: "loading | ready | empty | error" }
+      fields: { opinionId: "string | null", comments: "CommentModel[]", status: "loading | ready | empty | error",
+                failed: boolean, maxLength: number, counterFrom: number }
     ScreenModule:
       shape:
         name: string
@@ -250,32 +271,34 @@ shared-schema:
     DetailScreen:
       shape:
         kind: "work | opinion"
-        component: "React.ComponentType<{ work: { workId: string } }>"   # cuando kind: 'work'
+        component: "React.ComponentType<{ work: { workId: string, data?: WorkView } }>"   # cuando kind: 'work'
     DetailScreenProps:
-      work: { workId: string }        # solo para kind: 'work'; lo rellena openWorkDetail
+      work: { workId: string, data?: WorkView }   # solo para kind: 'work'; lo rellena openWorkDetail
       opinion: { opinionId: string }  # solo para kind: 'opinion'; lo rellena openOpinionDetail
       rule: >
-        La forma del props va con la de su `kind`: el detalle de obra recibe solo `{ workId }`
+        La forma del props va con la de su `kind`: el detalle de obra recibe `{ workId, data? }`
         y el de opinión solo `{ opinionId }`. El `component` del `DetailScreen` se tipa con
-        esa misma forma (`React.ComponentType<{ work: { workId: string } }>` o
-        `React.ComponentType<{ opinion: { opinionId: string } }>`), así que
-        `openWorkDetail({ workId })` no puede rellenar un identificador que la vista no recibe.
+        esa misma forma, así que `openWorkDetail({ workId, data })` no puede rellenar un
+        identificador que la vista no recibe. `data` es la `WorkView` de C5 importada con
+        `import type`: no crea arista de ejecución hacia el catálogo (TS-21, NFR3.11).
     ScreenProps:
       fields: {}   # las pantallas no reciben props: leen de los contextos
     CreateEntry:
       fields:
         mode: "create | edit"
         preselectedWorkId: "string | null"
+        preselectedWork: "WorkView | null"   # 1.4.0: la vista completa de la obra preseleccionada
         editingOpinionId: "string | null"
         returnTo: "string | null"
+        formKey: number   # sube en cada apertura; la pantalla reinicia su borrador cuando cambia
       hook: 'useCreateEntry(): CreateEntry — Crear y Editar leen aquí el modo, la obra, la opinión y el origen'
     GlobalServices:
       shape:
         showSnackbar: "{ message: string } => void"
         setHeader: "{ title: string } => void"
-        openWorkDetail: "{ workId: string } => void"
+        openWorkDetail: "{ workId: string, data?: WorkView } => void"
         openOpinionDetail: "{ opinionId: string } => void"
-        openCreate: "{ workId?: string } => void"
+        openCreate: "{ workId?: string, data?: WorkView } => void"
         openEdit: "{ opinionId: string } => void"
         closeCreate: "() => void"
         goToTab: "{ name: 'inicio' | 'explorar' | 'crear' | 'actividad' | 'perfil' } => void"
@@ -284,15 +307,16 @@ shared-schema:
   invariants:
     - "Login vive fuera de la barra de pestañas; las cinco pestañas son Inicio, Explorar, Crear, Actividad y Perfil."
     - "La hoja de comentarios es un modal sobre la pantalla actual: no cambia de pestaña ni desmonta lo de abajo. La pinta una sola vez la cáscara con lo que le da `useShellServices().comments`; U1 trae el controlador vacío y U3 lo sustituye por `createCommentsController({ content, session })`, que vive en `app/src/comments/`, lee `listComments` de C4, envía con `addComment` tomando el `authorId` de C3 y entrega ya `CommentModel` a la hoja, mapeando desde `CommentView`. `@melodify/app-shell` no importa `@melodify/content` ni la hoja de U3."
-    - "«Crear» y «Editar» son dos modos del mismo `ScreenModule` de U3, con dos entradas cada uno: la pestaña con el formulario vacío y el tercer nivel apilado sobre el detalle (`mockups.md` § Navegación). `openCreate({ workId })` apila el formulario de publicación con la obra preseleccionada; `openEdit({ opinionId })` apila el mismo formulario en modo edición con la opinión de origen, y `CreateEntry.returnTo` guarda desde dónde se abrió."
-    - "El ciclo de `CreateEntry` está cerrado. `openCreate({ workId })` deja `mode: 'create'` y `openEdit({ opinionId })` deja `mode: 'edit'` con `editingOpinionId` y los campos rellenos desde `getOpinion` de C4. «Guardar» en modo edición actualiza con `updateOpinion` y llama a `closeCreate()`, que desapila y vuelve a `returnTo` (FR6.3); «Cancelar» llama a `closeCreate()` sin guardar (FR5.4, FR6.2). Publicar llama a `goToTab({ name: 'inicio' })` (FR5.3), que desapila y limpia `CreateEntry`. Tocar la pestaña Crear en `BottomTabBar.onSelect` selecciona esa pestaña con formulario vacío y reescribe `CreateEntry` como `{ mode: 'create', preselectedWorkId: null, editingOpinionId: null, returnTo: <la pestaña que estaba activa> }`: una visita nueva nunca arrastra la obra ni la opinión de la anterior, y «Cancelar» desde ahí vuelve a la pestaña anterior."
-    - "`DetailScreenProps` va con la forma de su `kind`: el detalle de obra recibe `{ workId }` y el de opinión `{ opinionId }`."
+    - "«Crear» y «Editar» son dos modos del mismo `ScreenModule` de U3 y viven en la **pestaña** Crear, sembrada por `CreateEntry`, no en un tercer nivel apilado sobre el detalle (revisión 15; `mockups.md` § Navegación describe el tercer nivel y esta es la divergencia registrada). `openCreate({ workId })` siembra el formulario de publicación con la obra preseleccionada; `openEdit({ opinionId })` siembra el mismo formulario en modo edición con la opinión de origen. `CreateEntry.returnTo` guarda el origen: la pestaña activa cuando se abre por la barra o por `openCreate`; cuando `openEdit` se invoca desde el propio Crear (el estado «Ya opinaste sobre esta obra»), la entrada **conserva el `returnTo` que ya tenía** en lugar de fijar `returnTo: activeName`, para que «Guardar» vuelva al detalle y no al formulario. `formKey` marca cada apertura para que el formulario arranque limpio."
+    - "El ciclo de `CreateEntry` está cerrado. `openCreate({ workId })` deja `mode: 'create'` y `openEdit({ opinionId })` deja `mode: 'edit'` con `editingOpinionId` y los campos rellenos desde `getOpinion` de C4. «Guardar» en modo edición actualiza con `updateOpinion` y llama a `closeCreate()`, que vuelve a `returnTo` **conservando su pila** (el detalle desde el que se abrió sigue ahí, con su estado y su desplazamiento) y deja la pestaña Crear con el formulario limpio (FR6.3); «Cancelar» y el atrás del sistema en Crear hacen lo mismo sin guardar (FR5.4, FR6.2). Publicar llama a `goToTab({ name: 'inicio' })` (FR5.3), que limpia `CreateEntry` y el snackbar pendiente; la pantalla pide la confirmación **después** del cambio de pestaña, porque el cambio de pestaña limpia el aviso. Tocar la pestaña Crear en `BottomTabBar.onSelect` selecciona esa pestaña con formulario vacío y reescribe `CreateEntry` como `{ mode: 'create', preselectedWorkId: null, editingOpinionId: null, returnTo: <la pestaña que estaba activa>, formKey: <uno nuevo> }`: una visita nueva nunca arrastra la obra ni la opinión de la anterior, y «Cancelar» desde ahí vuelve a la pestaña anterior."
+    - "`DetailScreenProps` va con la forma de su `kind`: el detalle de obra recibe `{ workId, data? }` y el de opinión `{ opinionId }`. `data` solo existe para la obra que el catálogo local no conoce: el detalle la prefiere del catálogo cuando `getWork` responde `ok` y usa `data` solo si no (BR20.2)."
     - "El snackbar se pinta una sola vez, en la cáscara. El banner de sin conexión lo pinta **cada pantalla** bajo su propia cabecera con la pieza `Banner` y el texto único de `interaction-spec.md`, y la cáscara **no** lo pinta: las raíces de pestaña llevan su `AppHeader` dentro de la pantalla, así que un banner en la cáscara quedaría por encima de la cabecera, al revés que el mockup. Se conserva la invariante de fondo —una sola pieza y un solo texto, sin duplicar el aviso— (revisión 13; `functional-spec.md` § Precisión a C2)."
     - "La cáscara no importa `@melodify/connectivity` ni `@melodify/spotify`: el estado de red y el de Spotify le llegan en `services`, inyectado por `@melodify/app` desde `bootstrap/`. Con el valor por defecto de U1, U1 funciona sola."
     - "Las pantallas leen el estado y lanzan las acciones de Spotify con `useShellServices()`, no reciben props y no importan `@melodify/spotify`: el chip de Inicio (FR3.3) y la tarjeta de Perfil (AC9.1.8) usan el mismo cauce."
-    - "La vista de detalle se apila dentro de la pestaña activa y se abre con `openWorkDetail({ workId })` o `openOpinionDetail({ opinionId })`; las rutas y los parámetros los fija C2, no cada unidad. U2 aporta el detalle de obra **y el detalle de opinión** —US2.3 es suya y Perfil lo necesita para AC9.1.4; U3 no lo rehace y solo cablea «Editar», como registran la revisión 12 y `construction/u2-content-core/functional-design/functional-spec.md` § Assumptions—; en los dos, «Editar» de una opinión propia llama a `openEdit({ opinionId })`, y cualquier pestaña abre el detalle con las mismas operaciones, sin conocer el componente."
+    - "La vista de detalle se apila dentro de la pestaña activa y se abre con `openWorkDetail({ workId, data? })` o `openOpinionDetail({ opinionId })`; las rutas y los parámetros los fija C2, no cada unidad. U2 aporta el detalle de obra **y el detalle de opinión** —US2.3 es suya y Perfil lo necesita para AC9.1.4; U3 no lo rehace y solo cablea «Editar», como registran la revisión 12 y `construction/u2-content-core/functional-design/functional-spec.md` § Assumptions—; U4 registra el mismo detalle de obra bajo la pestaña Explorar y le pasa `data` cuando la obra viene de una búsqueda; en los dos, «Editar» de una opinión propia llama a `openEdit({ opinionId })`, y cualquier pestaña abre el detalle con las mismas operaciones, sin conocer el componente."
     - "La pila de cada pestaña se pinta **entera**: la entrada de la cima se ve y las de debajo se ocultan con `display: none`, igual que la cáscara ya oculta las pestañas inactivas. Así la pantalla que abre un detalle sigue montada y «‹ Volver» la devuelve con su desplazamiento y su estado, que es lo que pide AC2.3.2 (revisión 12; antes el panel pintaba solo la última entrada y la raíz se desmontaba)."
-    - "Un cambio en `ShellServices` es un cambio incompatible de C2: se sube la versión mayor y se actualiza el punto de composición en el mismo PR."
+    - "`CreateEntry.preselectedWork` es la vista completa de la obra preseleccionada y solo la rellena quien ya la tenía (Explorar y el detalle de una obra buscada). `preselectedWorkId` se conserva para las entradas que solo llevan identificador; Crear resuelve con la misma precedencia que el detalle: catálogo local, después `preselectedWork`, y una obra que no esté en ninguno de los dos no se puede publicar (BR20.2, BR20.4)."
+    - "Un cambio en `ShellServices` que **quite o cambie el significado** de un campo existente es un cambio incompatible de C2: se sube la versión mayor y se actualiza el punto de composición en el mismo PR. Añadir un campo opcional, o ampliar un retorno de `void` a un valor que el consumidor puede ignorar (`submit` devolviendo el resultado del envío), es aditivo y va en la versión menor."
 ```
 
 ## C3 — Sesión de la app
@@ -396,7 +420,7 @@ Por qué es aditivo y no incompatible:
 
 ```yaml
 openapi: 3.1.0
-info: { title: ContentStore, version: 1.0.0, x-owner: U2, x-transport: in-process }
+info: { title: ContentStore, version: 1.2.0, x-owner: U2, x-transport: in-process }
 x-identity:
   rule: >
     C4 no depende de C3 y no guarda «quién soy». La identidad viaja como parámetro
@@ -437,7 +461,11 @@ paths:
                 workId: { type: string }
                 workTitle: { type: string }
                 workArtist: { type: string }
-                text: { type: string }
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: recortado en los extremos; más de 500 responde 422 (Q1 = B, revisión 15)
                 rating: { type: integer, minimum: 1, maximum: 5 }
       responses:
         '201':
@@ -445,7 +473,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/OpinionView' }
         '409': { description: ya existe una opinión de esta persona sobre esta obra (FR6.1) }
-        '422': { description: texto o valoración fuera de las reglas del formulario }
+        '422': { description: texto vacío o de más de 500 caracteres, o valoración fuera de 1–5 }
   /opinions/{opinionId}:
     get:
       operationId: getOpinion
@@ -471,8 +499,12 @@ paths:
               required: [authorId]
               properties:
                 authorId: { type: string, description: quién edita; debe ser el autor }
-                text: { type: string }
-                rating: { type: integer }
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: recortado en los extremos; más de 500 responde 422 (Q1 = B, revisión 15)
+                rating: { type: integer, minimum: 1, maximum: 5 }
       responses:
         '200':
           content:
@@ -480,7 +512,7 @@ paths:
               schema: { $ref: '#/components/schemas/OpinionView' }
         '403': { description: solo se edita la propia }
         '404': { description: la opinión no existe }
-        '422': { description: fuera de las reglas del formulario }
+        '422': { description: texto vacío o de más de 500 caracteres, o valoración fuera de 1–5; la edición comparte las reglas de la publicación }
   /opinions/{opinionId}/likes:
     get:
       operationId: listLikes
@@ -530,13 +562,19 @@ paths:
             schema:
               type: object
               required: [authorId, text]
-              properties: { authorId: { type: string }, text: { type: string } }
+              properties:
+                authorId: { type: string }
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 300
+                  description: recortado en los extremos; más de 300 responde 422 (Q2 = A, revisión 15)
       responses:
         '201':
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CommentView' }
-        '422': { description: texto vacío o fuera de límite }
+        '422': { description: texto vacío o de más de 300 caracteres }
   /authors/{authorId}/follow:
     post:
       operationId: toggleFollow
@@ -660,6 +698,16 @@ x-construction:
     desde el que se calculan las edades de la siembra y `seed` la sustituye por una mínima
     (lista vacía, una sola opinión, varias obras) para ejercitar los estados de las
     pantallas (revisión 12).
+x-limits:
+  exports:
+    MAX_OPINION_LENGTH: 500
+    MAX_COMMENT_LENGTH: 300
+  rule: >
+    La superficie de `@melodify/content-store` publica las dos cifras con nombre, y
+    `createOpinion`, `updateOpinion` y `addComment` validan con ellas: por encima, `422`
+    (revisión 15). Publicarlas evita que la app y la hoja repitan el número, y es lo que
+    permite que el campo que protege a la persona y el almacén que protege al contrato usen
+    el mismo valor (revisión 16).
 x-read-errors:
   rule: >
     Las lecturas y la suscripción —`listOpinions`, `getOpinion`, `updateOpinion`,
@@ -668,11 +716,21 @@ x-read-errors:
     y C4 no los inventa (revisión 12).
 ```
 
+### Enmienda de U2 — `countOpinions` en C4 (2026-11-14)
+
+C4 sube a **1.1.0** por una operación aditiva que el contrato no declaraba y que C5 ya consumía:
+
+- **`countOpinions(workId: string): number`** — cuántas opiniones tiene una obra. Es la única lectura de C4 sin identidad: cuenta y no devuelve ningún campo derivado, así que no necesita `viewerId`. C5 la usa para el «N opiniones» de la tarjeta de obra (BR5.4).
+- **Sin errores propios**: una obra sin opiniones —exista o no en el catálogo— devuelve `0`.
+- La alternativa, contar en C5 sobre `listOpinions`, obligaría a inventar un `viewerId` para un dato que no depende de quién mira, y esa lectura responde `422` sin identidad (`x-read-errors`).
+
+Queda registrada al cerrar U2, a raíz de la revisión de arquitectura de su Code Generation.
+
 ## C5 — Catálogo
 
 ```yaml
 openapi: 3.1.0
-info: { title: Catalog, version: 1.1.0, x-owner: U2, x-transport: in-process }
+info: { title: Catalog, version: 1.2.0, x-owner: U2, x-transport: in-process }
 paths:
   /works:
     get:
@@ -689,6 +747,10 @@ paths:
                 properties:
                   status: { enum: [ok, empty, offline, error] }
                   works: { type: array, items: { $ref: '#/components/schemas/WorkView' } }
+                  artists:
+                    type: array
+                    items: { $ref: '#/components/schemas/ArtistHit' }
+                    description: 1.2.0 — artistas como atajos de búsqueda; vacío si no hay (Q5 = A)
         '503': { description: sin red o Spotify no responde; la interfaz muestra «Reintentar» }
   /works/sample:
     get:
@@ -775,13 +837,23 @@ components:
         artist: { type: string }
         coverUrl: { type: [string, 'null'] }
         origin: { enum: [sample, spotify] }
+        workKind:
+          enum: [track, album]
+          description: 1.2.0 — clase de obra; ausente equivale a canción (BR20.9)
+    ArtistHit:
+      type: object
+      required: [artistId, name]
+      description: 1.2.0 — un artista no es una obra; no tiene título, portada ni recuento (BR20.6)
+      properties:
+        artistId: { type: string }
+        name: { type: string }
 x-ports:
   types_location: '@melodify/catalog/src/ports.ts'
   injection: >
     `createCatalog({ content, connectivity, session, search, resolve })` recibe el contenido (C4),
     la conectividad (C6) y las implementaciones de los tres puertos como parámetros en la
-    construcción; `session`, `search` y `resolve` viajan en `null` hasta U4 (revisión 12).
-    No hay registro global: `@melodify/catalog` no importa
+    construcción; `session`, `search` y `resolve` viajan en `null` hasta U4, que los registra
+    en `app/src/bootstrap/ports.ts` (revisión 17). No hay registro global: `@melodify/catalog` no importa
     `@melodify/spotify`, y `@melodify/spotify` solo toma de `@melodify/catalog` los tipos
     de los puertos con `import type`, que no crea arista de ejecución.
   declared:
@@ -800,10 +872,12 @@ x-ports:
       SearchPortResult:
         kind: ok | empty | failure
         works?: WorkView[]
+        artists?: ArtistHit[]   # 1.2.0 — la misma respuesta trae las tres clases (revisión 17)
         failure?: unauthorized | rateLimited | timeout | network | error
       rule: >
         Catalog normaliza `failure` a `offline` (network) o `error` (resto) y nunca
-        propaga el error de Spotify; el puerto no conoce `Catalog`.
+        propaga el error de Spotify; el puerto no conoce `Catalog`. `artists` se propaga
+        tal cual y se cachea con las obras; solo las obras se registran en el catálogo local.
     - name: SpotifyResolvePort
       declared_by: U2
       implemented_by: U4
@@ -915,9 +989,26 @@ paths:
   /search:
     get:
       operationId: searchSpotify
-      parameters: [{ name: query, in: query, schema: { type: string } }]
+      description: >
+        Busca canciones, álbumes y artistas en una sola petición y normaliza la respuesta
+        a `WorkView` (obras) y `ArtistHit` (atajos). Implementa `SpotifySearchPort`.
+      parameters:
+        - { name: query, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { const: 'track,album,artist' } }
+        - { name: limit, in: query, schema: { type: integer, default: 10 } }
       responses:
-        '200': { description: resultados normalizados a WorkView }
+        '200':
+          description: resultados normalizados a `works` y `artists` (revisión 17)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kind]
+                properties:
+                  kind: { enum: [ok, empty, failure] }
+                  works: { type: array, items: { $ref: '#/components/schemas/WorkView' } }
+                  artists: { type: array, items: { $ref: '#/components/schemas/ArtistHit' } }
+                  failure: { enum: [unauthorized, rateLimited, timeout, network, error] }
         '401': { description: token inválido; el estado pasa a invalidToken }
         '429': { description: límite de peticiones; se ofrece reintentar }
         '504': { description: tiempo de espera agotado (10 s) }
@@ -932,7 +1023,23 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/WorkView' }
         '401': { description: token inválido; el estado pasa a invalidToken }
-        '404': { description: la obra no existe en Spotify }
+        '404': { description: 'la canción no existe; el consumidor prueba `/albums/{workId}` antes de darla por perdida' }
+        '429': { description: límite de peticiones; se ofrece reintentar }
+        '504': { description: tiempo de espera agotado (10 s) }
+  /albums/{workId}:
+    get:
+      operationId: resolveSpotifyAlbum
+      description: >
+        La segunda mitad de `resolveSpotifyWork`: un álbum también es una obra opinable
+        (revisión 17). Mismo esquema de respuesta, sin `album` anidado.
+      parameters: [{ name: workId, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkView' }
+        '401': { description: token inválido; el estado pasa a invalidToken }
+        '404': { description: la obra no existe en Spotify (ni como canción ni como álbum) }
         '429': { description: límite de peticiones; se ofrece reintentar }
         '504': { description: tiempo de espera agotado (10 s) }
 components:
@@ -951,6 +1058,33 @@ components:
         artist: { type: string }
         coverUrl: { type: [string, 'null'] }
         origin: { const: spotify }
+        workKind: { enum: [track, album] }
+    ArtistHit:
+      type: object
+      required: [artistId, name]
+      properties:
+        artistId: { type: string }
+        name: { type: string }
+x-redirect:
+  env: EXPO_PUBLIC_SPOTIFY_REDIRECT_URI
+  fallback: "makeRedirectUri({ path: 'spotify-callback' })"
+  expo_go_value: "exp://<ip>:8081/--/spotify-callback"
+  decision: >
+    Q1 = B: el valor exacto se intenta registrar en el panel de Spotify. Si lo rechaza, el
+    paquete queda completo y probado con dobles, y el recorrido se demuestra sin sesión
+    (FR12.2); el motivo se anota en `external-dependency-map.md`.
+x-pkce:
+  method: S256
+  verifier: '32 bytes aleatorios en base64url'
+  challenge: 'base64url(SHA-256(verifier))'
+  state: '32 bytes aleatorios; se compara al volver'
+  scopes: 'ninguno: solo catálogo público'
+x-search-mapping:
+  track: 'WorkView { workId: id, title: name, artist: artists[0].name, coverUrl: album.images[0].url ?? null, origin: spotify, workKind: track }'
+  album: 'WorkView { workId: id, title: name, artist: artists[0].name, coverUrl: images[0].url ?? null, origin: spotify, workKind: album }'
+  artist: 'ArtistHit { artistId: id, name }'
+  discard: 'elementos sin id o sin name'
+  order: 'canciones, álbumes, artistas'
 x-implements:
   - SpotifySessionPort
   - SpotifySearchPort
@@ -974,7 +1108,7 @@ x-token-lifecycle:
 
 ```yaml
 openapi: 3.1.0
-info: { title: ActivityFeed, version: 1.0.0, x-owner: U5, x-transport: in-process }
+info: { title: ActivityFeed, version: 1.1.0, x-owner: U5, x-transport: in-process }
 paths:
   /activity:
     get:
@@ -992,6 +1126,17 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ActivityView' }
+  /activity/changes:
+    get:
+      operationId: subscribeActivity
+      description: Emite la `ActivityView` vigente nada más suscribirse y la vista completa tras cada recálculo.
+      responses:
+        '200':
+          description: la respuesta es la baja; al llamarla se da de baja a quien se suscribió
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActivityView' }
+      x-unsubscribe: "() => void — se devuelve al suscribirse; la emisión inicial ocurre en el acto, sin esperar un cambio"
 components:
   schemas:
     ActivityView:
@@ -1027,7 +1172,7 @@ x-inputs:
     ambos recorridos para las opiniones del autor actual. `OpinionView.likeCount` y `commentCount`
     solo sirven para saber si hay algo que leer y para no repetir la lectura.
   session: C3 — el autor actual, que actúa como `viewerId` al leer C4.
-  recalculation: se suscribe a `/changes` de C4 y vuelve a derivar los eventos tras cada escritura (AC8.1.3); sin suscripción no hay estado `ready` posterior a un cambio.
+  recalculation: se suscribe a `/changes` de C4 y vuelve a derivar los eventos tras cada escritura (AC8.1.3); sin suscripción no hay estado `ready` posterior a un cambio. La vista resultante se publica por `/activity/changes` (`subscribeActivity`), que emite nada más suscribirse y devuelve la baja.
   work_title: el título viaja en `OpinionView.workTitle`, así que U5 lo copia al evento sin pedir nada más a C5.
   rule: '@melodify/activity importa solo los tipos de C4 y C3 con import type; las implementaciones llegan por constructor, como en C5.'
 ```
@@ -1102,11 +1247,12 @@ servers: [{ url: https://api.spotify.com/v1 }]
 paths:
   /search:
     get:
-      operationId: searchTracks
+      operationId: searchCatalog
+      description: Busca canciones, álbumes y artistas en una sola petición (revisión 17).
       parameters:
         - { name: q, in: query, required: true, schema: { type: string } }
-        - { name: type, in: query, schema: { const: track } }
-        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+        - { name: type, in: query, schema: { enum: [track, album, artist] } }
+        - { name: limit, in: query, schema: { type: integer, default: 10, description: por clase } }
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -1127,12 +1273,34 @@ paths:
                             name: { type: string }
                             artists: { type: array, items: { type: object, properties: { name: { type: string } } } }
                             album: { type: object, properties: { images: { type: array, items: { type: object, properties: { url: { type: string } } } } } }
+                  albums:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string }
+                            name: { type: string }
+                            artists: { type: array, items: { type: object, properties: { name: { type: string } } } }
+                            images: { type: array, items: { type: object, properties: { url: { type: string } } } }
+                  artists:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: string }
+                            name: { type: string }
         '401': { description: token inválido o caducado }
         '429': { description: límite de peticiones alcanzado }
   /tracks/{id}:
     get:
       operationId: getTrack
-      description: Metadatos y portada de una obra conocida por su identificador.
+      description: Metadatos y portada de una canción conocida por su identificador.
       parameters:
         - { name: id, in: path, required: true, schema: { type: string } }
       security: [{ bearerAuth: [] }]
@@ -1148,7 +1316,27 @@ paths:
                   artists: { type: array, items: { type: object, properties: { name: { type: string } } } }
                   album: { type: object, properties: { images: { type: array, items: { type: object, properties: { url: { type: string } } } } } }
         '401': { description: token inválido o caducado }
-        '404': { description: la obra no existe }
+        '404': { description: la canción no existe; el consumidor prueba `/albums/{id}` }
+  /albums/{id}:
+    get:
+      operationId: getAlbum
+      description: Metadatos y portada de un álbum (revisión 17); mismo esquema que un track, sin `album` anidado.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  name: { type: string }
+                  artists: { type: array, items: { type: object, properties: { name: { type: string } } } }
+                  images: { type: array, items: { type: object, properties: { url: { type: string } } } }
+        '401': { description: token inválido o caducado }
+        '404': { description: el álbum no existe }
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer }
@@ -1156,6 +1344,16 @@ x-timeouts:
   request: 10s
   retry: nunca automático; reintenta la persona
 ```
+
+### Enmienda del 2026-11-24 — el `limit` de C10 baja a 10
+
+La referencia de Spotify para `/search` acota hoy `limit` a **0–10 por tipo** (antes llegaba a 50). La app pedía `20` y la API respondía `400` antes de buscar nada, así que **ninguna** búsqueda llegaba a ejecutarse; el primer recorrido real con sesión lo destapó (`SPOTIFY_SEARCH_FAILED: error, HTTP 400`).
+
+- `limit` pasa a **10 por clase** en las dos declaraciones del contrato y en la respuesta de OQ2, con hasta **30 filas** por pantalla —diez canciones, diez álbumes y diez artistas— en lugar de 60.
+- No se añade paginación: OQ2 sigue cerrada y el presupuesto de una sola petición por consulta no cambia.
+- El tope lo fija Spotify, no la app: si vuelve a mover el rango, se ajusta el valor y se anota aquí, que es donde se lee el contrato.
+
+Implementado en `@melodify/spotify` y verificado en Android con Expo Go: búsqueda de artista con resultados, portadas resueltas y publicación sobre un resultado.
 
 ## Reglas de propiedad y versionado
 
@@ -1184,9 +1382,9 @@ x-timeouts:
 
 | Contrato | Pregunta | Bloquea |
 |---|---|---|
-| C7, C9 | El redirect URI exacto de PKCE (A6) y el esquema de enlaces de React Navigation. | U4 completa (la conexión real), no su forma |
-| C4 | Límite de texto de la opinión y obligatoriedad de la valoración (OQ1, A1). | La validación de U3 |
-| C10 | Límite de resultados por búsqueda y si se pagina. | Nada: hoy se pide una página de 20 |
+| C7, C9 | El redirect URI exacto de PKCE (A6) — **cerrada en la revisión 17**: se resuelve de `EXPO_PUBLIC_SPOTIFY_REDIRECT_URI` o `makeRedirectUri({ path: 'spotify-callback' })`, se intenta registrar en el panel y, si lo rechaza, se anota y el recorrido se demuestra sin sesión (FR12.2). | Ya no bloquea el diseño; el registro en el panel es un paso manual de la entrega |
+| C4 | Límite de texto de la opinión y obligatoriedad de la valoración (OQ1, A1) — **cerrada en la revisión 15**: 500 caracteres para una opinión, 300 para un comentario y valoración 1–5 obligatoria. | Ya no bloquea nada |
+| C10 | Límite de resultados por búsqueda y si se pagina — **cerrada en la revisión 17**: 20 por clase y sin paginación en esta versión; **ajustada a 10 por clase el 2026-11-24** porque Spotify acotó el rango del parámetro (revisión 18). | Ya no bloquea nada |
 
 ## Assumptions & Open Questions
 
@@ -1348,3 +1546,68 @@ NFR Requirements de `u2-content-core` encontró la última firma que vivía solo
 | C2 corrige la invariante del aviso de sin conexión | La invariante decía que snackbar y banner de sin conexión se pintaban una sola vez en la cáscara, y el Functional Design de U2 ya había precisado lo contrario: las raíces de pestaña pintan su `AppHeader` dentro de la pantalla, así que un banner en la cáscara quedaría **encima** de la cabecera. El banner lo pinta cada pantalla bajo su propia cabecera; la cáscara solo conserva el snackbar. No cambia ninguna prop, exportación ni la versión de C2 (`1.2.0`). |
 | C3 y C4 no cambian | Los códigos de diagnóstico que U2 necesita (`CONTENT_SUBSCRIBE_FAILED`, `CONTENT_READ_FAILED`, `NETWORK_STATE_UNAVAILABLE`) no entran en `SessionLogCode`: U2 declara en `app/src/bootstrap/logger.ts` un tipo de la aplicación que es un superconjunto y sigue siendo asignable a `SessionLogger`. Ampliar C3 habría metido códigos de contenido en el contrato de la sesión y roto su cierre. |
 | Por qué es aditivo | C6 no tenía consumidor: la app la construye en su punto de composición y la inyecta en `ShellServices`. Añadir `x-construction` no cambia ninguna operación, ningún esquema ni la versión, y ninguna otra unidad depende de la firma anterior porque no existía. |
+
+### Revisión 14 — `countOpinions` en C4 y tope de texto (2026-11-14)
+
+La revisión de arquitectura de Code Generation de `u2-content-core` encontró dos decisiones tomadas en el código que ningún artefacto sostenía. Se cierran aquí.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C4 sube a `1.1.0` con `countOpinions` | `countOpinions(workId: string): number` se suma a la superficie de C4: cuenta las opiniones de una obra y es la única lectura sin identidad, porque no devuelve ningún campo derivado. C5 ya la consumía para el «N opiniones» (BR5.4) sin que el contrato la declarara. Contar en C5 sobre `listOpinions` habría exigido inventar un `viewerId` para un dato que no depende de quién mira. |
+| C4 deja de fijar el tope de longitud | `createOpinion` ya no impone un máximo de caracteres: solo exige texto no vacío. El límite pertenece a las «reglas del formulario» de U3 (`unit-of-work.md` § U3) y sigue abierto en § Open questions (OQ1/A1), así que decidirlo en U2 habría dejado un formulario que acepta lo que el almacén rechaza. |
+| Por qué es aditivo | La operación nueva no cambia ninguna firma existente y ningún esquema; retirar el tope afloja una validación que el contrato nunca fijó. C5 y la app pasan a `@melodify/content-store` `1.1.0` sin ningún otro cambio de superficie. |
+
+### Revisión 15 — U3 escribe: C1 y C2 a `1.3.0`, C4 a `1.2.0` (2026-11-14)
+
+El Functional Design de `u3-create-react` cruzó cuatro fronteras: el reparto de piezas de C1 estaba planificado para un orden de construcción que no es el real, el ciclo de Crear tenía un fallo de comportamiento, el formulario necesitaba dos montajes que existían como marcadores vacíos, y las dos preguntas que Requirements dejó abiertas (OQ1/A1) se cerraron con número. Todo lo añadido a las props es **opcional**; los cambios de comportamiento —el cierre de Crear, el `returnTo` de `openEdit` desde Crear y el aviso dentro de la hoja— no cambian ninguna firma, salvo el retorno de `submit`, que pasa de `void` a `boolean` y es compatible con quien lo llamaba por su efecto.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C1 sube a `1.3.0` con las ocho piezas de U3 | `SearchField`, `ConnectionCard`, `WorkResultRow`, `RatingInput`, `MultilineField`, `SecondaryButton`, `CommentSheet` y `Snackbar`. La tabla de § «Enmienda de la revisión 9» tenía `SearchField`, `ConnectionCard` y `WorkResultRow` en la `1.3.0` de U4 y las cinco restantes en la `1.4.0` de U3, dando por hecho que U4 se construiría antes; `unit-of-work.md` las ordena **unit-major**, así que U3 llega primero y necesita las ocho. U4 baja a `1.4.0` con `SpotifyCard` —lo único suyo que ninguna otra unidad usa— y U5 sigue en `1.5.0`. Ningún consumidor cambia por el reparto: es la misma entrega total. |
+| C1 corrige la forma de cuatro piezas al declararlas | `SearchField` pasa a `{ value, placeholder?, onChangeText, autoFocus?, disabled?, loading?, onClear? }` —su `onChange` y su `placeholder` obligatorio no coincidían con `interaction-spec.md`, y la pieza no tenía consumidor porque nunca se publicó—. `MultilineField` gana `placeholder?`, `counterFrom?`, `editable?`, `minHeight?` y `testID?`, y su `onChange` pasa a `onChangeText`, que es el nombre que usa React Native y el que el formulario necesita para el contador. `CommentSheet` gana `failed?`, `maxLength?` y `snackbar?`: la última pinta dentro del modal el aviso que la cáscara ya tiene pendiente, porque el `Modal` de React Native queda por encima del cuerpo de la cáscara y «Comentario publicado» quedaría detrás del velo con la hoja abierta (BR14.6). Son piezas nuevas de la misma versión: ninguna forma anterior deja de compilar porque ninguna se había publicado. |
+| `SocialActionBar` gana `showLike?` y `OpinionCard` cambia la etiqueta de seguir | `showLike` (por defecto `true`) permite pintar el corazón y el contador como texto no pulsable en la opinión propia (Q3 = A), de modo que un me gusta propio no aparezca como «me gusta recibido» en Actividad. La etiqueta de seguir pasa de «Seguir» a «Seguir autor» y alterna con «Siguiendo» según `followedByMe`, que el modelo ya llevaba: es la open question que U2 dejó para U3 (FR7.4, AC7.3.1). Las dos son aditivas y opcionales salvo el texto, que no cambia ninguna firma. |
+| C2 sube a `1.3.0` por comportamiento, con dos campos aditivos y un retorno ampliado | `CreateEntry` gana `formKey: number`, que sube en cada `openCreate`, `openEdit` y visita a la pestaña, y es lo que permite que el contenedor descarte el borrador de la visita anterior sin duplicar estado en la cáscara. `CommentSheetState` gana `failed: boolean`, que separa «no se pudieron cargar los comentarios» (estado `error` de la lista) de «no se pudo enviar el último» (sin borrar la lista ya leída). `ShellServices.comments.submit` pasa de `(text: string) => void` a `(text: string) => boolean`: devuelve si la escritura salió bien para que la cáscara pida la confirmación sin que el controlador conozca el snackbar. Es compatible: quien lo llamaba por su efecto sigue compilando. |
+| `closeCreate` conserva la pila y el atrás de Crear cancela | Hasta ahora `closeCreate()` reiniciaba la pila de `returnTo`, así que volver desde Editar aterrizaba en la raíz de la pestaña y el detalle desaparecía: AC6.1.3 (volver al detalle con la opinión actualizada) y AC5.3.3 (volver a la pantalla anterior) no se podían cumplir. Ahora vuelve a `returnTo` sin tocar su pila y deja Crear limpio; el atrás del sistema en Crear se comporta como «Cancelar» y consume el evento. No cambia ninguna prop ni exportación. |
+| `openEdit` desde Crear conserva el `returnTo` vigente | `openCreateTab` fija hoy `returnTo: activeName`, y con eso «Editar mi opinión» desde el estado `YaOpinada` dejaría `returnTo: crear`: «Guardar» volvería al formulario limpio en vez de al detalle y BR12.3/AC6.1.3 no se cumplirían. Cuando la entrada de Crear ya está abierta y pasa a edición, la cáscara conserva su `returnTo` y solo emite un `formKey` nuevo. Es comportamiento, no superficie. |
+| La cáscara monta de verdad el snackbar y la hoja | `snackbar-mount` y `comment-sheet-mount` dejan de ser marcadores vacíos: la cáscara pinta `Snackbar` con el mensaje de `showSnackbar` y `CommentSheet` cuando `services.comments.state.opinionId` no es nulo, y limpia el mensaje al cambiar de pestaña. Sin este montaje, publicar no confirmaba nada (AC5.1.4, BR15.1) y la hoja no existía como superficie (BR14.3). |
+| C2 corrige la invariante de Crear | Decía que Crear y Editar eran «un tercer nivel apilado sobre el detalle»; lo que U1 construyó y probó —y lo que C2 congeló— es una **pestaña sembrada por `CreateEntry`**. La invariante pasa a describir eso y `mockups.md` § Navegación queda como la divergencia registrada. El resultado observable es el del mockup: «Cancelar» devuelve al detalle, en su sitio. |
+| C4 sube a `1.2.0` con los dos topes | `createOpinion` y `updateOpinion` exigen `text` recortado, no vacío y de **hasta 500 caracteres**; `addComment`, de **hasta 300**; por encima, `422`. La revisión 14 había retirado el tope a propósito porque OQ1/A1 seguían abiertas; U3 las cierra (Q1 = B, Q2 = A) y el número se escribe donde también lo ve una prueba que llama a C4 sin pasar por la pantalla. `updateOpinion` declara además `rating` entre 1 y 5, que ya era la regla y no estaba escrito. Ninguna vista ni operación cambia de forma. |
+| § Open questions, fila de C4 cerrada | OQ1/A1 quedan resueltas: 500 caracteres para una opinión, 300 para un comentario, valoración 1–5 obligatoria y «Quitar valoración» como única forma de volver a cero. |
+| Por qué es aditivo | Todo lo añadido a las props es opcional o pertenece a una pieza que se publica por primera vez en esta versión; los cambios de comportamiento (`closeCreate` conserva la pila, `openEdit` desde Crear conserva el `returnTo`, el aviso se pinta dentro de la hoja) no rompen a ningún consumidor, y ampliar `submit` de `void` a `boolean` deja compilando a quien no usa el resultado. Las dos validaciones nuevas de C4 estrechan lo que el contrato acepta, que es justo lo que la revisión 14 dejó pendiente de decidir. |
+
+### Revisión 16 — Los dos topes llegan a la hoja sin que C1 dependa de C4 (2026-11-15)
+
+El NFR Requirements de `u3-create-react` encontró un hueco en la revisión 15: la hoja de comentarios es una pieza de C1 y no puede importar las constantes de C4, pero el contador «N/300 desde 250» necesita las dos cifras dentro de la hoja. La solución no crea ninguna arista nueva: el controlador de comentarios es quien conoce el almacén, y las pasa por el estado de la cáscara. Las tres adiciones son opcionales o de un estado que U3 ya estaba modificando.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C4 publica sus dos topes con nombre | `@melodify/content-store` exporta `MAX_OPINION_LENGTH = 500` y `MAX_COMMENT_LENGTH = 300` en `src/index.ts`, y las tres operaciones que validan (`createOpinion`, `updateOpinion`, `addComment`) lo hacen con esas constantes. Es superficie nueva, aditiva, de la misma `1.2.0`: no cambia ninguna firma ni ningún esquema. |
+| `CommentSheet` gana `counterFrom?: number` | Opcional, junto al `maxLength?` que la revisión 15 ya declaró. La pieza no importa C4: recibe las dos cifras como props y pinta el contador «N/max» desde `counterFrom`, igual que `MultilineField`. Sin esta prop, C1 tendría que repetir el 250 o el 300, y la revisión 15 dejó dicho que el número se escribe una sola vez. |
+| `CommentSheetState` gana `maxLength` y `counterFrom` | Los rellena `createCommentsController` —el punto de composición que sí conoce C4— con `MAX_COMMENT_LENGTH` (300) y el umbral de BR14.5 (250). La cáscara los pasa a la hoja sin importar el almacén, y el marcador vacío de U1 usa `0`/`0` porque en el esqueleto la hoja nunca se pinta. |
+| Por qué es aditivo | Una prop opcional, dos campos de un estado que la revisión 15 ya amplió y dos exportaciones nuevas de C4: ningún consumidor existente deja de compilar y ninguna firma cambia. C1 sigue sin conocer C4 y C2 tampoco, que es la invariante de la revisión 15 que había que sostener. |
+
+### Revisión 17 — U4 conecta Spotify y abre la búsqueda a álbumes y artistas (2026-11-17)
+
+El Functional Design de `u4-spotify-explore` cierra las cuatro preguntas que quedaban abiertas —el redirect de PKCE (A6), el hueco entre un resultado real y el catálogo local, qué significa «obra» en la búsqueda y qué se hace con un artista entre resultados— y ajusta cinco contratos. Todo lo añadido a las props es **opcional** o pertenece a una pieza que se publica por primera vez; los cambios de comportamiento no rompen a ningún consumidor y C9 no cambia de esquema.
+
+| Cambio | Qué se cambió |
+|---|---|
+| C1 sube a `1.4.0` con tres piezas y un comportamiento | `SpotifyCard` (ya planificada), `ArtistResultRow` y `WorkResultRow.kind?`; además, `CoverArt` cae al bloque con la inicial cuando la imagen no carga (AC2.2.3). Se añaden los modelos `SpotifyConnectionStatus` y `ArtistSummary`. `WorkSummary` **no** cambia: la etiqueta de clase es una prop de la fila y no un dato del modelo de presentación. El reparto de la tabla de § «Enmienda de la revisión 9» se corrige en su fila de 1.4.0. |
+| C2 sube a `1.4.0` con la obra completa por la ruta | `WorkDetailScreen.component` recibe `{ workId, data?: WorkView }`; `openWorkDetail` y `openCreate` aceptan `data?`; `CreateEntry` gana `preselectedWork: WorkView \| null`. Es lo que permite abrir y opinar sobre una obra que el catálogo local todavía no conoce (Q2 = A, AC3.1.8). `WorkView` se importa con `import type`, así que no aparece ninguna arista de ejecución hacia C5 ni hacia Spotify. Los llamadores actuales de `openWorkDetail({ workId })` y `openCreate({ workId })` siguen compilando. |
+| C5 sube a `1.2.0` con clase de obra y artistas | `WorkView.workKind?: 'track' \| 'album'`, `ArtistHit { artistId, name }`, `SearchResult.artists?` y `SearchPortResult.artists?`. `searchWorks` propaga los artistas y los cachea con las obras; `registerSearchedWork` sigue registrando solo obras. Todo es aditivo y opcional: las pruebas que construyen un `SearchResult` sin `artists` siguen valiendo. |
+| C7 queda declarada como `1.0.0` con lo que U4 entrega | Se corrige el esquema a lo que la unidad realmente construye: `x-modules` con `auth` y `catalog`, `x-redirect` (entorno o `makeRedirectUri`, decisión Q1 = B), `x-pkce` (S256, `state`, sin scopes), `x-search-mapping` (canción, álbum y artista) y `x-token-lifecycle` ya existente. `/search` declara `type=track,album,artist` y devuelve `works` y `artists`; se añade `/albums/{workId}` como segunda mitad de la resolución cuando `/tracks/{workId}` responde `404`. Ninguna unidad anterior consume C7, así que no hay migración. |
+| C10 amplía la búsqueda y la resolución | `GET /search` pasa de `type: track` a `enum: [track, album, artist]`, con `limit: 10` por clase —el valor de la revisión 17 era 20, ajustado en la revisión 18 al rango que Spotify acepta— y `albums.items[]` y `artists.items[]` en la respuesta; se añade `GET /albums/{id}`. No hay paginación en esta versión (OQ2), y el tiempo límite y la ausencia de reintento automático no cambian. |
+| Se cierran A6, OQ2 y la pregunta de C10 | A6 (redirect) queda resuelta por entorno con respaldo de `makeRedirectUri` y el intento de registro en el panel; OQ2 (peticiones) queda resuelta con una página de 10 por clase desde la revisión 18 (20 en la 17), 400 ms de espera y caché por consulta; la pregunta de paginación de C10 queda cerrada en «no en esta versión». |
+| Por qué es aditivo | `workKind`, `artists`, `data` y `preselectedWork` son opcionales o campos nuevos de estructuras que la unidad dueña amplía en su propia versión menor; `SpotifyCard` y `ArtistResultRow` se publican por primera vez; `CoverArt` gana comportamiento sin cambiar props; y los únicos cambios de forma (`DetailScreen.component`, `openWorkDetail`, `openCreate`) dejan compilando a todos los llamadores actuales porque el campo nuevo es opcional. C9 y C10 son fronteras externas: se adapta `@melodify/spotify` y ninguna otra unidad se entera. |
+
+### Revisión 18 — El `limit` de C10 baja a 10 (2026-11-24)
+
+Spotify acotó `limit` de `/search` a **0–10 por tipo** y la app seguía pidiendo `20`: toda búsqueda respondía `400` y Explorar y Crear mostraban su error genérico. Se corrigen las dos declaraciones de C10 y el valor de OQ2 a **10 por clase** —hasta treinta filas—, sin paginación. C10 es una API externa, así que no hay cambio de versión de paquete ni consumidor afectado; el detalle está en C10, § «Enmienda del 2026-11-24».
+
+| Cambio | Qué se cambió |
+|---|---|
+| `limit` de `/search` | De `20` a `10` por clase en C7 (`searchSpotify`) y en C10 (`searchCatalog`). Un `20` devuelve `400` desde el cambio de Spotify y deja la búsqueda sin ejecutar. |
+| Presupuesto de filas | De 60 a 30 por pantalla: diez canciones, diez álbumes y diez artistas. OQ2 sigue cerrada y no se añade paginación. |
+
+
+

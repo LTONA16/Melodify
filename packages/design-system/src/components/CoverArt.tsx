@@ -3,6 +3,7 @@
  * tarjeta nunca deja un hueco roto (FR11.3). El tamaño lo fija el token `cover`,
  * así que la misma pieza sirve en la tarjeta, en el resultado y en el detalle.
  */
+import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 
 import type { CoverSize } from "../models";
@@ -21,8 +22,13 @@ function initialOf(title: string): string {
 
 export function CoverArt({ title, coverUrl, size }: CoverArtProps) {
   const theme = useTheme();
-  // El token de portada se llama `feed` para la tarjeta; el tamaño de C1 usa
-  // `card`, así que el mapeo se declara aquí y no se inventa un token paralelo.
+  // Se guarda la URL que falló, no un booleano: si la fila se reutiliza con otra
+  // portada, el fallo anterior deja de aplicarse sin un efecto que reinicie estado.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const failed = coverUrl !== null && failedUrl === coverUrl;
+
+  // El tamaño de C1 usa `card`, así que el mapeo se declara aquí y no se inventa un
+  // token paralelo.
   const dimension = {
     card: theme.size.cover.feed,
     result: theme.size.cover.result,
@@ -30,12 +36,13 @@ export function CoverArt({ title, coverUrl, size }: CoverArtProps) {
   }[size];
   const borderRadius = theme.radius.sm;
 
-  if (coverUrl !== null) {
+  if (coverUrl !== null && !failed) {
     return (
       <Image
         testID="cover-art"
         accessibilityLabel={`Portada de ${title}`}
         source={{ uri: coverUrl }}
+        onError={() => setFailedUrl(coverUrl)}
         style={{ width: dimension, height: dimension, borderRadius }}
       />
     );

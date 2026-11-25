@@ -22,31 +22,131 @@
 import { AppShell, type ScreenModule } from "@melodify/app-shell";
 import { ThemeProvider } from "@melodify/design-system";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 
-import { ActividadScreen } from "../screens/placeholders/ActividadScreen";
-import { CrearScreen } from "../screens/placeholders/CrearScreen";
-import { ExplorarScreen } from "../screens/placeholders/ExplorarScreen";
-import { PerfilScreen } from "../screens/placeholders/PerfilScreen";
+import { ActividadScreen } from "../screens/actividad/ActividadScreen";
+import { CrearScreen } from "../screens/crear/CrearScreen";
+import { ExplorarScreen } from "../screens/explorar/ExplorarScreen";
+import { DetalleObraScreen } from "../screens/detalle-obra/DetalleObraScreen";
+import { DetalleOpinionScreen } from "../screens/detalle-opinion/DetalleOpinionScreen";
 import { InicioScreen } from "../screens/inicio/InicioScreen";
 import { LoginScreen } from "../screens/login/LoginScreen";
+import { PerfilScreen } from "../screens/perfil/PerfilScreen";
+import { activityFeed, catalog, contentStore } from "./instances";
 import { appSession } from "./session";
 import { defaultShellServices } from "./shell-services";
 
 /** Los estados visibles del arranque (F1). «Arranque» no pinta pantalla: es el splash. */
 export type AppPhase = "arranque" | "login" | "inicio";
 
+/*
+ * La cáscara monta cada pantalla sin props (`ScreenProps`) y a los detalles solo les
+ * pasa su identificador, así que las dependencias de composición se entregan en
+ * adaptadores de una línea en vez de en cada render. Existen para que las instancias
+ * de C4 y C5 se construyan **una vez**, aquí, y no una por pantalla (TS-18, R-01):
+ * dos almacenes de contenido darían dos feeds con revisiones distintas.
+ *
+ * Van en el módulo y no dentro de `App` para que su identidad no cambie entre
+ * renders: una función nueva en cada render remontaría la pestaña entera.
+ */
+function InicioRoute() {
+  return (
+    <InicioScreen
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
+function ActividadRoute() {
+  return <ActividadScreen activity={activityFeed} />;
+}
+
+function DetalleObraRoute({ work }: { work: { workId: string } }) {
+  return (
+    <DetalleObraScreen
+      work={work}
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
+function DetalleOpinionRoute({
+  opinion,
+}: {
+  opinion: { opinionId: string };
+}) {
+  return (
+    <DetalleOpinionScreen
+      opinion={opinion}
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
+function PerfilRoute() {
+  return (
+    <PerfilScreen
+      session={appSession}
+      content={contentStore}
+      catalog={catalog}
+    />
+  );
+}
+
+function CrearRoute() {
+  return (
+    <CrearScreen session={appSession} content={contentStore} catalog={catalog} />
+  );
+}
+
+function ExplorarRoute() {
+  return <ExplorarScreen catalog={catalog} />;
+}
+
 /**
- * Las cinco pestañas en el orden de la barra (F4.1). Inicio y las cuatro
- * contenedoras comparten la misma forma, así que U2–U5 sustituyen el componente
- * sin tocar el registro.
+ * Las cinco pestañas en el orden de la barra (F4.1). Las cinco son ya pantallas
+ * reales; Actividad abre además el detalle de la opinión dueña de cada fila.
+ *
+ * Explorar registra el detalle de obra igual que Inicio: una obra encontrada en
+ * Spotify abre su detalle y lleva a Crear la `WorkView` ya resuelta (`data`), sin
+ * volver a pedirla ni depender de que esté en el catálogo de ejemplo.
  */
 const screens: ScreenModule[] = [
-  { name: "inicio", title: "Inicio", component: InicioScreen },
-  { name: "explorar", title: "Explorar", component: ExplorarScreen },
-  { name: "crear", title: "Crear", component: CrearScreen },
-  { name: "actividad", title: "Actividad", component: ActividadScreen },
-  { name: "perfil", title: "Perfil", component: PerfilScreen },
+  {
+    name: "inicio",
+    title: "Inicio",
+    component: InicioRoute,
+    details: [
+      { kind: "work", component: DetalleObraRoute },
+      { kind: "opinion", component: DetalleOpinionRoute },
+    ],
+  },
+  {
+    name: "explorar",
+    title: "Explorar",
+    component: ExplorarRoute,
+    details: [{ kind: "work", component: DetalleObraRoute }],
+  },
+  { name: "crear", title: "Crear", component: CrearRoute },
+  {
+    name: "actividad",
+    title: "Actividad",
+    component: ActividadRoute,
+    details: [{ kind: "opinion", component: DetalleOpinionRoute }],
+  },
+  {
+    name: "perfil",
+    title: "Perfil",
+    component: PerfilRoute,
+    details: [{ kind: "opinion", component: DetalleOpinionRoute }],
+  },
 ];
 
 export function App() {
@@ -100,6 +200,9 @@ export function App() {
 
   return (
     <ThemeProvider>
+      {/* Android pinta a sangre por el borde: los iconos del sistema deben
+          contrastar con el fondo del tema, no con el contenido que va debajo. */}
+      <StatusBar style="auto" />
       <AppShell
         screens={screens}
         initialRoute="inicio"

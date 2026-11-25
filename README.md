@@ -47,23 +47,42 @@ Asegúrate de contar con el entorno de desarrollo para React Native configurado:
 
 El código fuente de la aplicación móvil se encuentra ubicado en la carpeta [`app/`](app/).
 
-### 1. Clonar el repositorio y acceder a la aplicación
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/tu-usuario/Melodify.git
-cd Melodify/app
+cd Melodify
 ```
+
+El repositorio es un monorepo de npm: `app/` es la app Expo y `packages/` sus paquetes internos.
 
 ### 2. Configurar variables de entorno
 
-Copia el archivo de ejemplo y completa las credenciales requeridas (por ejemplo, las llaves de Spotify):
+Las variables públicas de la app viven en `app/.env` (Expo lee el `.env` del directorio donde está `app.json`). Cópialo del ejemplo y rellena el client ID de Spotify:
 
 ```bash
-cp .env.example .env
+cp app/.env.example app/.env
 ```
 
+| Variable | Para qué sirve |
+|---|---|
+| `EXPO_PUBLIC_SPOTIFY_CLIENT_ID` | Client ID de tu app en el [panel de Spotify](https://developer.spotify.com/dashboard). Sin él, la app funciona con el catálogo de ejemplo y la tarjeta de conexión lo explica. |
+| `EXPO_PUBLIC_SPOTIFY_REDIRECT_URI` | Opcional. El redirect exacto registrado en el panel. Si se deja vacío, la app lo calcula para Expo Go. |
+
+#### Registrar el redirect en Spotify
+
+El redirect tiene que coincidir **carácter por carácter** con el que registra la app:
+
+1. Arranca Metro (`npm start` desde `app/`) y busca en la salida la línea `redirect de Spotify resuelto: …`.
+2. Copia ese valor tal cual y añádelo en el panel de Spotify, en **Redirect URIs** de tu app.
+3. Si prefieres fijarlo tú, escribe el mismo valor en `EXPO_PUBLIC_SPOTIFY_REDIRECT_URI` y regístralo en el panel.
+4. Reinicia Metro con `npm start -- --clear` después de tocar el `.env`: las variables `EXPO_PUBLIC_*` se incrustan al empaquetar.
+
+> [!NOTE]
+> Sin `app/.env` la app no se rompe: entra con `demo` / `demo`, Inicio y Actividad funcionan completos, y Explorar y Crear usan el catálogo de ejemplo con la tarjeta «La conexión con Spotify no está configurada en esta instalación».
+
 > [!TIP]
-> Puedes revisar las variables documentadas en [app/.env.example](app/.env.example).
+> Las variables documentadas están en [app/.env.example](app/.env.example).
 
 ### 3. Instalar dependencias
 
@@ -73,31 +92,22 @@ npm install
 
 ### 4. Iniciar el servidor Metro
 
-Inicia el empaquetador de JavaScript de React Native:
+Desde la carpeta `app/`, inicia el empaquetador de JavaScript:
 
 ```bash
+cd app
 npm start
 ```
 
-### 5. Compilar y ejecutar la aplicación
+### 5. Abrir la app en el teléfono
 
-En una nueva terminal (dentro de la carpeta `app/`):
+Con la app **Expo Go** instalada en el teléfono Android:
 
-#### Para Android:
-```bash
-npm run android
-```
+1. Conecta el teléfono y el ordenador a la misma red.
+2. Escanea el código QR que imprime Metro (o introduce la URL `exp://…` a mano).
+3. Entra con el usuario `demo` y la contraseña `demo`.
 
-#### Para iOS (solo macOS):
-La primera vez o tras actualizar dependencias nativas, instala los pods:
-```bash
-bundle install
-bundle exec pod install
-```
-Luego ejecuta la aplicación:
-```bash
-npm run ios
-```
+La app no necesita compilación nativa ni tiendas: se ejecuta en Expo Go.
 
 ---
 

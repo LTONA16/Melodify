@@ -1,0 +1,51 @@
+/**
+ * Las **únicas** instancias de C4, C5, C6 y C8 de la app (TS-18, R-01).
+ *
+ * Por qué viven aquí y no en cada pantalla: el contenido, el catálogo, la red y la
+ * actividad son fuentes que varias pantallas leen a la vez. Una instancia por
+ * pantalla daría dos respuestas a la misma pregunta —dos feeds con revisiones
+ * distintas, dos decisiones de portada, un histórico que no ve lo que se publica— y
+ * rompería la suscripción que hace que un cambio se vea en todas partes. Se
+ * construyen una sola vez, al importar este archivo, y las pruebas sustituyen el
+ * módulo con `jest.mock` cuando necesitan aislarse (NFR1.8).
+ *
+ * La siembra se construye al importar, no en el primer render: así el feed no paga
+ * su coste y el arranque, que ya tiene su presupuesto, es quien lo asume (NFR8.1).
+ *
+ * Los tres puertos de Spotify llegan de `ports.ts` desde U4 y son instancias reales:
+ * sin sesión, la búsqueda sigue respondiendo `offline` y toda portada es el bloque
+ * con la inicial (BR5.5, BR5.6, BR19.5).
+ */
+import { createActivity } from "@melodify/activity";
+import { createCatalog } from "@melodify/catalog";
+import { createConnectivity, expoNetworkAdapter } from "@melodify/connectivity";
+import { createContentStore } from "@melodify/content-store";
+
+import { logger } from "./logger";
+import { catalogPorts } from "./ports";
+import { appSession } from "./session";
+
+export const contentStore = createContentStore();
+
+/**
+ * La máquina de actividad se construye sobre las mismas dos instancias que ya
+ * existen: un segundo `createActivity` con otro almacén daría un histórico que no
+ * vería lo que las demás pantallas publican (BR24.3, R-01).
+ */
+export const activityFeed = createActivity({
+  content: contentStore,
+  session: appSession,
+});
+
+export const connectivity = createConnectivity({
+  network: expoNetworkAdapter,
+  logger,
+});
+
+export const catalog = createCatalog({
+  content: contentStore,
+  connectivity,
+  session: catalogPorts.session,
+  search: catalogPorts.search,
+  resolve: catalogPorts.resolve,
+});

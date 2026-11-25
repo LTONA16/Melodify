@@ -45,7 +45,7 @@ El 80 % de líneas **por árbol** —`./app/src/**` y cada `./packages/*/src/**`
 
 ## Configuración
 
-- `jest.config.js` de raíz: `preset: "jest-expo"`, `setupFilesAfterEnv` → `jest.setup.js`, `collectCoverageFrom` sobre `app/src/**/*.{ts,tsx}` y `packages/*/src/**/*.{ts,tsx}`.
+- `jest.config.js` de raíz: `preset: "jest-expo"`, `setupFilesAfterEnv` → `jest.setup.js`, `collectCoverageFrom` sobre `app/src/**/*.{ts,tsx}` y `packages/*/src/**/*.{ts,tsx}`, y `testTimeout: 20000` porque con la instrumentación de cobertura el montaje de las pantallas pasa de los 5 s por defecto.
 - Tres `moduleNameMapper` nuevos: `^@melodify/content-store$`, `^@melodify/catalog$` y `^@melodify/connectivity$` hacia su `src`. Sin el mapeo, el preset resuelve el paquete por el enlace de workspaces a un `.ts` que no transforma y las pruebas no llegan a ejecutarse.
 - Tres `coverageThreshold` nuevos al 80 % de líneas para los tres árboles nuevos, junto a los tres que ya existen.
 - Exclusiones de TS-10 sin cambios: `**/*.d.ts`, `**/__tests__/**`, `**/*.test.{ts,tsx}`, `**/jest.setup.*` y `app/index.ts`. **`app/src/bootstrap/` no se excluye.**

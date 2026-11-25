@@ -165,7 +165,7 @@
     {
       "id": "NFR1.3",
       "status": "OK",
-      "target": "app/src/screens/inicio/seed.ts"
+      "target": "packages/content-store/src/seed.ts"
     },
     {
       "id": "NFR6.1",
@@ -340,7 +340,7 @@
     {
       "id": "BR3.3",
       "status": "OK",
-      "target": "app/src/screens/inicio/seed.ts"
+      "target": "packages/content-store/src/seed.ts"
     },
     {
       "id": "BR3.4",

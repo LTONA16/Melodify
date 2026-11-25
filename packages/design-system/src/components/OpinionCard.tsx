@@ -6,9 +6,26 @@
  * En la variante `feed` el texto se recorta a tres líneas con elipsis; el detalle
  * no recorta. Las acciones son opcionales: sin callback no responden, que es lo que
  * convierte la tarjeta sembrada de U1 en lectura pura (BR3.2).
+ *
+ * Estado `own` (1.2.0, revisión 12 del contrato): en variante `detail` con `isOwn`
+ * verdadero la tarjeta se destaca con el fondo `primaryContainer`, rotula «Tu
+ * opinión» dentro de la tarjeta —no como encabezado de sección— y cambia el tiempo
+ * transcurrido por la línea de fechas, porque AC4.2.1 pide una opinión propia
+ * «destacada» y AC4.2.4 ver creación y modificación.
+ *
+ * «Editar» se pinta con `isOwn` y **no** con la llegada de `onEdit`: si dependiera
+ * del callback, AC4.2.1 no se cumpliría hasta que U3 cablee la acción. En U2 se
+ * pinta sin efecto —el mismo trato que el chip «Conectar» hasta U4— y U3 le pasa
+ * `onEdit`.
+ *
+ * La 1.3.0 cambia dos cosas de la tarjeta: la barra recibe `showLike={!isOwn}`
+ * —la propia conserva el número pero no deja dárselo— y la acción de seguir dice
+ * «Seguir autor» o «Siguiendo» según `followedByMe`, con la etiqueta accesible
+ * «Seguir a {autor}» / «Dejar de seguir a {autor}» (FR7.4, AC7.3.1, AC7.3.2).
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { formatCalendarDate } from "../calendar-date";
 import type { OpinionCardModel, OpinionVariant } from "../models";
 import { formatRelativeTime } from "../relative-time";
 import { useTheme } from "../useTheme";
@@ -34,6 +51,16 @@ const TEXT_LINES: Record<OpinionVariant, number | undefined> = {
   detail: undefined,
 };
 
+/** «Creada el 4 nov 2026» y, solo si se editó, « · Editada el 6 nov 2026». */
+function formatOwnDates(opinion: OpinionCardModel): string {
+  const created = `Creada el ${formatCalendarDate(opinion.createdAt)}`;
+  const edited = opinion.updatedAt !== opinion.createdAt;
+
+  return edited
+    ? `${created} · Editada el ${formatCalendarDate(opinion.updatedAt)}`
+    : created;
+}
+
 export function OpinionCard({
   opinion,
   variant,
@@ -47,6 +74,8 @@ export function OpinionCard({
   const theme = useTheme();
   const coverSize = variant === "detail" ? "detail" : "card";
   const titleStyle = variant === "detail" ? theme.type.headline : theme.type.bodySmall;
+  const isOwnDetail = variant === "detail" && isOwn;
+  const ink = isOwnDetail ? theme.colors.onPrimaryContainer : theme.colors.text;
 
   return (
     <Pressable
@@ -57,7 +86,9 @@ export function OpinionCard({
       style={[
         styles.card,
         {
-          backgroundColor: theme.colors.surface,
+          backgroundColor: isOwnDetail
+            ? theme.colors.primaryContainer
+            : theme.colors.surface,
           borderColor: theme.colors.border,
           borderRadius: theme.radius.md,
           padding: theme.space[4],
@@ -65,6 +96,30 @@ export function OpinionCard({
         },
       ]}
     >
+      {isOwnDetail ? (
+        <View style={[styles.footerRow, styles.actionsRow]}>
+          <Text
+            testID="opinion-own-label"
+            style={[theme.type.label, { color: theme.colors.onPrimaryContainer }]}
+          >
+            Tu opinión
+          </Text>
+          <Pressable
+            testID="opinion-edit"
+            accessibilityRole="button"
+            accessibilityLabel="Editar"
+            accessibilityState={{ disabled: onEdit === undefined }}
+            disabled={onEdit === undefined}
+            onPress={onEdit}
+            style={[styles.inlineAction, { minHeight: theme.size.touch }]}
+          >
+            <Text style={[theme.type.label, { color: theme.colors.primary }]}>
+              Editar
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={[styles.headerRow, { gap: theme.space[3] }]}>
         <CoverArt
           title={opinion.workTitle}
@@ -75,7 +130,7 @@ export function OpinionCard({
           <Text
             testID="opinion-work-title"
             numberOfLines={2}
-            style={[titleStyle, { color: theme.colors.text }]}
+            style={[titleStyle, { color: ink }]}
           >
             {opinion.workTitle}
           </Text>
@@ -94,7 +149,7 @@ export function OpinionCard({
         testID="opinion-text"
         numberOfLines={TEXT_LINES[variant]}
         ellipsizeMode="tail"
-        style={[theme.type.bodySmall, { color: theme.colors.text }]}
+        style={[theme.type.bodySmall, { color: ink }]}
       >
         {opinion.text}
       </Text>
@@ -113,19 +168,31 @@ export function OpinionCard({
         >
           {opinion.authorName}
         </Text>
-        <Text
-          testID="opinion-created-at"
-          style={[theme.type.caption, { color: theme.colors.textMuted }]}
-        >
-          {formatRelativeTime(opinion.createdAt)}
-        </Text>
+        {isOwnDetail ? null : (
+          <Text
+            testID="opinion-created-at"
+            style={[theme.type.caption, { color: theme.colors.textMuted }]}
+          >
+            {formatRelativeTime(opinion.createdAt)}
+          </Text>
+        )}
       </View>
+
+      {isOwnDetail ? (
+        <Text
+          testID="opinion-own-dates"
+          style={[theme.type.caption, { color: theme.colors.onPrimaryContainer }]}
+        >
+          {formatOwnDates(opinion)}
+        </Text>
+      ) : null}
 
       <View style={[styles.footerRow, styles.actionsRow, { gap: theme.space[2] }]}>
         <SocialActionBar
           likeCount={opinion.likeCount}
           commentCount={opinion.commentCount}
           likedByMe={opinion.likedByMe}
+          showLike={!isOwn}
           onLike={onLike}
           onComment={onComment}
         />
@@ -134,17 +201,22 @@ export function OpinionCard({
           <Pressable
             testID="opinion-follow"
             accessibilityRole="button"
-            accessibilityLabel="Seguir"
+            accessibilityLabel={
+              opinion.followedByMe
+                ? `Dejar de seguir a ${opinion.authorName}`
+                : `Seguir a ${opinion.authorName}`
+            }
+            accessibilityState={{ selected: opinion.followedByMe }}
             onPress={onFollow}
             style={[styles.inlineAction, { minHeight: theme.size.touch }]}
           >
             <Text style={[theme.type.label, { color: theme.colors.primary }]}>
-              Seguir
+              {opinion.followedByMe ? "Siguiendo" : "Seguir autor"}
             </Text>
           </Pressable>
         ) : null}
 
-        {isOwn && onEdit !== undefined ? (
+        {!isOwnDetail && isOwn && onEdit !== undefined ? (
           <Pressable
             testID="opinion-edit"
             accessibilityRole="button"

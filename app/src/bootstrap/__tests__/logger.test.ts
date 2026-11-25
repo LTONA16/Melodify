@@ -1,3 +1,5 @@
+import type { SessionLogger } from "@melodify/app-session";
+
 import { logger } from "../logger";
 
 /**
@@ -9,15 +11,21 @@ const originalDev = __DEV__;
 
 let warnSpy: jest.SpyInstance;
 let errorSpy: jest.SpyInstance;
+let logSpy: jest.SpyInstance;
+let infoSpy: jest.SpyInstance;
 
 beforeEach(() => {
   warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
   errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  infoSpy = jest.spyOn(console, "info").mockImplementation(() => {});
 });
 
 afterEach(() => {
   warnSpy.mockRestore();
   errorSpy.mockRestore();
+  logSpy.mockRestore();
+  infoSpy.mockRestore();
   (globalThis as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
 });
 
@@ -40,11 +48,48 @@ describe("logger del proyecto", () => {
     (globalThis as unknown as { __DEV__: boolean }).__DEV__ = false;
 
     logger.warn("SESSION_READ_FAILED", "no se pudo leer la sesión");
+    logger.warn("NETWORK_STATE_UNAVAILABLE", "módulo de red no disponible");
     logger.error("SESSION_SAVE_FAILED", "no se pudo guardar la sesión");
 
     expect(warnSpy).not.toHaveBeenCalled();
     expect(errorSpy).toHaveBeenCalledWith(
       "[melodify] SESSION_SAVE_FAILED: no se pudo guardar la sesión",
     );
+  });
+
+  it("acepta los tres códigos nuevos de U2 además de los de la sesión", () => {
+    (globalThis as unknown as { __DEV__: boolean }).__DEV__ = true;
+
+    logger.warn("CONTENT_SUBSCRIBE_FAILED", "no se pudo seguir el contenido");
+    logger.warn("CONTENT_READ_FAILED", "no se pudo leer el contenido");
+    logger.warn("NETWORK_STATE_UNAVAILABLE", "módulo de red no disponible");
+
+    expect(warnSpy).toHaveBeenCalledTimes(3);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[melodify] CONTENT_SUBSCRIBE_FAILED: no se pudo seguir el contenido",
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[melodify] CONTENT_READ_FAILED: no se pudo leer el contenido",
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      "[melodify] NETWORK_STATE_UNAVAILABLE: módulo de red no disponible",
+    );
+  });
+
+  it("sigue siendo asignable a `SessionLogger`, que es donde C3 lo espera", () => {
+    const asSession: SessionLogger = logger;
+
+    expect(typeof asSession.warn).toBe("function");
+    expect(typeof asSession.error).toBe("function");
+  });
+
+  it("no escribe por `console.log` ni `console.info`: solo avisa y falla (NFR9.1)", () => {
+    (globalThis as unknown as { __DEV__: boolean }).__DEV__ = true;
+
+    logger.warn("CONTENT_READ_FAILED", "no se pudo leer el contenido");
+    logger.error("CONTENT_READ_FAILED", "no se pudo leer el contenido");
+
+    expect(logSpy).not.toHaveBeenCalled();
+    expect(infoSpy).not.toHaveBeenCalled();
   });
 });

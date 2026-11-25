@@ -121,8 +121,8 @@ Cada capa se implementa y **después** se escriben y ejecutan sus pruebas, antes
 
 ### Paso 4 — Pruebas del modelo de datos de C4
 
-- [ ] `packages/content-store/src/__tests__/seed.test.ts`, 8–10 pruebas: la siembra tiene 10 opiniones, 5 autores, 8 obras, 3 opiniones de `demo`, 2 seguidos, 4 me gusta y 3 comentarios (AC2.1.1, AC9.1.2); las edades se calculan contra un `now` fijo y no contra el reloj de la máquina (NFR5.7); `As It Was` no tiene opiniones y las ocho obras tienen `coverUrl: null`; el orden del feed por `createdAt` descendente coincide con la lista literal (BR4.5); `op-004` trae `updatedAt` posterior y es la única editada.
-- [ ] `packages/content-store/src/__tests__/store.test.ts`, 4–6 pruebas: dos almacenes construidos desde la misma siembra no comparten estado (NFR3.6); `seed` sustituye la siembra por una mínima de lista vacía y por una de una sola opinión; `revision` arranca en cero. Ejecutar y dejar en verde.
+- [x] `packages/content-store/src/__tests__/seed.test.ts`, 8–10 pruebas: la siembra tiene 10 opiniones, 5 autores, 8 obras, 3 opiniones de `demo`, 2 seguidos, 4 me gusta y 3 comentarios (AC2.1.1, AC9.1.2); las edades se calculan contra un `now` fijo y no contra el reloj de la máquina (NFR5.7); `As It Was` no tiene opiniones y las ocho obras tienen `coverUrl: null`; el orden del feed por `createdAt` descendente coincide con la lista literal (BR4.5); `op-004` trae `updatedAt` posterior y es la única editada.
+- [x] `packages/content-store/src/__tests__/store.test.ts`, 4–6 pruebas: dos almacenes construidos desde la misma siembra no comparten estado (NFR3.6); `seed` sustituye la siembra por una mínima de lista vacía y por una de una sola opinión; `revision` arranca en cero. Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.1), US4.2 (AC4.2.4), US9.1 (AC9.1.2, AC9.1.3).
 
@@ -138,218 +138,218 @@ Cada capa se implementa y **después** se escriben y ejecutan sus pruebas, antes
 
 ### Paso 6 — Pruebas del acceso a datos de C4
 
-- [ ] `packages/content-store/src/__tests__/reads.test.ts`, 12–14 pruebas: las tres lecturas de lista con y sin filtro y su orden; `422` sin `viewerId` en `listOpinions`, `getOpinion`, `getAuthor`, `listFollowing` y `subscribeContent`; `404` de una opinión y de un autor inexistentes; `getAuthor` devuelve los contadores de `demo` (3 opiniones, 2 siguiendo); `isOwn` es verdadero solo en las tres de `demo`; `likedByMe` refleja los me gusta de la cuenta (AC9.1.1–AC9.1.3, BR4.6).
-- [ ] `packages/content-store/src/__tests__/subscribe.test.ts`, 5–6 pruebas: la primera emisión llega al suscribirse y trae la siembra; una escritura emite con `revision` incrementada; la baja detiene las emisiones; dos suscriptores ven la misma revisión. Ejecutar y dejar en verde.
+- [x] `packages/content-store/src/__tests__/reads.test.ts`, 12–14 pruebas: las tres lecturas de lista con y sin filtro y su orden; `422` sin `viewerId` en `listOpinions`, `getOpinion`, `getAuthor`, `listFollowing` y `subscribeContent`; `404` de una opinión y de un autor inexistentes; `getAuthor` devuelve los contadores de `demo` (3 opiniones, 2 siguiendo); `isOwn` es verdadero solo en las tres de `demo`; `likedByMe` refleja los me gusta de la cuenta (AC9.1.1–AC9.1.3, BR4.6).
+- [x] `packages/content-store/src/__tests__/subscribe.test.ts`, 5–6 pruebas: la primera emisión llega al suscribirse y trae la siembra; una escritura emite con `revision` incrementada; la baja detiene las emisiones; dos suscriptores ven la misma revisión. Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.3), US4.1–US4.3, US9.1 (AC9.1.1–AC9.1.3).
 
 ### Paso 7 — Lógica de negocio de C4: escrituras y reglas
 
-- [ ] `createOpinion({ authorId, workId, workTitle, workArtist, text, rating })` con `201`, `409` si ya existe una opinión de esa persona sobre esa obra y `422` fuera de rango (BR4.3; la validación fina del formulario es de U3).
-- [ ] `updateOpinion({ opinionId, authorId, viewerId, text?, rating? })` con `200`, `403` si no es el autor, `404` si no existe y `422` fuera de rango; actualiza `updatedAt` (BR4.4, AC4.2.4).
-- [ ] `toggleLike({ opinionId, authorId })` con `200` y `{ opinionId, likeCount, likedByMe }`; `addComment({ opinionId, authorId, text })` con `201` y `422` con texto vacío (U3 los usará; la siembra ya trae los recibidos).
-- [ ] `toggleFollow({ authorId, followerId })` con `200` y `{ authorId, followedByMe, followerCount, viewerFollowingCount }`, `409` contra uno mismo (BR4.8).
-- [ ] Toda escritura sube `revision` y notifica a los suscriptores una sola vez; ninguna muta el estado anterior (estado inmutable).
+- [x] `createOpinion({ authorId, workId, workTitle, workArtist, text, rating })` con `201`, `409` si ya existe una opinión de esa persona sobre esa obra y `422` fuera de rango (BR4.3; la validación fina del formulario es de U3).
+- [x] `updateOpinion({ opinionId, authorId, viewerId, text?, rating? })` con `200`, `403` si no es el autor, `404` si no existe y `422` fuera de rango; actualiza `updatedAt` (BR4.4, AC4.2.4).
+- [x] `toggleLike({ opinionId, authorId })` con `200` y `{ opinionId, likeCount, likedByMe }`; `addComment({ opinionId, authorId, text })` con `201` y `422` con texto vacío (U3 los usará; la siembra ya trae los recibidos).
+- [x] `toggleFollow({ authorId, followerId })` con `200` y `{ authorId, followedByMe, followerCount, viewerFollowingCount }`, `409` contra uno mismo (BR4.8).
+- [x] Toda escritura sube `revision` y notifica a los suscriptores una sola vez; ninguna muta el estado anterior (estado inmutable).
 
 **Historias**: US2.1 (AC2.1.3), US4.2 (AC4.2.4), US9.1 (AC9.1.1, AC9.1.2).
 
 ### Paso 8 — Pruebas de las escrituras de C4
 
-- [ ] `packages/content-store/src/__tests__/writes.test.ts`, 18–22 pruebas: `createOpinion` correcto (`201`, aparece la primera en el feed, `revision` sube), duplicado (`409`), valoración y texto fuera de rango (`422`); `updateOpinion` propio (`200`, `updatedAt` posterior y `createdAt` intacto), ajeno (`403`), inexistente (`404`); `toggleLike` pone y quita con el contador correcto (AC2.1.3, AC4.2.4, US7.1 en su base); `addComment` con texto válido y vacío; `toggleFollow` contra uno mismo (`409`) y el `viewerFollowingCount` de `demo` (BR4.8); ninguna escritura altera el objeto de estado anterior.
-- [ ] Ejecutar y dejar en verde.
+- [x] `packages/content-store/src/__tests__/writes.test.ts`, 18–22 pruebas: `createOpinion` correcto (`201`, aparece la primera en el feed, `revision` sube), duplicado (`409`), valoración y texto fuera de rango (`422`); `updateOpinion` propio (`200`, `updatedAt` posterior y `createdAt` intacto), ajeno (`403`), inexistente (`404`); `toggleLike` pone y quita con el contador correcto (AC2.1.3, AC4.2.4, US7.1 en su base); `addComment` con texto válido y vacío; `toggleFollow` contra uno mismo (`409`) y el `viewerFollowingCount` de `demo` (BR4.8); ninguna escritura altera el objeto de estado anterior.
+- [x] Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.3), US4.2 (AC4.2.4), US9.1 (AC9.1.1, AC9.1.2).
 
 ### Paso 9 — Lógica de negocio de C5: catálogo y decisión de portada
 
-- [ ] `packages/catalog/src/sample.ts` con las 8 obras de `functional-spec.md` § Obras, `origin: "sample"`, `coverUrl: null` y orden estable (BR5.1).
-- [ ] `packages/catalog/src/ports.ts` con `SpotifySessionPort`, `SpotifySearchPort`, `SpotifyResolvePort`, sus resultados y el agregado `CatalogPorts` (C5 § `x-ports`).
-- [ ] `packages/catalog/src/catalog.ts` con `createCatalog({ content, connectivity, session, search, resolve })`: `listSampleWorks`, `getWork` (`200`/`404`), `countOpinions` desde C4, `coverFor` (`url` solo con sesión conectada, conexión y `coverUrl`; si no, `initialBlock`), `searchWorks` (`{ status: "offline", works: [] }` sin puerto), `subscribe` con emisión inmediata y tras cada cambio, `getCoverFailure` y `retryCovers` (C5, BR5.3–BR5.5).
-- [ ] Sin puertos, `retryCovers` no hace nada y `getCoverFailure` es falso salvo que un doble fuerce el fallo (NFR3.11, `security-design.md` § NFR3.11).
+- [x] `packages/catalog/src/sample.ts` con las 8 obras de `functional-spec.md` § Obras, `origin: "sample"`, `coverUrl: null` y orden estable (BR5.1).
+- [x] `packages/catalog/src/ports.ts` con `SpotifySessionPort`, `SpotifySearchPort`, `SpotifyResolvePort`, sus resultados y el agregado `CatalogPorts` (C5 § `x-ports`).
+- [x] `packages/catalog/src/catalog.ts` con `createCatalog({ content, connectivity, session, search, resolve })`: `listSampleWorks`, `getWork` (`200`/`404`), `countOpinions` desde C4, `coverFor` (`url` solo con sesión conectada, conexión y `coverUrl`; si no, `initialBlock`), `searchWorks` (`{ status: "offline", works: [] }` sin puerto), `subscribe` con emisión inmediata y tras cada cambio, `getCoverFailure` y `retryCovers` (C5, BR5.3–BR5.5).
+- [x] Sin puertos, `retryCovers` no hace nada y `getCoverFailure` es falso salvo que un doble fuerce el fallo (NFR3.11, `security-design.md` § NFR3.11).
 
 **Historias**: US2.2 (AC2.2.2, AC2.2.3), US4.1 (AC4.1.1, AC4.1.4), US4.3 (AC4.3.3).
 
 ### Paso 10 — Pruebas del catálogo
 
-- [ ] `packages/catalog/src/__tests__/catalog.test.ts`, 16–20 pruebas: las 8 obras de ejemplo en orden y con `coverUrl` nulo (BR5.1); `getWork` con identificador válido e inválido (BR5.2); `countOpinions` coincide con C4 para `Bohemian Rhapsody` (2), `As It Was` (0) (BR5.4); `coverFor` con `session: null` → `initialBlock`, con sesión conectada y `coverUrl` → `url`, con sesión desconectada → `initialBlock`, con `online: false` → `initialBlock` (BR5.3); `searchWorks` sin puerto → `offline` sin tocar la red (BR5.5); `subscribe` emite al suscribirse y al forzar un cambio de portada; `getCoverFailure` y `retryCovers` sin puerto (NFR3.11).
-- [ ] Ejecutar y dejar en verde.
+- [x] `packages/catalog/src/__tests__/catalog.test.ts`, 16–20 pruebas: las 8 obras de ejemplo en orden y con `coverUrl` nulo (BR5.1); `getWork` con identificador válido e inválido (BR5.2); `countOpinions` coincide con C4 para `Bohemian Rhapsody` (2), `As It Was` (0) (BR5.4); `coverFor` con `session: null` → `initialBlock`, con sesión conectada y `coverUrl` → `url`, con sesión desconectada → `initialBlock`, con `online: false` → `initialBlock` (BR5.3); `searchWorks` sin puerto → `offline` sin tocar la red (BR5.5); `subscribe` emite al suscribirse y al forzar un cambio de portada; `getCoverFailure` y `retryCovers` sin puerto (NFR3.11).
+- [x] Ejecutar y dejar en verde.
 
 **Historias**: US2.2 (AC2.2.2–AC2.2.4), US4.1 (AC4.1.4), US4.3 (AC4.3.3).
 
 ### Paso 11 — Lógica de negocio de C6: conectividad y adaptador de `expo-network`
 
-- [ ] `packages/connectivity/src/connectivity.ts` con `createConnectivity({ network })`: `getNetworkState()` con `{ online, measuredAt }`, `subscribeNetwork(listener)` con emisión inmediata y tras cada cambio, y baja al desuscribirse (C6, BR6.1, BR6.2).
-- [ ] Si el adaptador falla o falta, la instancia arranca **en línea**, sin aviso, y registra `NETWORK_STATE_UNAVAILABLE` por el logger inyectado (BR6.3, NFR9.4).
-- [ ] `packages/connectivity/src/expo-network-adapter.ts`, **único archivo que importa `expo-network`**: `getState()` y `addListener()` traducen `isConnected`/`isInternetReachable` a un solo booleano; no leen SSID, IP ni tipo de red (NFR4.5).
-- [ ] `packages/connectivity/src/index.ts` publica `createConnectivity`, el adaptador y el tipo `NetworkAdapter` para las pruebas.
+- [x] `packages/connectivity/src/connectivity.ts` con `createConnectivity({ network })`: `getNetworkState()` con `{ online, measuredAt }`, `subscribeNetwork(listener)` con emisión inmediata y tras cada cambio, y baja al desuscribirse (C6, BR6.1, BR6.2).
+- [x] Si el adaptador falla o falta, la instancia arranca **en línea**, sin aviso, y registra `NETWORK_STATE_UNAVAILABLE` por el logger inyectado (BR6.3, NFR9.4).
+- [x] `packages/connectivity/src/expo-network-adapter.ts`, **único archivo que importa `expo-network`**: `getState()` y `addListener()` traducen `isConnected`/`isInternetReachable` a un solo booleano; no leen SSID, IP ni tipo de red (NFR4.5).
+- [x] `packages/connectivity/src/index.ts` publica `createConnectivity`, el adaptador y el tipo `NetworkAdapter` para las pruebas.
 
 **Historias**: US2.2 (AC2.2.4) — el aviso de sin conexión que alimenta.
 
 ### Paso 12 — Pruebas de conectividad
 
-- [ ] `packages/connectivity/src/__tests__/connectivity.test.ts`, 8–10 pruebas: estado inicial emitido al suscribirse; un cambio del adaptador emite el nuevo estado; la baja deja de emitir; `measuredAt` es una fecha ISO; el adaptador que rechaza arranca en línea y registra `NETWORK_STATE_UNAVAILABLE` con el mensaje literal y sin datos de la persona (NFR4.6).
-- [ ] `packages/connectivity/src/__tests__/expo-network-adapter.test.ts`, 3–4 pruebas con `jest.mock("expo-network")`: `isConnected: true` y `isInternetReachable` distinto de `false` → en línea; `isConnected: false` → sin conexión; solo se leen esos dos campos (NFR4.5); `addListener` devuelve una baja que llama a `remove`. Ejecutar y dejar en verde.
+- [x] `packages/connectivity/src/__tests__/connectivity.test.ts`, 8–10 pruebas: estado inicial emitido al suscribirse; un cambio del adaptador emite el nuevo estado; la baja deja de emitir; `measuredAt` es una fecha ISO; el adaptador que rechaza arranca en línea y registra `NETWORK_STATE_UNAVAILABLE` con el mensaje literal y sin datos de la persona (NFR4.6).
+- [x] `packages/connectivity/src/__tests__/expo-network-adapter.test.ts`, 3–4 pruebas con `jest.mock("expo-network")`: `isConnected: true` y `isInternetReachable` distinto de `false` → en línea; `isConnected: false` → sin conexión; solo se leen esos dos campos (NFR4.5); `addListener` devuelve una baja que llama a `remove`. Ejecutar y dejar en verde.
 
 **Historias**: US2.2 (AC2.2.4).
 
 ### Paso 13 — Superficie de los tres paquetes y vocabulario del logger
 
-- [ ] Completar los tres `src/index.ts` con su superficie exacta: C4 (`createContentStore` y sus tipos), C5 (`createCatalog`, `CatalogPorts` y los tres puertos, `WorkView`) y C6 (`createConnectivity`, `expo-network-adapter`, `NetworkAdapter`, `NetworkView`).
-- [ ] `app/src/bootstrap/logger.ts`: declarar `AppLogCode` (`SessionLogCode` más `CONTENT_SUBSCRIBE_FAILED`, `CONTENT_READ_FAILED`, `NETWORK_STATE_UNAVAILABLE`) y `AppLogger`, manteniendo el objeto `logger` exportado y su implementación actual (NFR9.4, `security-design.md` § NFR9.4).
-- [ ] `app/src/bootstrap/ports.ts`: conservar los nombres que U1 publica —`CatalogPorts` y `catalogPorts` con los tres en `null`— e importar los tipos de `@melodify/catalog` con `import type` (TS-21, NFR3.11).
+- [x] Completar los tres `src/index.ts` con su superficie exacta: C4 (`createContentStore` y sus tipos), C5 (`createCatalog`, `CatalogPorts` y los tres puertos, `WorkView`) y C6 (`createConnectivity`, `expo-network-adapter`, `NetworkAdapter`, `NetworkView`).
+- [x] `app/src/bootstrap/logger.ts`: declarar `AppLogCode` (`SessionLogCode` más `CONTENT_SUBSCRIBE_FAILED`, `CONTENT_READ_FAILED`, `NETWORK_STATE_UNAVAILABLE`) y `AppLogger`, manteniendo el objeto `logger` exportado y su implementación actual (NFR9.4, `security-design.md` § NFR9.4).
+- [x] `app/src/bootstrap/ports.ts`: conservar los nombres que U1 publica —`CatalogPorts` y `catalogPorts` con los tres en `null`— e importar los tipos de `@melodify/catalog` con `import type` (TS-21, NFR3.11).
 
 **Historias**: US2.1–US2.3, US4.1–US4.3, US9.1 (superficie que las hace posibles).
 
 ### Paso 14 — Pruebas de superficie y del logger
 
-- [ ] `packages/content-store/src/__tests__/index.test.ts`, `packages/catalog/src/__tests__/index.test.ts` y `packages/connectivity/src/__tests__/index.test.ts`: cada paquete expone exactamente lo que su contrato nombra y una construcción sin argumentos —o con los colaboradores mínimos— es usable.
-- [ ] `app/src/bootstrap/__tests__/logger.test.ts`: añadir que `const asSession: SessionLogger = logger;` compila, que los tres códigos nuevos se aceptan y que `warn` bajo `__DEV__` falso no llama a `console` (NFR9.4).
-- [ ] `app/src/bootstrap/__tests__/ports.test.ts`: sigue pasando sin cambios de aserción; los tres puertos siguen en `null` (NFR3.10, NFR3.11). Ejecutar y dejar en verde.
+- [x] `packages/content-store/src/__tests__/index.test.ts`, `packages/catalog/src/__tests__/index.test.ts` y `packages/connectivity/src/__tests__/index.test.ts`: cada paquete expone exactamente lo que su contrato nombra y una construcción sin argumentos —o con los colaboradores mínimos— es usable.
+- [x] `app/src/bootstrap/__tests__/logger.test.ts`: añadir que `const asSession: SessionLogger = logger;` compila, que los tres códigos nuevos se aceptan y que `warn` bajo `__DEV__` falso no llama a `console` (NFR9.4).
+- [x] `app/src/bootstrap/__tests__/ports.test.ts`: sigue pasando sin cambios de aserción; los tres puertos siguen en `null` (NFR3.10, NFR3.11). Ejecutar y dejar en verde.
 
 **Historias**: US2.1–US2.3, US4.1–US4.3, US9.1 (superficie y diagnóstico).
 
 ### Paso 15 — Interfaz (1): C1 1.2.0
 
-- [ ] `ErrorState` (`message`, `retryLabel`, `onRetry`) con el `TextButton` de reintento y área táctil de 44 (FR11.2).
-- [ ] `TextButton` (`label`, `onPress`, `tone?: "default" | "danger"`, `disabled?`), único botón de texto de la versión.
-- [ ] Enmiendas aditivas: `AppHeader.leftSlot?`, `EmptyState.body?`, y el estado `own` de `OpinionCard` en variante `detail` —fondo `primaryContainer`, etiqueta «Tu opinión» dentro de la tarjeta, «Editar» pintado desde `isOwn` (inerte sin `onEdit`) y línea de fechas— más `formatCalendarDate` exportado con el formato «d mmm aaaa» (AC4.2.1, AC4.2.4, AC9.1.5, AC2.3.2).
-- [ ] Exportar las tres piezas y `formatCalendarDate` desde `packages/design-system/src/index.ts` y subir la cabecera del archivo a 1.2.0; `data-testid` en cada botón nuevo.
+- [x] `ErrorState` (`message`, `retryLabel`, `onRetry`) con el `TextButton` de reintento y área táctil de 44 (FR11.2).
+- [x] `TextButton` (`label`, `onPress`, `tone?: "default" | "danger"`, `disabled?`), único botón de texto de la versión.
+- [x] Enmiendas aditivas: `AppHeader.leftSlot?`, `EmptyState.body?`, y el estado `own` de `OpinionCard` en variante `detail` —fondo `primaryContainer`, etiqueta «Tu opinión» dentro de la tarjeta, «Editar» pintado desde `isOwn` (inerte sin `onEdit`) y línea de fechas— más `formatCalendarDate` exportado con el formato «d mmm aaaa» (AC4.2.1, AC4.2.4, AC9.1.5, AC2.3.2).
+- [x] Exportar las tres piezas y `formatCalendarDate` desde `packages/design-system/src/index.ts` y subir la cabecera del archivo a 1.2.0; `data-testid` en cada botón nuevo.
 
 **Historias**: US2.3 (AC2.3.2), US4.2 (AC4.2.1, AC4.2.4), US9.1 (AC9.1.5).
 
 ### Paso 16 — Pruebas de C1 1.2.0
 
-- [ ] `packages/design-system/src/__tests__/error-state.test.tsx` y `text-button.test.tsx`, 6–8 pruebas: `ErrorState` pinta el mensaje y «Reintentar», llama a `onRetry`; `TextButton` en tono `danger` y deshabilitado no dispara (FR11.2).
-- [ ] `own-opinion.test.tsx`, 5–6 pruebas: `isOwn` pinta «Tu opinión», «Editar» y la línea de fechas; sin `onEdit` la acción existe y no responde; `isOwn: false` no pinta ni etiqueta ni «Editar» (AC4.2.1, AC4.2.4); una opinión editada muestra «Creada el …» y «Editada el …» separadas por « · ».
-- [ ] `format-calendar-date.test.ts`, 3–4 pruebas con fechas fijas; `AppHeader.leftSlot` y `EmptyState.body` en las pruebas de esos componentes. Ejecutar y dejar en verde.
+- [x] `packages/design-system/src/__tests__/error-state.test.tsx` y `text-button.test.tsx`, 6–8 pruebas: `ErrorState` pinta el mensaje y «Reintentar», llama a `onRetry`; `TextButton` en tono `danger` y deshabilitado no dispara (FR11.2).
+- [x] `own-opinion.test.tsx`, 5–6 pruebas: `isOwn` pinta «Tu opinión», «Editar» y la línea de fechas; sin `onEdit` la acción existe y no responde; `isOwn: false` no pinta ni etiqueta ni «Editar» (AC4.2.1, AC4.2.4); una opinión editada muestra «Creada el …» y «Editada el …» separadas por « · ».
+- [x] `format-calendar-date.test.ts`, 3–4 pruebas con fechas fijas; `AppHeader.leftSlot` y `EmptyState.body` en las pruebas de esos componentes. Ejecutar y dejar en verde.
 
 **Historias**: US2.3 (AC2.3.2), US4.2 (AC4.2.1, AC4.2.4), US9.1 (AC9.1.5).
 
 ### Paso 17 — Interfaz (2): C2 1.2.0, la pila que conserva la raíz
 
-- [ ] En `packages/app-shell/src/AppShell.tsx`, pintar **todas** las entradas de la pila de la pestaña y ocultar con `display: none` las de debajo, en lugar de pintar solo la última; la raíz sigue montada (AC2.3.2, C2 § Revisión 12).
-- [ ] La cabecera de detalle pasa a `AppHeader` con `leftSlot` «‹ Volver» y el título que fija `setHeader`; al desapilar, el título vuelve a vaciarse.
-- [ ] Subir la cabecera del paquete a 1.2.0 en el comentario del archivo; ninguna prop ni exportación cambia (C2 1.2.0).
+- [x] En `packages/app-shell/src/AppShell.tsx`, pintar **todas** las entradas de la pila de la pestaña y ocultar con `display: none` las de debajo, en lugar de pintar solo la última; la raíz sigue montada (AC2.3.2, C2 § Revisión 12).
+- [x] La cabecera de detalle pasa a `AppHeader` con `leftSlot` «‹ Volver» y el título que fija `setHeader`; al desapilar, el título vuelve a vaciarse.
+- [x] Subir la cabecera del paquete a 1.2.0 en el comentario del archivo; ninguna prop ni exportación cambia (C2 1.2.0).
 
 **Historias**: US2.3 (AC2.3.1, AC2.3.2), US4.1 (AC4.1.6).
 
 ### Paso 18 — Pruebas de C2 1.2.0
 
-- [ ] `packages/app-shell/src/__tests__/stack.test.tsx`, 6–8 pruebas: abrir un detalle mantiene montada la raíz (su estado sobrevive), la raíz queda oculta, «‹ Volver» desapila y devuelve a la raíz con su estado, y el título de la cabecera se limpia al volver (AC2.3.2).
-- [ ] Ejecutar y dejar en verde; las pruebas existentes de la cáscara siguen pasando sin cambios.
+- [x] `packages/app-shell/src/__tests__/stack.test.tsx`, 6–8 pruebas: abrir un detalle mantiene montada la raíz (su estado sobrevive), la raíz queda oculta, «‹ Volver» desapila y devuelve a la raíz con su estado, y el título de la cabecera se limpia al volver (AC2.3.2).
+- [x] Ejecutar y dejar en verde; las pruebas existentes de la cáscara siguen pasando sin cambios.
 
 **Historias**: US2.3 (AC2.3.1, AC2.3.2).
 
 ### Paso 19 — Interfaz (3): estado, mapeo y componentes compartidos
 
-- [ ] `app/src/state/useViewerId.ts` (lee `appSession.getSession()` y se refresca con `subscribeSession`; `null` hasta que llega) y `useContent.ts` (`useEffect` + `useState`, `loading` inicial, `attempt` para «Reintentar», `error` solo si la suscripción lanza, `CONTENT_SUBSCRIBE_FAILED`) (NFR8.4).
-- [ ] `app/src/state/useCatalog.ts` devuelve solo el contador de cambios (la primera emisión no cuenta) y lee la instancia estable; `useNetwork.ts` se suscribe a `shellServices.network` (NFR8.5, BR6.4).
-- [ ] `app/src/state/opinionCardModel.ts` con `toOpinionCardModel({ opinion, cover })`, único mapeo, `coverUrl` solo si la decisión es `url` (BR7.10).
-- [ ] `app/src/components/OfflineBanner.tsx` (texto único + «Reintentar» → `retryCovers`) y `WorkHeader.tsx` (`CoverArt` 96, título, artista, `RatingStars` con la media y «N opiniones», singular incluido).
+- [x] `app/src/state/useViewerId.ts` (lee `appSession.getSession()` y se refresca con `subscribeSession`; `null` hasta que llega) y `useContent.ts` (`useEffect` + `useState`, `loading` inicial, `attempt` para «Reintentar», `error` solo si la suscripción lanza, `CONTENT_SUBSCRIBE_FAILED`) (NFR8.4).
+- [x] `app/src/state/useCatalog.ts` devuelve solo el contador de cambios (la primera emisión no cuenta) y lee la instancia estable; `useNetwork.ts` se suscribe a `shellServices.network` (NFR8.5, BR6.4).
+- [x] `app/src/state/opinionCardModel.ts` con `toOpinionCardModel({ opinion, cover })`, único mapeo, `coverUrl` solo si la decisión es `url` (BR7.10).
+- [x] `app/src/components/OfflineBanner.tsx` (texto único + «Reintentar» → `retryCovers`) y `WorkHeader.tsx` (`CoverArt` 96, título, artista, `RatingStars` con la media y «N opiniones», singular incluido).
 
 **Historias**: US2.1 (AC2.1.1, AC2.1.4), US2.2 (AC2.2.2–AC2.2.4), US4.1 (AC4.1.1, AC4.1.2, AC4.1.4), US9.1 (AC9.1.1, AC9.1.6).
 
 ### Paso 20 — Pruebas de hooks, mapeo y componentes compartidos
 
-- [ ] `app/src/state/__tests__/use-content.test.tsx`, 6–8 pruebas: `loading` inicial y `ready` sin avanzar temporizadores con el `viewerId` resuelto (NFR8.4); sin `viewerId` no se suscribe; «Reintentar» vuelve a pasar por `loading`; una suscripción que lanza deja `error` y registra `CONTENT_SUBSCRIBE_FAILED`; desmontar deja la baja.
-- [ ] `use-catalog.test.tsx`, 3–4 pruebas: la primera emisión no incrementa y cada cambio sí; `use-network.test.tsx`, 3 pruebas: valor inicial y cambio.
-- [ ] `opinion-card-model.test.ts`, 4–5 pruebas: un `cover` de tipo `url` pone la URL y `initialBlock` deja `null`; los campos derivados se copian sin recalcular (BR7.10); `offline-banner.test.tsx` y `work-header.test.tsx`, 4–5 pruebas cada uno (singular y plural de «opinión»). Ejecutar y dejar en verde.
+- [x] `app/src/state/__tests__/use-content.test.tsx`, 6–8 pruebas: `loading` inicial y `ready` sin avanzar temporizadores con el `viewerId` resuelto (NFR8.4); sin `viewerId` no se suscribe; «Reintentar» vuelve a pasar por `loading`; una suscripción que lanza deja `error` y registra `CONTENT_SUBSCRIBE_FAILED`; desmontar deja la baja.
+- [x] `use-catalog.test.tsx`, 3–4 pruebas: la primera emisión no incrementa y cada cambio sí; `use-network.test.tsx`, 3 pruebas: valor inicial y cambio.
+- [x] `opinion-card-model.test.ts`, 4–5 pruebas: un `cover` de tipo `url` pone la URL y `initialBlock` deja `null`; los campos derivados se copian sin recalcular (BR7.10); `offline-banner.test.tsx` y `work-header.test.tsx`, 4–5 pruebas cada uno (singular y plural de «opinión»). Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.4), US2.2 (AC2.2.2–AC2.2.4), US4.1 (AC4.1.1, AC4.1.2), US9.1 (AC9.1.6).
 
 ### Paso 21 — Interfaz (4): Inicio completo
 
-- [ ] `app/src/screens/inicio/InicioHeader.tsx` con `AppHeader` «Inicio» y el chip «Conectado»/«Conectar», sin acción en U2 (BR7.9).
-- [ ] `InicioView.tsx` puro con `{ status, cards, online, metadataError, spotifyStatus, onOpenOpinion, onRetry, onRetryCovers, onCreate }`: `FlatList` con `keyExtractor` por `opinionId`, `ListHeaderComponent` con los banners de metadatos y sin conexión en ese orden, `ListEmptyComponent` con el vacío, 3 esqueletos en `loading` y `ErrorState` en `error` (NFR8.7, BR7.1–BR7.6).
-- [ ] `InicioScreen.tsx` contenedor: `useViewerId`, `useContent`, `useNetwork`, `useCatalog`, memo con clave `(opinions, revision, catalogVersion, online)`, `openOpinionDetail` y `goToTab({ name: "crear" })` (NFR8.5).
-- [ ] Eliminar `app/src/screens/inicio/seed.ts` y su importación; la siembra vive en C4 (BR4.1).
+- [x] `app/src/screens/inicio/InicioHeader.tsx` con `AppHeader` «Inicio» y el chip «Conectado»/«Conectar», sin acción en U2 (BR7.9).
+- [x] `InicioView.tsx` puro con `{ status, cards, online, metadataError, spotifyStatus, onOpenOpinion, onRetry, onRetryCovers, onCreate }`: `FlatList` con `keyExtractor` por `opinionId`, `ListHeaderComponent` con los banners de metadatos y sin conexión en ese orden, `ListEmptyComponent` con el vacío, 3 esqueletos en `loading` y `ErrorState` en `error` (NFR8.7, BR7.1–BR7.6).
+- [x] `InicioScreen.tsx` contenedor: `useViewerId`, `useContent`, `useNetwork`, `useCatalog`, memo con clave `(opinions, revision, catalogVersion, online)`, `openOpinionDetail` y `goToTab({ name: "crear" })` (NFR8.5).
+- [x] Eliminar `app/src/screens/inicio/seed.ts` y su importación; la siembra vive en C4 (BR4.1).
 
 **Historias**: US2.1 (AC2.1.1–AC2.1.6), US2.2 (AC2.2.2–AC2.2.4), US2.3 (AC2.3.1).
 
 ### Paso 22 — Pruebas de Inicio
 
-- [ ] `inicio-view.test.tsx`, 10–12 pruebas: `loading` pinta 3 esqueletos y «Para ti»; `ready` pinta las 10 tarjetas con autor, obra, valoración y texto; vacío con «Crear opinión» que llama a `onCreate`; error con el texto exacto y «Reintentar»; banners de metadatos y de sin conexión en orden y sin tapar la lista; «Conectar» en el chip (AC2.1.1–AC2.1.6, AC2.2.4).
-- [ ] `inicio-screen.test.tsx`, 6–8 pruebas de integración con un C4 y un C5 reales sembrados: 10 tarjetas, `coverFor` llamado una vez por opinión y no desde la tarjeta, 10 llamadas al cambiar la red y ninguna al repintar sin cambio; tocar una tarjeta llama a `openOpinionDetail` con su `opinionId` (AC2.1.3, AC2.3.1, NFR8.5). Ejecutar y dejar en verde.
+- [x] `inicio-view.test.tsx`, 10–12 pruebas: `loading` pinta 3 esqueletos y «Para ti»; `ready` pinta las 10 tarjetas con autor, obra, valoración y texto; vacío con «Crear opinión» que llama a `onCreate`; error con el texto exacto y «Reintentar»; banners de metadatos y de sin conexión en orden y sin tapar la lista; «Conectar» en el chip (AC2.1.1–AC2.1.6, AC2.2.4).
+- [x] `inicio-screen.test.tsx`, 6–8 pruebas de integración con un C4 y un C5 reales sembrados: 10 tarjetas, `coverFor` llamado una vez por opinión y no desde la tarjeta, 10 llamadas al cambiar la red y ninguna al repintar sin cambio; tocar una tarjeta llama a `openOpinionDetail` con su `opinionId` (AC2.1.3, AC2.3.1, NFR8.5). Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.1–AC2.1.6), US2.2 (AC2.2.2–AC2.2.4), US2.3 (AC2.3.1).
 
 ### Paso 23 — Interfaz (5): Detalle de obra
 
-- [ ] `useDetalleObra.ts` con `(workId, viewerId)`: `getWork`, `listOpinions({ workId, viewerId })`, `countOpinions`, portada y media; relee solo al cambiar la obra o la revisión; portada una vez por `(workId, catalogVersion, online)` (NFR8.5).
-- [ ] `DetalleObraView.tsx` puro con las cuatro variantes —mía + ajenas, mía sola, ajenas sin mía, sin opiniones—, la propia primero en estado `own`, «Otras opiniones», «Nadie más ha opinado todavía.», «Todavía nadie ha opinado sobre esta obra.», «Opinar sobre esta obra» solo sin opinión propia, esqueletos y `ErrorState` (BR8.1–BR8.8).
-- [ ] `DetalleObraScreen.tsx` contenedor: `setHeader({ title: "Detalle de obra" })`, `useNetwork`, `openCreate({ workId })` y «Reintentar».
+- [x] `useDetalleObra.ts` con `(workId, viewerId)`: `getWork`, `listOpinions({ workId, viewerId })`, `countOpinions`, portada y media; relee solo al cambiar la obra o la revisión; portada una vez por `(workId, catalogVersion, online)` (NFR8.5).
+- [x] `DetalleObraView.tsx` puro con las cuatro variantes —mía + ajenas, mía sola, ajenas sin mía, sin opiniones—, la propia primero en estado `own`, «Otras opiniones», «Nadie más ha opinado todavía.», «Todavía nadie ha opinado sobre esta obra.», «Opinar sobre esta obra» solo sin opinión propia, esqueletos y `ErrorState` (BR8.1–BR8.8).
+- [x] `DetalleObraScreen.tsx` contenedor: `setHeader({ title: "Detalle de obra" })`, `useNetwork`, `openCreate({ workId })` y «Reintentar».
 
 **Historias**: US4.1 (AC4.1.1–AC4.1.6), US4.2 (AC4.2.1–AC4.2.4), US4.3 (AC4.3.1–AC4.3.3).
 
 ### Paso 24 — Pruebas del detalle de obra
 
-- [ ] `detalle-obra-view.test.tsx`, 10–12 pruebas con las cinco variantes de la siembra: `Bohemian Rhapsody` (propia + ajena, media 5), `Blinding Lights` (propia con «Creada el …» y «Editada el …»), `bad guy` (ajena sin propia y botón), `Smells Like Teen Spirit` (propia sin ajenas), `As It Was` (sin opiniones y botón); esqueletos y error con «Reintentar» (AC4.1.1, AC4.1.3, AC4.1.6, AC4.2.1–AC4.2.4, AC4.3.1).
-- [ ] `detalle-obra-screen.test.tsx`, 5–6 pruebas de integración: «Opinar sobre esta obra» llama a `openCreate` con el `workId`; sin conexión se pinta el banner y la identidad sigue; `coverFor` se llama una vez; «Editar» existe y no navega (AC4.3.2, AC4.3.3, AC2.2.4). Ejecutar y dejar en verde.
+- [x] `detalle-obra-view.test.tsx`, 10–12 pruebas con las cinco variantes de la siembra: `Bohemian Rhapsody` (propia + ajena, media 5), `Blinding Lights` (propia con «Creada el …» y «Editada el …»), `bad guy` (ajena sin propia y botón), `Smells Like Teen Spirit` (propia sin ajenas), `As It Was` (sin opiniones y botón); esqueletos y error con «Reintentar» (AC4.1.1, AC4.1.3, AC4.1.6, AC4.2.1–AC4.2.4, AC4.3.1).
+- [x] `detalle-obra-screen.test.tsx`, 5–6 pruebas de integración: «Opinar sobre esta obra» llama a `openCreate` con el `workId`; sin conexión se pinta el banner y la identidad sigue; `coverFor` se llama una vez; «Editar» existe y no navega (AC4.3.2, AC4.3.3, AC2.2.4). Ejecutar y dejar en verde.
 
 **Historias**: US4.1, US4.2, US4.3.
 
 ### Paso 25 — Interfaz (6): Detalle de opinión
 
-- [ ] `useDetalleOpinion.ts` con `(opinionId, viewerId)`: `getOpinion`, `getWork` con degradación al título y artista de la opinión si da `404`, `countOpinions` y media; sin `CONTENT_READ_FAILED` por un `404` (BR5.2, NFR9.4).
-- [ ] `DetalleOpinionView.tsx` puro: `WorkHeader`, tarjeta `detail` completa sin recortar, estados de carga y error, `OfflineBanner`.
-- [ ] `DetalleOpinionScreen.tsx` contenedor con `setHeader({ title: "Detalle de opinión" })`, `useNetwork` y «Reintentar».
+- [x] `useDetalleOpinion.ts` con `(opinionId, viewerId)`: `getOpinion`, `getWork` con degradación al título y artista de la opinión si da `404`, `countOpinions` y media; sin `CONTENT_READ_FAILED` por un `404` (BR5.2, NFR9.4).
+- [x] `DetalleOpinionView.tsx` puro: `WorkHeader`, tarjeta `detail` completa sin recortar, estados de carga y error, `OfflineBanner`.
+- [x] `DetalleOpinionScreen.tsx` contenedor con `setHeader({ title: "Detalle de opinión" })`, `useNetwork` y «Reintentar».
 
 **Historias**: US2.3 (AC2.3.1–AC2.3.3), US4.1 (AC4.1.2, AC4.1.4), US9.1 (AC9.1.4).
 
 ### Paso 26 — Pruebas del detalle de opinión
 
-- [ ] `detalle-opinion.test.tsx`, 10–12 pruebas: el texto completo se pinta sin recortar (AC2.3.3); una opinión ajena no pinta «Editar»; una propia pinta «Editar» y las fechas (AC9.1.4); una obra fuera del catálogo usa el título y artista de la opinión y el bloque con la inicial (BR5.2); un `404` pinta «No pudimos cargar esta opinión.» con «Reintentar» y **no** registra `CONTENT_READ_FAILED`; un almacén que lanza sí lo registra; esqueletos y banner sin conexión. Ejecutar y dejar en verde.
+- [x] `detalle-opinion.test.tsx`, 10–12 pruebas: el texto completo se pinta sin recortar (AC2.3.3); una opinión ajena no pinta «Editar»; una propia pinta «Editar» y las fechas (AC9.1.4); una obra fuera del catálogo usa el título y artista de la opinión y el bloque con la inicial (BR5.2); un `404` pinta «No pudimos cargar esta opinión.» con «Reintentar» y **no** registra `CONTENT_READ_FAILED`; un almacén que lanza sí lo registra; esqueletos y banner sin conexión. Ejecutar y dejar en verde.
 
 **Historias**: US2.3 (AC2.3.1–AC2.3.3), US4.1 (AC4.1.2), US9.1 (AC9.1.4).
 
 ### Paso 27 — Interfaz (7): Perfil
 
-- [ ] `usePerfil.ts` con `viewerId`: `getAuthor`, `listFollowing` y las opiniones propias ordenadas de la más reciente a la más antigua.
-- [ ] `PerfilView.tsx` puro: avatar de 72 con la inicial, nombre y `@demo`, «3 opiniones · 2 siguiendo» con singular correcto, «Mis opiniones» en variante `compact`, vacío con «Crear opinión», `ErrorState`, esqueletos, «Cerrar sesión» como `TextButton` en tono de error; **sin** tarjeta de Spotify (BR9.1–BR9.9).
-- [ ] `PerfilScreen.tsx` contenedor: `useViewerId`, `usePerfil`, `useNetwork`, `openOpinionDetail`, `goToTab({ name: "crear" })` y `appSession.signOut()` (R-01: la instancia única de `session.ts`).
+- [x] `usePerfil.ts` con `viewerId`: `getAuthor`, `listFollowing` y las opiniones propias ordenadas de la más reciente a la más antigua.
+- [x] `PerfilView.tsx` puro: avatar de 72 con la inicial, nombre y `@demo`, «3 opiniones · 2 siguiendo» con singular correcto, «Mis opiniones» en variante `compact`, vacío con «Crear opinión», `ErrorState`, esqueletos, «Cerrar sesión» como `TextButton` en tono de error; **sin** tarjeta de Spotify (BR9.1–BR9.9).
+- [x] `PerfilScreen.tsx` contenedor: `useViewerId`, `usePerfil`, `useNetwork`, `openOpinionDetail`, `goToTab({ name: "crear" })` y `appSession.signOut()` (R-01: la instancia única de `session.ts`).
 
 **Historias**: US9.1 (AC9.1.1–AC9.1.7).
 
 ### Paso 28 — Pruebas de Perfil
 
-- [ ] `perfil-view.test.tsx`, 8–10 pruebas: identidad y contadores exactos (AC9.1.1, AC9.1.2); «3 opiniones» y «2 siguiendo» con las tres tarjetas en `compact` (AC9.1.3); vacío con acción (AC9.1.5); esqueletos (AC9.1.6); error con «Reintentar» (AC9.1.7); no hay tarjeta de Spotify (AC9.1.8 sigue `Deferred`).
-- [ ] `perfil-screen.test.tsx`, 4–5 pruebas: tocar una opinión llama a `openOpinionDetail` (AC9.1.4); «Cerrar sesión» llama a `signOut` de la sesión inyectada y no borra contenido; sin conexión se pinta el banner y la identidad sigue. Ejecutar y dejar en verde.
+- [x] `perfil-view.test.tsx`, 8–10 pruebas: identidad y contadores exactos (AC9.1.1, AC9.1.2); «3 opiniones» y «2 siguiendo» con las tres tarjetas en `compact` (AC9.1.3); vacío con acción (AC9.1.5); esqueletos (AC9.1.6); error con «Reintentar» (AC9.1.7); no hay tarjeta de Spotify (AC9.1.8 sigue `Deferred`).
+- [x] `perfil-screen.test.tsx`, 4–5 pruebas: tocar una opinión llama a `openOpinionDetail` (AC9.1.4); «Cerrar sesión» llama a `signOut` de la sesión inyectada y no borra contenido; sin conexión se pinta el banner y la identidad sigue. Ejecutar y dejar en verde.
 
 **Historias**: US9.1 (AC9.1.1–AC9.1.7).
 
 ### Paso 29 — Composición: instancias, servicios, registro y arranque
 
-- [ ] `app/src/bootstrap/instances.ts` (nuevo): construye **una sola vez** `contentStore`, `connectivity` y `catalog` —con los tres puertos en `null` y el adaptador real de `expo-network`— y los exporta, siguiendo el patrón de `session.ts` (TS-18, R-01).
-- [ ] `app/src/bootstrap/shell-services.ts`: `network.online` y `network.subscribe` salen de la instancia de conectividad; Spotify y comentarios siguen con sus valores por defecto (BR6.4, C2 `default_by_owner`).
-- [ ] `app/src/bootstrap/App.tsx`: registra Inicio completo y Perfil como raíces, y los dos detalles `{ kind: "work" }` y `{ kind: "opinion" }` en Inicio y `{ kind: "opinion" }` en Perfil (tabla de registro de `frontend-components.md`).
-- [ ] Mantener Login fuera de la barra y la decisión Login/Inicio con `appSession` sin cambios.
+- [x] `app/src/bootstrap/instances.ts` (nuevo): construye **una sola vez** `contentStore`, `connectivity` y `catalog` —con los tres puertos en `null` y el adaptador real de `expo-network`— y los exporta, siguiendo el patrón de `session.ts` (TS-18, R-01).
+- [x] `app/src/bootstrap/shell-services.ts`: `network.online` y `network.subscribe` salen de la instancia de conectividad; Spotify y comentarios siguen con sus valores por defecto (BR6.4, C2 `default_by_owner`).
+- [x] `app/src/bootstrap/App.tsx`: registra Inicio completo y Perfil como raíces, y los dos detalles `{ kind: "work" }` y `{ kind: "opinion" }` en Inicio y `{ kind: "opinion" }` en Perfil (tabla de registro de `frontend-components.md`).
+- [x] Mantener Login fuera de la barra y la decisión Login/Inicio con `appSession` sin cambios.
 
 **Historias**: US2.1–US2.3, US4.1–US4.3, US9.1 (integración).
 
 ### Paso 30 — Pruebas de composición e integración de límites
 
-- [ ] `app/src/bootstrap/__tests__/instances.test.ts`, 4–5 pruebas: una sola instancia por dominio, el catálogo recibe la misma de contenido y de conectividad, y los puertos siguen en `null` (NFR1.8, NFR3.10).
-- [ ] `shell-services.test.ts` ampliado: la red responde al cambio del adaptador y deja de ser el valor fijo de U1 (BR6.4).
-- [ ] `app-bootstrap.test.tsx` ampliado, 5–6 pruebas de integración: sesión válida → Inicio con 10 tarjetas; abrir un detalle desde Inicio mantiene la raíz y «‹ Volver» devuelve al feed; sin conexión aparece el banner en Inicio, el detalle y Perfil; Perfil → detalle de opinión → «Editar» visible. Ejecutar y dejar en verde.
+- [x] `app/src/bootstrap/__tests__/instances.test.ts`, 4–5 pruebas: una sola instancia por dominio, el catálogo recibe la misma de contenido y de conectividad, y los puertos siguen en `null` (NFR1.8, NFR3.10).
+- [x] `shell-services.test.ts` ampliado: la red responde al cambio del adaptador y deja de ser el valor fijo de U1 (BR6.4).
+- [x] `app-bootstrap.test.tsx` ampliado, 5–6 pruebas de integración: sesión válida → Inicio con 10 tarjetas; abrir un detalle desde Inicio mantiene la raíz y «‹ Volver» devuelve al feed; sin conexión aparece el banner en Inicio, el detalle y Perfil; Perfil → detalle de opinión → «Editar» visible. Ejecutar y dejar en verde.
 
 **Historias**: US2.1 (AC2.1.1), US2.3 (AC2.3.1, AC2.3.2), US4.1–US4.3, US9.1 (AC9.1.4).
 
 ### Paso 31 — Configuración de entorno y build
 
-- [ ] `eslint.config.js`: añadir `expo-network` restringido a `packages/connectivity/src/expo-network-adapter.ts`; `@typescript-eslint/no-restricted-imports` con `@melodify/spotify` prohibido en `packages/catalog/src/**` **sin** `allowTypeImports` y `@melodify/catalog` prohibido en `packages/spotify/src/**` **con** `allowTypeImports: true` (NFR3.11; la segunda regla solo morderá cuando U4 cree el paquete).
-- [ ] Crear `.commitlintrc.json` en la raíz con `{ "extends": ["@commitlint/config-conventional"] }` y añadir `@commitlint/cli` y `@commitlint/config-conventional` como `devDependencies` exactas de la raíz, con el lockfile (infrastructure-design § Lo que esta unidad cambia).
-- [ ] `.github/workflows/ci.yml`: retirar `--passWithNoTests` del paso de pruebas (el script ya es `jest --coverage`, así que la cobertura y los umbrales se evalúan hoy) y añadir al job `code-quality` —que ya ejecuta `npm ci`— el paso que valida el **título del PR** con `commitlint` (npx con el binario instalado) sobre `${{ github.event.pull_request.title }}`; ningún paso de build, firma, publicación ni despliegue (Q1–Q6 = A).
-- [ ] `README.md`: comprobar que el enlace a `.commitlintrc.json` deja de estar roto; no se toca nada más del archivo del proyecto.
-- [ ] `npm run typecheck`, `npm run lint` y `npm test` en verde sobre el árbol completo; anotar cualquier aviso y su causa.
+- [x] `eslint.config.js`: añadir `expo-network` restringido a `packages/connectivity/src/expo-network-adapter.ts`; `@typescript-eslint/no-restricted-imports` con `@melodify/spotify` prohibido en `packages/catalog/src/**` **sin** `allowTypeImports` y `@melodify/catalog` prohibido en `packages/spotify/src/**` **con** `allowTypeImports: true` (NFR3.11; la segunda regla solo morderá cuando U4 cree el paquete).
+- [x] Crear `.commitlintrc.json` en la raíz con `{ "extends": ["@commitlint/config-conventional"] }` y añadir `@commitlint/cli` y `@commitlint/config-conventional` como `devDependencies` exactas de la raíz, con el lockfile (infrastructure-design § Lo que esta unidad cambia).
+- [x] `.github/workflows/ci.yml`: retirar `--passWithNoTests` del paso de pruebas (el script ya es `jest --coverage`, así que la cobertura y los umbrales se evalúan hoy) y añadir al job `code-quality` —que ya ejecuta `npm ci`— el paso que valida el **título del PR** con `commitlint` (npx con el binario instalado) sobre `${{ github.event.pull_request.title }}`; ningún paso de build, firma, publicación ni despliegue (Q1–Q6 = A).
+- [x] `README.md`: comprobar que el enlace a `.commitlintrc.json` deja de estar roto; no se toca nada más del archivo del proyecto.
+- [x] `npm run typecheck`, `npm run lint` y `npm test` en verde sobre el árbol completo; anotar cualquier aviso y su causa.
 
 **Historias**: ninguna funcional (NFR3.11, NFR5.5–5.7, CI).
 
 ### Paso 32 — Documentación y trazabilidad
 
-- [ ] `code-summary.md` con archivos creados y modificados, decisiones de implementación, desviaciones registradas (C4 sin React frente a ADR-010, detalle de opinión en U2, `backAtRoot` de la cáscara), cobertura obtenida por árbol y pruebas escritas pero no ejecutadas, con su razón.
-- [ ] `source-manifest.json` con **todas** las rutas de código que esta unidad crea, modifica o elimina, incluidas las de configuración.
-- [ ] `traceability.json` generado con `sensor-traceability --stage code-generation --unit u2-content-core --write-upstream`; cada `ACx.y.z`, `NFRx.y` y `BRx.y` con su archivo real; `AC2.2.1` y `AC9.1.8` quedan `Deferred` con la razón de la especificación (la portada real y la tarjeta de Spotify llegan en U4).
-- [ ] Pasar `sensor-traceability` y `sensor-required-sections` en verde antes de la revisión, y comprobar que las pruebas de U1 siguen verdes sin haber sido reescritas.
+- [x] `code-summary.md` con archivos creados y modificados, decisiones de implementación, desviaciones registradas (C4 sin React frente a ADR-010, detalle de opinión en U2, `backAtRoot` de la cáscara), cobertura obtenida por árbol y pruebas escritas pero no ejecutadas, con su razón.
+- [x] `source-manifest.json` con **todas** las rutas de código que esta unidad crea, modifica o elimina, incluidas las de configuración.
+- [x] `traceability.json` generado con `sensor-traceability --stage code-generation --unit u2-content-core --write-upstream`; cada `ACx.y.z`, `NFRx.y` y `BRx.y` con su archivo real; `AC2.2.1` y `AC9.1.8` quedan `Deferred` con la razón de la especificación (la portada real y la tarjeta de Spotify llegan en U4).
+- [x] Pasar `sensor-traceability` y `sensor-required-sections` en verde antes de la revisión, y comprobar que las pruebas de U1 siguen verdes sin haber sido reescritas.
 
 **Historias**: US2.1–US2.3, US4.1–US4.3, US9.1 (traza).
 

@@ -1,4 +1,11 @@
 /**
+ * BR22.2 agrupa por el calendario local del dispositivo y las pruebas lo fijan
+ * en una zona concreta para que «Hoy», «Ayer» y las etiquetas sean deterministas
+ * en cualquier runner. La zona se fija en `jest.config.js`, que se carga antes
+ * de arrancar los workers: hacerlo aquí llega tarde y el CI (UTC) manda.
+ */
+
+/**
  * Arnés común de las pruebas: los matchers de Testing Library y los dobles de los
  * módulos nativos que ninguna prueba debe tocar de verdad (TS-10). Cada prueba que
  * necesite otro comportamiento ajusta estos mismos dobles.

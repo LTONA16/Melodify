@@ -1,0 +1,167 @@
+{
+  "stage": "infrastructure-design",
+  "unit": "u6-walkthrough",
+  "upstream_ids": [
+    "NFR8.19",
+    "NFR8.20",
+    "NFR2.15",
+    "NFR1.19",
+    "NFR1.20",
+    "NFR8.1",
+    "NFR8.18",
+    "NFR2.1",
+    "NFR2.14",
+    "NFR1.1",
+    "NFR1.18",
+    "NFR3.24",
+    "NFR4.12",
+    "NFR9.9",
+    "NFR6.11",
+    "NFR7.9",
+    "NFR8.16",
+    "NFR3.25",
+    "NFR3.1",
+    "NFR3.23",
+    "NFR4.1",
+    "NFR4.11",
+    "NFR9.1",
+    "NFR9.8",
+    "NFR5.13"
+  ],
+  "coverage": [
+    {
+      "id": "NFR8.19",
+      "status": "OK",
+      "target": "monitoring-design.md ## Métricas y KPI, fila «Patrón de observación de rendimiento»; infrastructure-specification.md ## Qué no se diseña, fila «Instrumentación de rendimiento»"
+    },
+    {
+      "id": "NFR8.20",
+      "status": "OK",
+      "target": "monitoring-design.md ## Métricas y KPI, filas «Filas escritas en el recorrido» y «Capturas adjuntas al PR»; infrastructure-specification.md ## Despliegue, fila «Dimensionamiento»"
+    },
+    {
+      "id": "NFR2.15",
+      "status": "OK",
+      "target": "infrastructure-specification.md ## Despliegue, fila «Modelo de cómputo»; cicd-pipeline.md ## Lo que corre hoy, fila 3"
+    },
+    {
+      "id": "NFR1.19",
+      "status": "OK",
+      "target": "monitoring-design.md ## Métricas y KPI, fila «Estado terminal de cada pasada»; infrastructure-specification.md ## Precondiciones con lectura de plataforma"
+    },
+    {
+      "id": "NFR1.20",
+      "status": "OK",
+      "target": "infrastructure-specification.md ## Precondiciones con lectura de plataforma; monitoring-design.md ## Cómo se revisa la evidencia, fila «Cabecera repetible»"
+    },
+    {
+      "id": "NFR8.1",
+      "status": "N/A",
+      "target": "infrastructure-specification.md ## Qué no se diseña, fila «Instrumentación de rendimiento»",
+      "status_detail": "Requisito de rendimiento heredado de U1–U5. U6 no cambia código de producto ni añade instrumentación; se mantiene la superficie ya verificada y solo se comprueba que las pasadas llegan a estado terminal."
+    },
+    {
+      "id": "NFR8.18",
+      "status": "N/A",
+      "target": "monitoring-design.md ## SLI / SLO",
+      "status_detail": "Requisito de rendimiento heredado de U1–U5. No hay servicio desplegado que medir en U6, por lo que no se definen SLI/SLO nuevos ni se reabre el análisis de rendimiento."
+    },
+    {
+      "id": "NFR2.1",
+      "status": "N/A",
+      "target": "cicd-pipeline.md ## Los archivos que no cambian, y por qué",
+      "status_detail": "Requisito de compatibilidad heredado de U1–U5. U6 no mueve dependencias, manifiestos, lockfile ni configuración, y el recorrido se hace en el mismo Expo Go ya validado."
+    },
+    {
+      "id": "NFR2.14",
+      "status": "N/A",
+      "target": "infrastructure-specification.md ## Despliegue, fila «Modelo de cómputo»",
+      "status_detail": "Requisito de compatibilidad heredado de U1–U5. No se añade compilación propia, módulo nativo ni entorno nuevo que pueda cambiar la superficie soportada."
+    },
+    {
+      "id": "NFR1.1",
+      "status": "N/A",
+      "target": "monitoring-design.md ## Métricas y KPI, fila «Estado terminal de cada pasada»",
+      "status_detail": "Requisito funcional heredado de U1–U5. U6 no publica contrato ni cambia pantallas; las pasadas solo recorren y registran lo ya construido."
+    },
+    {
+      "id": "NFR1.18",
+      "status": "N/A",
+      "target": "infrastructure-specification.md ## Qué queda escrito y dónde",
+      "status_detail": "Requisito funcional heredado de U1–U5. La evidencia se guarda fuera del bundle y no modifica el contenido en memoria ni las claves del llavero."
+    },
+    {
+      "id": "NFR3.24",
+      "status": "OK",
+      "target": "monitoring-design.md ## Alertas, fila «Token o .env en el diff»; cicd-pipeline.md ## Secretos en CI"
+    },
+    {
+      "id": "NFR4.12",
+      "status": "OK",
+      "target": "monitoring-design.md ## Logs y trazas, fila «Texto de un comentario sembrado»; infrastructure-specification.md ## Qué queda escrito y dónde"
+    },
+    {
+      "id": "NFR9.9",
+      "status": "OK",
+      "target": "monitoring-design.md ## Logs y trazas, fila «app/src/bootstrap/logger.ts (LC-5)»; cicd-pipeline.md ## Los archivos que no cambian, y por qué"
+    },
+    {
+      "id": "NFR6.11",
+      "status": "OK",
+      "target": "monitoring-design.md ## Métricas y KPI, fila «Contraste cuando hay duda»"
+    },
+    {
+      "id": "NFR7.9",
+      "status": "OK",
+      "target": "cicd-pipeline.md ## Los archivos que no cambian, y por qué; infrastructure-specification.md ## Infraestructura compartida, fila «Configuración de CI»"
+    },
+    {
+      "id": "NFR8.16",
+      "status": "N/A",
+      "target": "monitoring-design.md ## SLI / SLO",
+      "status_detail": "Requisito de rendimiento heredado de U1–U5. U6 no mide tiempo de respuesta y no instrumenta el recorrido; el coste de la pasada queda acotado por recuento de filas y capturas."
+    },
+    {
+      "id": "NFR3.25",
+      "status": "OK",
+      "target": "cicd-pipeline.md ## Puerta del recorrido, fila «Veredicto de la unidad»; monitoring-design.md ## Alertas, fila «Archivos de configuración tocados»"
+    },
+    {
+      "id": "NFR3.1",
+      "status": "OK",
+      "target": "cicd-pipeline.md ## Secretos en CI; infrastructure-specification.md ## Servicios de infraestructura, fila «accounts.spotify.com»"
+    },
+    {
+      "id": "NFR3.23",
+      "status": "OK",
+      "target": "monitoring-design.md ## Cómo se revisa la evidencia, fila «Secretos»; cicd-pipeline.md ## Secretos en CI, fila «.env»"
+    },
+    {
+      "id": "NFR4.1",
+      "status": "N/A",
+      "target": "infrastructure-specification.md ## Qué queda escrito y dónde",
+      "status_detail": "Requisito de ámbito de datos heredado de U1–U5. U6 no introduce almacenamiento ni cambia las fuentes de datos; solo describe dónde vive la evidencia de proceso."
+    },
+    {
+      "id": "NFR4.11",
+      "status": "OK",
+      "target": "monitoring-design.md ## Logs y trazas, fila «Texto de un comentario sembrado»"
+    },
+    {
+      "id": "NFR9.1",
+      "status": "N/A",
+      "target": "monitoring-design.md ## Paneles",
+      "status_detail": "Requisito de observabilidad heredado de U1–U5. No hay servicio desplegado ni panel nuevo; la revisión se hace en Actions, en el PR y en los cuatro registros."
+    },
+    {
+      "id": "NFR9.8",
+      "status": "OK",
+      "target": "monitoring-design.md ## Logs y trazas, fila «AppLogCode»; cicd-pipeline.md ## Los archivos que no cambian, y por qué"
+    },
+    {
+      "id": "NFR5.13",
+      "status": "OK",
+      "target": "cicd-pipeline.md ## Lo que corre hoy; monitoring-design.md ## Métricas y KPI, fila «Estado de los jobs commit-lint y code-quality»"
+    }
+  ]
+}

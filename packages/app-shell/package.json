@@ -1,17 +1,18 @@
 {
   "name": "@melodify/app-shell",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "private": true,
   "main": "src/index.ts",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@melodify/design-system": "1.2.0",
+    "@melodify/catalog": "1.2.0",
+    "@melodify/design-system": "1.5.0",
     "@react-navigation/native": "7.5.1",
-    "react-native-safe-area-context": "5.7.0",
-    "react-native-screens": "4.26.2"
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1"
   },
   "peerDependencies": {
-    "react": "19.2.3",
-    "react-native": "0.86.3"
+    "react": "19.3.0",
+    "react-native": "0.88.1"
   }
 }

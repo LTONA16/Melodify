@@ -1,0 +1,615 @@
+{
+  "stage": "code-generation",
+  "unit": "u3-create-react",
+  "upstream_ids": [
+    "AC5.1.1",
+    "AC5.1.2",
+    "AC5.1.3",
+    "AC5.1.4",
+    "AC5.1.5",
+    "AC5.1.6",
+    "AC5.2.1",
+    "AC5.2.2",
+    "AC5.2.3",
+    "AC5.2.4",
+    "AC5.3.1",
+    "AC5.3.2",
+    "AC5.3.3",
+    "AC5.3.4",
+    "AC6.1.1",
+    "AC6.1.2",
+    "AC6.1.3",
+    "AC6.1.4",
+    "AC6.1.5",
+    "AC7.1.1",
+    "AC7.1.2",
+    "AC7.1.3",
+    "AC7.1.4",
+    "AC7.2.1",
+    "AC7.2.2",
+    "AC7.2.3",
+    "AC7.2.4",
+    "AC7.2.5",
+    "AC7.2.6",
+    "AC7.3.1",
+    "AC7.3.2",
+    "AC7.3.3",
+    "AC7.3.4",
+    "NFR8.8",
+    "NFR8.7",
+    "NFR2.6",
+    "NFR2.7",
+    "NFR8.9",
+    "NFR8.10",
+    "NFR8.11",
+    "NFR2.8",
+    "NFR2.5",
+    "NFR9.6",
+    "NFR2.9",
+    "NFR1.9",
+    "NFR1.4",
+    "NFR1.10",
+    "NFR1.11",
+    "NFR8.1",
+    "NFR3.12",
+    "NFR3.7",
+    "NFR3.13",
+    "NFR3.14",
+    "NFR3.9",
+    "NFR3.15",
+    "NFR3.1",
+    "NFR3.10",
+    "NFR3.16",
+    "NFR4.7",
+    "NFR4.8",
+    "NFR9.1",
+    "NFR9.5",
+    "NFR4.6",
+    "NFR3.2",
+    "BR11.1",
+    "BR11.2",
+    "BR11.3",
+    "BR11.4",
+    "BR11.5",
+    "BR11.6",
+    "BR11.7",
+    "BR11.8",
+    "BR11.9",
+    "BR11.10",
+    "BR11.11",
+    "BR12.1",
+    "BR12.2",
+    "BR12.3",
+    "BR12.4",
+    "BR12.5",
+    "BR12.6",
+    "BR12.7",
+    "BR13.1",
+    "BR13.2",
+    "BR13.3",
+    "BR13.4",
+    "BR13.5",
+    "BR14.1",
+    "BR14.2",
+    "BR14.3",
+    "BR14.4",
+    "BR14.5",
+    "BR14.6",
+    "BR14.7",
+    "BR14.8",
+    "BR14.9",
+    "BR14.10",
+    "BR15.1",
+    "BR15.2",
+    "BR15.3",
+    "BR15.4"
+  ],
+  "coverage": [
+    {
+      "id": "AC5.1.1",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.1.2",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.1.3",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.1.4",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.1.5",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-work-search.test.ts"
+    },
+    {
+      "id": "AC5.1.6",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.2.1",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "AC5.2.2",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.2.3",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.2.4",
+      "status": "OK",
+      "target": "app/src/screens/detalle-obra/__tests__/detalle-obra-view.test.tsx"
+    },
+    {
+      "id": "AC5.3.1",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.3.2",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC5.3.3",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/create-close.test.tsx"
+    },
+    {
+      "id": "AC5.3.4",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC6.1.1",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC6.1.2",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "AC6.1.3",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC6.1.4",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/own-opinion.test.tsx"
+    },
+    {
+      "id": "AC6.1.5",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "AC7.1.1",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "AC7.1.2",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "AC7.1.3",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "AC7.1.4",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "AC7.2.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "id": "AC7.2.2",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "AC7.2.3",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "AC7.2.4",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "AC7.2.5",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "AC7.2.6",
+      "status": "OK",
+      "target": "app/src/comments/__tests__/comments-controller.test.ts"
+    },
+    {
+      "id": "AC7.3.1",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "AC7.3.2",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "AC7.3.3",
+      "status": "OK",
+      "target": "app/src/screens/perfil/__tests__/perfil-screen.test.tsx"
+    },
+    {
+      "id": "AC7.3.4",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "NFR8.8",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "NFR8.7",
+      "status": "OK",
+      "target": "packages/design-system/src/components/CommentSheet.tsx"
+    },
+    {
+      "id": "NFR2.6",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "NFR2.7",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "NFR8.9",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-work-search.test.ts"
+    },
+    {
+      "id": "NFR8.10",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/sheet-snackbar-mount.test.tsx"
+    },
+    {
+      "id": "NFR8.11",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "id": "NFR2.8",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "NFR2.5",
+      "status": "OK",
+      "target": "app/src/screens/inicio/__tests__/inicio-view.test.tsx"
+    },
+    {
+      "id": "NFR9.6",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-work-search.test.ts"
+    },
+    {
+      "id": "NFR2.9",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/own-opinion.test.tsx"
+    },
+    {
+      "id": "NFR1.9",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "NFR1.4",
+      "status": "OK",
+      "target": "app/src/screens/inicio/__tests__/inicio-view.test.tsx"
+    },
+    {
+      "id": "NFR1.10",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "NFR1.11",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/create-close.test.tsx"
+    },
+    {
+      "id": "NFR8.1",
+      "status": "Deferred",
+      "target": "Verificación manual en Expo Go sobre el teléfono Android físico: ninguna prueba automática mide un arranque en frío de 2 s, como declara `unit-test-instructions.md` § Fuera del alcance automático. `app/src/bootstrap/__tests__/instances.test.ts` sostiene lo único que esta unidad puede probar por código —una sola construcción de las instancias por arranque—; el tiempo se mide en el dispositivo."
+    },
+    {
+      "id": "NFR3.12",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/use-crear.test.ts"
+    },
+    {
+      "id": "NFR3.7",
+      "status": "OK",
+      "target": "packages/content-store/src/__tests__/reads.test.ts"
+    },
+    {
+      "id": "NFR3.13",
+      "status": "OK",
+      "target": "packages/content-store/src/__tests__/writes.test.ts"
+    },
+    {
+      "id": "NFR3.14",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "NFR3.9",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "NFR3.15",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/ports.test.ts"
+    },
+    {
+      "id": "NFR3.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/ports.test.ts"
+    },
+    {
+      "id": "NFR3.10",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/connection-card.test.tsx"
+    },
+    {
+      "id": "NFR3.16",
+      "status": "OK",
+      "target": "app/src/comments/__tests__/comments-controller.test.ts"
+    },
+    {
+      "id": "NFR4.7",
+      "status": "OK",
+      "target": "app/src/comments/__tests__/comments-controller.test.ts"
+    },
+    {
+      "id": "NFR4.8",
+      "status": "OK",
+      "target": "packages/content-store/src/__tests__/writes.test.ts"
+    },
+    {
+      "id": "NFR9.1",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/logger.test.ts"
+    },
+    {
+      "id": "NFR9.5",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/logger.test.ts"
+    },
+    {
+      "id": "NFR4.6",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/logger.test.ts"
+    },
+    {
+      "id": "NFR3.2",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/ports.test.ts"
+    },
+    {
+      "id": "BR11.1",
+      "status": "OK",
+      "target": "app/src/screens/crear/CrearScreen.tsx"
+    },
+    {
+      "id": "BR11.2",
+      "status": "OK",
+      "target": "app/src/screens/crear/useCrear.ts"
+    },
+    {
+      "id": "BR11.3",
+      "status": "OK",
+      "target": "packages/content-store/src/__tests__/limits.test.ts"
+    },
+    {
+      "id": "BR11.4",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/rating-input.test.tsx"
+    },
+    {
+      "id": "BR11.5",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "BR11.6",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "BR11.7",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "BR11.8",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/create-close.test.tsx"
+    },
+    {
+      "id": "BR11.9",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "BR11.10",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "BR11.11",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "BR12.1",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "BR12.2",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "BR12.3",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/use-crear.test.ts"
+    },
+    {
+      "id": "BR12.4",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/use-crear.test.ts"
+    },
+    {
+      "id": "BR12.5",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-screen.test.tsx"
+    },
+    {
+      "id": "BR12.6",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/create-close.test.tsx"
+    },
+    {
+      "id": "BR12.7",
+      "status": "OK",
+      "target": "packages/content-store/src/__tests__/limits.test.ts"
+    },
+    {
+      "id": "BR13.1",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-work-search.test.ts"
+    },
+    {
+      "id": "BR13.2",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-work-search.test.ts"
+    },
+    {
+      "id": "BR13.3",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "BR13.4",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-work-search.test.ts"
+    },
+    {
+      "id": "BR13.5",
+      "status": "OK",
+      "target": "app/src/screens/crear/CrearView.tsx"
+    },
+    {
+      "id": "BR14.1",
+      "status": "OK",
+      "target": "app/src/state/useCardActions.ts"
+    },
+    {
+      "id": "BR14.2",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/own-opinion.test.tsx"
+    },
+    {
+      "id": "BR14.3",
+      "status": "OK",
+      "target": "app/src/bootstrap/__tests__/app-bootstrap.test.tsx"
+    },
+    {
+      "id": "BR14.4",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "BR14.5",
+      "status": "OK",
+      "target": "packages/content-store/src/__tests__/limits.test.ts"
+    },
+    {
+      "id": "BR14.6",
+      "status": "OK",
+      "target": "packages/app-shell/src/__tests__/sheet-snackbar-mount.test.tsx"
+    },
+    {
+      "id": "BR14.7",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/comment-sheet.test.tsx"
+    },
+    {
+      "id": "BR14.8",
+      "status": "OK",
+      "target": "app/src/state/__tests__/use-card-actions.test.tsx"
+    },
+    {
+      "id": "BR14.9",
+      "status": "OK",
+      "target": "app/src/state/useCardActions.ts"
+    },
+    {
+      "id": "BR14.10",
+      "status": "OK",
+      "target": "app/src/comments/__tests__/comments-controller.test.ts"
+    },
+    {
+      "id": "BR15.1",
+      "status": "OK",
+      "target": "packages/design-system/src/__tests__/snackbar.test.tsx"
+    },
+    {
+      "id": "BR15.2",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/use-crear.test.ts"
+    },
+    {
+      "id": "BR15.3",
+      "status": "OK",
+      "target": "app/src/screens/crear/__tests__/crear-view.test.tsx"
+    },
+    {
+      "id": "BR15.4",
+      "status": "OK",
+      "target": "app/src/components/__tests__/offline-banner.test.tsx"
+    }
+  ],
+  "reverse": []
+}

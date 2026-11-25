@@ -8,6 +8,10 @@
  * de fondo: acciones explícitas, reductor puro, ninguna librería de estado y el
  * reductor probado directamente.
  *
+ * C4 1.2.0 añade los dos topes de longitud (TS-28): se validan aquí y viajan a C1
+ * como props, para que el campo proteja a la persona y el almacén proteja al
+ * contrato. Nada más cambia de forma.
+ *
  * Reglas que se ven en el código:
  * - Toda escritura produce un estado **nuevo** y sube `revision`; nunca muta el
  *   anterior, así un oyente que guardó la emisión previa sigue viendo lo que leyó.
@@ -111,6 +115,13 @@ type Action =
   | { type: "follow/add"; record: FollowRecord }
   | { type: "follow/remove"; followerId: string; authorId: string };
 
+/**
+ * Topes de C4 1.2.0 (TS-28). Una sola definición: C1 los recibe como `maxLength`
+ * y C2 los lleva en `CommentSheetState`; nadie más escribe estos números.
+ */
+export const MAX_OPINION_LENGTH = 500;
+export const MAX_COMMENT_LENGTH = 300;
+
 export interface CreateOpinionInput {
   authorId: string;
   workId: string;
@@ -166,7 +177,8 @@ export interface ContentStore {
   /**
    * Recuento de opiniones de una obra, sin `viewerId`: lo consume C5 para el
    * «N opiniones» (BR5.4). Es la única lectura sin identidad porque solo cuenta y
-   * no devuelve ningún campo derivado.
+   * no devuelve ningún campo derivado. Operación publicada en el contrato de C4
+   * por la enmienda de U2 (C4 1.1.0).
    */
   countOpinions(workId: string): number;
   subscribeContent(
@@ -182,9 +194,10 @@ export interface CreateContentStoreOptions {
   seed?: ContentSeed;
 }
 
-/** Guardas de validación de C4; la validación fina del formulario es de U3. */
-const MAX_TEXT_LENGTH = 500;
-
+/**
+ * Guardas de validación de C4: solo lo que el contrato fija. La longitud del
+ * texto la decide y la valida el formulario de U3, que es su dueño (OQ1/A1).
+ */
 function success<T, C extends ContentSuccessCode = 200>(
   code: C,
   value: T,
@@ -201,11 +214,15 @@ function hasViewer(viewerId: string | null | undefined): viewerId is string {
 }
 
 function isValidText(text: unknown): text is string {
-  return (
-    typeof text === "string" &&
-    text.trim().length > 0 &&
-    text.trim().length <= MAX_TEXT_LENGTH
-  );
+  return typeof text === "string" && text.trim().length > 0;
+}
+
+/**
+ * El recorte precede a la comprobación (BR12.7, TS-30): se mide el texto ya
+ * recortado, así que unos espacios de más no rechazan un texto que cabe.
+ */
+function isWithinLength(text: string, max: number): boolean {
+  return text.trim().length <= max;
 }
 
 function isValidRating(rating: unknown): rating is number {
@@ -376,6 +393,25 @@ function upsertWork(works: WorkRecord[], record: OpinionRecord): WorkRecord[] {
   ];
 }
 
+/**
+ * El número más alto de los identificadores con ese prefijo. Las escrituras siguen
+ * desde ahí: sin esto, la primera opinión publicada se llamaba `op-001` y repetía
+ * el identificador de una opinión sembrada.
+ */
+function highestIdSequence(ids: string[], prefix: string): number {
+  let highest = 0;
+  for (const id of ids) {
+    if (!id.startsWith(prefix)) {
+      continue;
+    }
+    const suffix = Number.parseInt(id.slice(prefix.length), 10);
+    if (Number.isInteger(suffix) && suffix > highest) {
+      highest = suffix;
+    }
+  }
+  return highest;
+}
+
 function byCreatedAtDescending(
   left: { createdAt: string; opinionId?: string; commentId?: string },
   right: { createdAt: string; opinionId?: string; commentId?: string },
@@ -403,17 +439,25 @@ export function createContentStore(
     return new Date(lastStampMs).toISOString();
   };
 
-  let opinionSequence = 0;
-  let commentSequence = 0;
+  // Los identificadores nuevos continúan la numeración de la siembra: empezar en
+  // 1 repetía `op-001` y `cm-001`, y dos opiniones con el mismo identificador
+  // rompen el feed (la lista se indexa por él) y cualquier lectura por identificador.
+  let opinionSequence = highestIdSequence(
+    state.opinions.map((opinion) => opinion.opinionId),
+    "op-",
+  );
+  let commentSequence = highestIdSequence(
+    state.comments.map((comment) => comment.commentId),
+    "cm-",
+  );
   const nextOpinionId = (): string => {
     opinionSequence += 1;
     return `op-${String(opinionSequence).padStart(3, "0")}`;
   };
   const nextCommentId = (): string => {
     commentSequence += 1;
-    return `cm-${String(commentSequence + 100).padStart(3, "0")}`;
+    return `cm-${String(commentSequence).padStart(3, "0")}`;
   };
-
   const listeners = new Set<{
     viewerId: string;
     listener: (snapshot: ContentSnapshot) => void;
@@ -534,6 +578,12 @@ export function createContentStore(
       if (!isValidText(input.text)) {
         return failure(422, "El texto de la opinión no es válido.");
       }
+      if (!isWithinLength(input.text, MAX_OPINION_LENGTH)) {
+        return failure(
+          422,
+          `El texto de la opinión no puede superar los ${MAX_OPINION_LENGTH} caracteres.`,
+        );
+      }
       if (!isValidRating(input.rating)) {
         return failure(422, "La valoración debe ser un entero de 1 a 5.");
       }
@@ -586,6 +636,12 @@ export function createContentStore(
 
       if (!isValidText(text)) {
         return failure(422, "El texto de la opinión no es válido.");
+      }
+      if (!isWithinLength(text, MAX_OPINION_LENGTH)) {
+        return failure(
+          422,
+          `El texto de la opinión no puede superar los ${MAX_OPINION_LENGTH} caracteres.`,
+        );
       }
       if (!isValidRating(rating)) {
         return failure(422, "La valoración debe ser un entero de 1 a 5.");
@@ -660,6 +716,12 @@ export function createContentStore(
       }
       if (!isValidText(text)) {
         return failure(422, "El comentario no puede estar vacío.");
+      }
+      if (!isWithinLength(text, MAX_COMMENT_LENGTH)) {
+        return failure(
+          422,
+          `El comentario no puede superar los ${MAX_COMMENT_LENGTH} caracteres.`,
+        );
       }
 
       const record: CommentRecord = {

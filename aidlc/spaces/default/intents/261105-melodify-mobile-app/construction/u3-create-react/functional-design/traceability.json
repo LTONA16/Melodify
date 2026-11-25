@@ -1,0 +1,253 @@
+{
+  "stage": "functional-design",
+  "unit": "u3-create-react",
+  "upstream_ids": [
+    "AC5.1.1",
+    "AC5.1.2",
+    "AC5.1.3",
+    "AC5.1.4",
+    "AC5.1.5",
+    "AC5.1.6",
+    "AC5.2.1",
+    "AC5.2.2",
+    "AC5.2.3",
+    "AC5.2.4",
+    "AC5.3.1",
+    "AC5.3.2",
+    "AC5.3.3",
+    "AC5.3.4",
+    "AC6.1.1",
+    "AC6.1.2",
+    "AC6.1.3",
+    "AC6.1.4",
+    "AC6.1.5",
+    "AC7.1.1",
+    "AC7.1.2",
+    "AC7.1.3",
+    "AC7.1.4",
+    "AC7.2.1",
+    "AC7.2.2",
+    "AC7.2.3",
+    "AC7.2.4",
+    "AC7.2.5",
+    "AC7.2.6",
+    "AC7.3.1",
+    "AC7.3.2",
+    "AC7.3.3",
+    "AC7.3.4"
+  ],
+  "coverage": [
+    {
+      "id": "AC5.1.1",
+      "status": "Deferred",
+      "target": "BR13.3 se entrega y se prueba con un catálogo de puerto doble; el criterio exige sesión de Spotify y `SpotifySearchPort`, que son de u4-spotify-explore (C5 responde `offline` sin puerto) y U4 lo cierra en el teléfono"
+    },
+    {
+      "id": "AC5.1.2",
+      "status": "OK",
+      "target": "BR11.2, BR11.4, BR11.6"
+    },
+    {
+      "id": "AC5.1.3",
+      "status": "OK",
+      "target": "BR11.2, BR11.4"
+    },
+    {
+      "id": "AC5.1.4",
+      "status": "OK",
+      "target": "BR11.5, BR15.2"
+    },
+    {
+      "id": "AC5.1.5",
+      "status": "Deferred",
+      "target": "los estados de búsqueda se entregan y se prueban con un catálogo de puerto doble, pero el criterio exige sesión de Spotify y `SpotifySearchPort`, que son de u4-spotify-explore (C5 responde `offline` sin puerto); U4 lo cierra en el teléfono y la regla que describe los estados queda en `reverse` hasta entonces"
+    },
+    {
+      "id": "AC5.1.6",
+      "status": "OK",
+      "target": "BR11.6, BR11.7"
+    },
+    {
+      "id": "AC5.2.1",
+      "status": "OK",
+      "target": "BR11.9, BR13.5"
+    },
+    {
+      "id": "AC5.2.2",
+      "status": "OK",
+      "target": "BR11.5, BR11.9"
+    },
+    {
+      "id": "AC5.2.3",
+      "status": "OK",
+      "target": "BR11.11, BR11.9, BR15.4"
+    },
+    {
+      "id": "AC5.2.4",
+      "status": "OK",
+      "target": "BR11.9, BR11.5"
+    },
+    {
+      "id": "AC5.3.1",
+      "status": "OK",
+      "target": "BR11.10"
+    },
+    {
+      "id": "AC5.3.2",
+      "status": "OK",
+      "target": "BR11.10, BR13.3"
+    },
+    {
+      "id": "AC5.3.3",
+      "status": "OK",
+      "target": "BR11.8, BR12.6"
+    },
+    {
+      "id": "AC5.3.4",
+      "status": "OK",
+      "target": "BR11.7, BR15.3"
+    },
+    {
+      "id": "AC6.1.1",
+      "status": "OK",
+      "target": "BR12.1"
+    },
+    {
+      "id": "AC6.1.2",
+      "status": "OK",
+      "target": "BR12.2"
+    },
+    {
+      "id": "AC6.1.3",
+      "status": "OK",
+      "target": "BR12.3, BR11.8"
+    },
+    {
+      "id": "AC6.1.4",
+      "status": "OK",
+      "target": "BR12.3"
+    },
+    {
+      "id": "AC6.1.5",
+      "status": "OK",
+      "target": "BR12.4"
+    },
+    {
+      "id": "AC7.1.1",
+      "status": "OK",
+      "target": "BR14.1"
+    },
+    {
+      "id": "AC7.1.2",
+      "status": "OK",
+      "target": "BR14.1"
+    },
+    {
+      "id": "AC7.1.3",
+      "status": "OK",
+      "target": "BR14.2, BR14.9"
+    },
+    {
+      "id": "AC7.1.4",
+      "status": "OK",
+      "target": "BR14.9"
+    },
+    {
+      "id": "AC7.2.1",
+      "status": "OK",
+      "target": "BR14.3"
+    },
+    {
+      "id": "AC7.2.2",
+      "status": "OK",
+      "target": "BR14.4"
+    },
+    {
+      "id": "AC7.2.3",
+      "status": "OK",
+      "target": "BR14.4"
+    },
+    {
+      "id": "AC7.2.4",
+      "status": "OK",
+      "target": "BR14.6"
+    },
+    {
+      "id": "AC7.2.5",
+      "status": "OK",
+      "target": "BR14.7, BR15.3"
+    },
+    {
+      "id": "AC7.2.6",
+      "status": "OK",
+      "target": "BR14.10"
+    },
+    {
+      "id": "AC7.3.1",
+      "status": "OK",
+      "target": "BR14.8, BR15.2"
+    },
+    {
+      "id": "AC7.3.2",
+      "status": "OK",
+      "target": "BR14.8, BR15.2"
+    },
+    {
+      "id": "AC7.3.3",
+      "status": "N/A",
+      "target": "el «2 siguiendo» del Perfil lo siembra U2 (BR4.2) y esta unidad no cambia la siembra; AC7.3.3 se verifica donde se verificó y aquí solo se conserva"
+    },
+    {
+      "id": "AC7.3.4",
+      "status": "OK",
+      "target": "BR14.10"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR11.1",
+      "status": "N/A",
+      "target": "el reinicio del borrador con `formKey` es un invariante de C2 que ninguna AC observa; lo que las AC ven es el formulario limpio al entrar, cubierto por AC5.3.1 y AC5.1.1"
+    },
+    {
+      "id": "BR11.3",
+      "status": "N/A",
+      "target": "el tope de 500 caracteres lo fija Q1 = B, que no nació de una AC; se prueba con las pruebas de la unidad y se recorre en el teléfono"
+    },
+    {
+      "id": "BR12.5",
+      "status": "N/A",
+      "target": "el error al guardar es una ruta defensiva que fija la matriz de estados; ninguna AC de US6.1 la enumera"
+    },
+    {
+      "id": "BR12.7",
+      "status": "N/A",
+      "target": "que publicar y editar compartan validación es una restricción de diseño; se observa en AC5.1.3 y AC6.1.5, no en un criterio propio"
+    },
+    {
+      "id": "BR13.1",
+      "status": "N/A",
+      "target": "los 2 caracteres y los 400 ms vienen de `interaction-spec.md`; AC5.1.5 observa el estado en curso y el vacío, no el temporizador"
+    },
+    {
+      "id": "BR13.2",
+      "status": "N/A",
+      "target": "los estados de búsqueda se entregan y se prueban con un catálogo de puerto doble; su única AC (AC5.1.5) está Deferred y no la observa hasta que u4-spotify-explore conecte la sesión de Spotify y el `SpotifySearchPort`, porque sin puerto el buscador ni se monta"
+    },
+    {
+      "id": "BR13.4",
+      "status": "N/A",
+      "target": "la cancelación de peticiones pendientes y el descarte de respuestas tardías son comportamiento interno del hook; ninguna AC los observa"
+    },
+    {
+      "id": "BR14.5",
+      "status": "N/A",
+      "target": "el tope de 300 caracteres del comentario lo fija Q2 = A, que no nació de una AC; se prueba con las pruebas de la unidad"
+    },
+    {
+      "id": "BR15.1",
+      "status": "N/A",
+      "target": "la duración de 4 s y el límite de un snackbar por cáscara vienen de los mockups; las AC observan la confirmación, no el temporizador"
+    }
+  ]
+}

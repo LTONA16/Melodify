@@ -1,6 +1,10 @@
 /**
- * Estado vacío reutilizable (C1). Sin acción cuando no se le pasa una: Inicio sin
- * semilla no inventa un botón (BR3.1).
+ * Estado vacío reutilizable (C1 1.2.0). Sin acción cuando no se le pasa una: Inicio
+ * sin semilla no inventa un botón (BR3.1).
+ *
+ * `body` es opcional desde la revisión 12: el vacío de Perfil tiene una sola frase
+ * («Todavía no has publicado opiniones.») y sus acciones, e inventarle un cuerpo
+ * sería texto de relleno que los mockups no traen.
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -8,7 +12,7 @@ import { useTheme } from "../useTheme";
 
 export interface EmptyStateProps {
   title: string;
-  body: string;
+  body?: string;
   actionLabel?: string;
   onAction?: () => void;
 }
@@ -36,15 +40,18 @@ export function EmptyState({
       >
         {title}
       </Text>
-      <Text
-        style={[
-          theme.type.body,
-          styles.centered,
-          { color: theme.colors.textSecondary },
-        ]}
-      >
-        {body}
-      </Text>
+      {body !== undefined ? (
+        <Text
+          testID="empty-state-body"
+          style={[
+            theme.type.body,
+            styles.centered,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
+          {body}
+        </Text>
+      ) : null}
 
       {hasAction ? (
         <Pressable

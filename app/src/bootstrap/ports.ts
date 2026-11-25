@@ -1,79 +1,89 @@
 /**
- * Punto de extensión de C5 en el punto de composición: los tres puertos del
- * catálogo **declarados y sin implementación**. U1 crea el archivo y U4 registra
- * aquí las implementaciones al montar `@melodify/spotify`; hasta entonces no hay
- * sesión, ni búsqueda, ni resolución, y el catálogo de ejemplo y los bloques con la
- * inicial funcionan solos (C5 § `x-composition`, NFR3.2).
+ * Registro de los tres puertos de Spotify en el punto de composición (TS-21,
+ * NFR3.11, NFR3.17).
  *
- * Nada de este archivo importa `@melodify/spotify` ni `@melodify/catalog`: solo
- * fluyen formas. La prohibición del contrato es de importación en tiempo de
- * ejecución, y un `import type` de los tipos de C5 cuando existan no la rompe.
+ * Una sola instancia de C7 y una sola del catálogo de Spotify: la sesión, la
+ * búsqueda y la resolución comparten la misma máquina de token y el mismo cliente
+ * HTTP. Construirlas por pantalla daría dos hidrataciones del token y dos respuestas
+ * distintas a la misma pregunta (R-01, TS-18).
+ *
+ * Los tipos de los puertos se importan de `@melodify/catalog` y el paquete Spotify
+ * los implementa estructuralmente; no se declara aquí ninguna copia. Sin client ID
+ * la sesión arranca en `notConfigured` y los tres puertos siguen funcionando: la
+ * búsqueda responde `offline` y las portadas vuelven al bloque con la inicial.
  */
+import type { CatalogPorts } from "@melodify/catalog";
+import {
+  createSpotifyAuth,
+  expoBrowser,
+  expoCrypto,
+  expoSecureStore,
+  resolveRedirectUri,
+} from "@melodify/spotify/auth";
+import { createSpotifyCatalog } from "@melodify/spotify/catalog";
+
+import { logger } from "./logger";
+
+export type {
+  CatalogPorts,
+  ResolvePortFailure,
+  ResolvePortResult,
+  SearchPortFailure,
+  SearchPortResult,
+  SpotifyResolvePort,
+  SpotifySearchPort,
+  SpotifySessionPort,
+  WorkView,
+} from "@melodify/catalog";
+
+const clientId = process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID ?? null;
 
 /**
- * La forma mínima de una obra que cruza estos puertos. Es la misma que la vista
- * `WorkView` de C5 (`workId`, `title`, `artist`, `coverUrl`, `origin`), sin
- * `origin` porque el catálogo la decide él mismo.
+ * El redirect se resuelve una sola vez, al importar. `makeRedirectUri` necesita el
+ * manifiesto de Expo y en Jest no existe; ahí se usa el esquema declarado en
+ * `app.json`, que es el mismo valor que el manifiesto produciría. En el teléfono
+ * manda siempre el valor del manifiesto o `EXPO_PUBLIC_SPOTIFY_REDIRECT_URI`.
  */
-export interface PortWorkView {
-  workId: string;
-  title: string;
-  artist: string;
-  coverUrl: string | null;
+function resolveBootstrapRedirectUri(): string {
+  try {
+    return resolveRedirectUri(process.env.EXPO_PUBLIC_SPOTIFY_REDIRECT_URI);
+  } catch {
+    return "melodify://spotify-callback";
+  }
 }
 
-export type SearchPortFailure =
-  | "unauthorized"
-  | "rateLimited"
-  | "timeout"
-  | "network"
-  | "error";
-
-export type ResolvePortFailure = SearchPortFailure | "notFound";
-
-/** Resultado de una búsqueda: el catálogo normaliza `failure` a `offline` o `error`. */
-export interface SearchPortResult {
-  kind: "ok" | "empty" | "failure";
-  works?: PortWorkView[];
-  failure?: SearchPortFailure;
-}
-
-/** Resultado de resolver una obra ya conocida; es lo que trae su portada real. */
-export interface ResolvePortResult {
-  kind: "ok" | "failure";
-  work?: PortWorkView;
-  failure?: ResolvePortFailure;
-}
-
-/** Si hay sesión de Spotify, sin que el catálogo conozca el paquete ni su token. */
-export interface SpotifySessionPort {
-  isConnected(): boolean;
-  onConnectionChange(listener: (connected: boolean) => void): () => void;
-}
-
-/** Búsqueda de obras; el catálogo nunca propaga el error de Spotify. */
-export interface SpotifySearchPort {
-  search(query: string): Promise<SearchPortResult>;
-}
-
-/** Metadatos y portada de una obra del catálogo de ejemplo que nunca se buscó. */
-export interface SpotifyResolvePort {
-  resolve(workId: string): Promise<ResolvePortResult>;
-}
+const redirectUri = resolveBootstrapRedirectUri();
 
 /**
- * Los tres puertos tal como los ve el punto de composición. Los tres arrancan en
- * `null`: «sin implementación registrada» es un estado válido y observable, no un
- * error, y por eso el catálogo de ejemplo sigue funcionando.
+ * La única máquina de autorización de la app. `device.ts` es el único archivo de
+ * C7 que toca módulos nativos; aquí solo se eligen sus adaptadores reales.
  */
-export interface CatalogPorts {
-  session: SpotifySessionPort | null;
-  search: SpotifySearchPort | null;
-  resolve: SpotifyResolvePort | null;
-}
+export const spotifyAuth = createSpotifyAuth({
+  clientId,
+  redirectUri,
+  secureStore: expoSecureStore,
+  browser: expoBrowser,
+  crypto: expoCrypto,
+  // `globalThis.fetch` no se captura al importar: así una prueba puede sustituirlo
+  // y el token se renueva con la implementación vigente.
+  fetch: (url, init) => globalThis.fetch(url, init),
+  clock: { now: () => Date.now() },
+  log: logger,
+});
 
+/** El cliente de búsqueda y resolución; comparte el token con `spotifyAuth`. */
+export const spotifyCatalog = createSpotifyCatalog({
+  auth: spotifyAuth,
+  log: logger,
+});
+
+/**
+ * Los tres puertos tal como los ve C5. Son las mismas instancias que exporta este
+ * módulo, no adaptadores nuevos: el catálogo puede comprobar la sesión y pedir la
+ * búsqueda sin conocer el paquete (BR5.6, NFR3.11).
+ */
 export const catalogPorts: CatalogPorts = {
-  session: null,
-  search: null,
-  resolve: null,
+  session: spotifyAuth,
+  search: spotifyCatalog,
+  resolve: spotifyCatalog,
 };
