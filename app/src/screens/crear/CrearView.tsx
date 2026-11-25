@@ -59,6 +59,14 @@ export const CREAR_OFFLINE_MESSAGE =
 export const CREAR_SEARCH_OFFLINE_MESSAGE =
   "Sin conexión. No podemos buscar en Spotify ahora mismo.";
 
+/**
+ * La cuota de Spotify vista desde Crear: la sesión sigue viva y solo hay que
+ * esperar. Se pinta igual que el aviso de red, con «Reintentar», para que la zona
+ * del buscador nunca quede en blanco ni invite a reconectar sin motivo.
+ */
+export const CREAR_SEARCH_RATE_LIMITED_MESSAGE =
+  "Spotify está limitando las búsquedas por ahora. Espera un momento y vuelve a intentarlo.";
+
 /** La invitación a conectar Spotify desde la rama de ejemplo (BR13.5). */
 export const CREAR_CONNECT_BODY =
   "Conecta Spotify para buscar en el catálogo completo. Mientras tanto, estas obras de ejemplo también se pueden opinar.";
@@ -242,6 +250,22 @@ function SearchBranch({
           <TextButton
             label="Reintentar"
             testID="crear-search-retry"
+            onPress={onSearchRetry}
+          />
+        </View>
+      ) : null}
+
+      {searchStatus === "rateLimited" ? (
+        <View style={{ gap: theme.space[2] }}>
+          <Text
+            testID="crear-search-rate-limited"
+            style={[theme.type.bodySmall, { color: theme.colors.text }]}
+          >
+            {CREAR_SEARCH_RATE_LIMITED_MESSAGE}
+          </Text>
+          <TextButton
+            label="Reintentar"
+            testID="crear-search-rate-limited-retry"
             onPress={onSearchRetry}
           />
         </View>

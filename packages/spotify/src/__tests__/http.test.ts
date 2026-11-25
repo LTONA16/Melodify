@@ -33,9 +33,10 @@ describe("cliente HTTP de Spotify", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("clasifica 401, 429, 404 y 5xx sin devolver el body", async () => {
+  it("clasifica 401, 403, 429, 404 y 5xx sin devolver el body", async () => {
     const cases: [number, string][] = [
       [401, "unauthorized"],
+      [403, "forbidden"],
       [429, "rateLimited"],
       [404, "notFound"],
       [503, "error"],

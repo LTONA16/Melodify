@@ -19,7 +19,7 @@ const NOW = "2026-11-12T09:00:00.000Z";
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
-const BOHEMIAN_RHAPSODY = "4u7EnebtmKWzUH433Rbtpz";
+const BOHEMIAN_RHAPSODY = "7tFiyTwD0nx5a1eklYtX2J";
 
 /** El orden del feed que fija la tabla de la especificación (BR4.5). */
 const FEED_ORDER = [

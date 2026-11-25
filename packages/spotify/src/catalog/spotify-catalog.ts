@@ -15,6 +15,7 @@
  * clasifican y se registran sin la consulta ni cabeceras (NFR4.10, NFR9.7).
  */
 import type { SpotifyLogPort } from "../types";
+import type { HttpFailure, HttpFailureResult } from "../http";
 import {
   isValidWorkId,
   requestJson,
@@ -40,6 +41,7 @@ export interface SpotifyArtist {
 
 export type SpotifyCatalogFailure =
   | "unauthorized"
+  | "forbidden"
   | "rateLimited"
   | "timeout"
   | "network"
@@ -149,10 +151,20 @@ function toArtist(artist: SpotifyNamed): SpotifyArtist | null {
   return { artistId: artist.id, name: artist.name };
 }
 
-function classifyFailure(
-  failure: "unauthorized" | "notFound" | "rateLimited" | "timeout" | "network" | "error",
-): SpotifyCatalogFailure {
+function classifyFailure(failure: HttpFailure): SpotifyCatalogFailure {
   return failure === "notFound" ? "error" : failure;
+}
+
+/**
+ * Lo que el registro añade al mensaje: la clase del fallo y el código HTTP cuando
+ * hubo respuesta. Nunca la consulta, el token, las cabeceras ni el body (NFR4.10,
+ * NFR9.7). Sin el código, un `429` y un `403` se leían igual en el teléfono y no
+ * había forma de saber si el problema era la cuota o el acceso de la cuenta.
+ */
+function describeFailure(result: HttpFailureResult): string {
+  return result.status === undefined
+    ? result.failure
+    : `${result.failure}, HTTP ${result.status}`;
 }
 
 export function createSpotifyCatalog(
@@ -176,19 +188,25 @@ export function createSpotifyCatalog(
   };
 
   const search = async (query: string): Promise<SpotifySearchResult> => {
-    const url = `${SPOTIFY_API_BASE}/search?q=${encodeURIComponent(query)}&type=track,album,artist&limit=20`;
+    // `limit` es por tipo y Spotify lo capó en 10 (rango 0–10 en su referencia):
+    // con 20 la API responde `400` y la búsqueda entera falla. Tres tipos × 10 son
+    // hasta treinta filas, que es lo que la lista pinta sin paginar (OQ2).
+    const url = `${SPOTIFY_API_BASE}/search?q=${encodeURIComponent(query)}&type=track,album,artist&limit=10`;
 
     if (!auth.isConnected()) {
       return { kind: "failure", failure: "unauthorized" };
     }
 
-    let result;
+    let result: Awaited<ReturnType<typeof authorizedFetch>>;
 
     try {
       result = await authorizedFetch(url);
     } catch {
       // Un `fetch` que no devuelve promesa válida no puede tumbar la pantalla.
-      log.error("SPOTIFY_SEARCH_FAILED", "la búsqueda de Spotify falló");
+      log.error(
+        "SPOTIFY_SEARCH_FAILED",
+        "la búsqueda de Spotify no obtuvo respuesta",
+      );
       return { kind: "failure", failure: "network" };
     }
 
@@ -199,22 +217,14 @@ export function createSpotifyCatalog(
     if (!result.ok) {
       if (result.failure === "unauthorized") {
         auth.markInvalid();
-        log.error("SPOTIFY_SEARCH_FAILED", "la búsqueda de Spotify falló");
-        return { kind: "failure", failure: "unauthorized" };
       }
 
-      log.error("SPOTIFY_SEARCH_FAILED", "la búsqueda de Spotify falló");
+      log.error(
+        "SPOTIFY_SEARCH_FAILED",
+        `la búsqueda de Spotify falló: ${describeFailure(result)}`,
+      );
 
-      if (result.failure === "rateLimited") {
-        return { kind: "failure", failure: "rateLimited" };
-      }
-      if (result.failure === "timeout") {
-        return { kind: "failure", failure: "timeout" };
-      }
-      if (result.failure === "network") {
-        return { kind: "failure", failure: "network" };
-      }
-      return { kind: "failure", failure: "error" };
+      return { kind: "failure", failure: classifyFailure(result.failure) };
     }
 
     const body = result.value as SpotifySearchResponse | null;
@@ -246,9 +256,21 @@ export function createSpotifyCatalog(
       return { kind: "failure", failure: "unauthorized" };
     }
 
-    const track = await authorizedFetch(
-      `${SPOTIFY_API_BASE}/tracks/${encodeURIComponent(workId)}`,
-    );
+    let track: Awaited<ReturnType<typeof authorizedFetch>>;
+
+    try {
+      track = await authorizedFetch(
+        `${SPOTIFY_API_BASE}/tracks/${encodeURIComponent(workId)}`,
+      );
+    } catch {
+      // Igual que en `search`: una promesa que no se puede esperar es falta de
+      // respuesta, no una excepción que la portada deba atrapar sin registro.
+      log.error(
+        "SPOTIFY_SEARCH_FAILED",
+        "la resolución de Spotify no obtuvo respuesta",
+      );
+      return { kind: "failure", failure: "network" };
+    }
 
     if (track === null) {
       return { kind: "failure", failure: "unauthorized" };
@@ -269,13 +291,26 @@ export function createSpotifyCatalog(
       if (track.failure === "unauthorized") {
         auth.markInvalid();
       }
-      log.error("SPOTIFY_SEARCH_FAILED", "la resolución de Spotify falló");
+      log.error(
+        "SPOTIFY_SEARCH_FAILED",
+        `la resolución de Spotify falló: ${describeFailure(track)}`,
+      );
       return { kind: "failure", failure: classifyFailure(track.failure) };
     }
 
-    const album = await authorizedFetch(
-      `${SPOTIFY_API_BASE}/albums/${encodeURIComponent(workId)}`,
-    );
+    let album: Awaited<ReturnType<typeof authorizedFetch>>;
+
+    try {
+      album = await authorizedFetch(
+        `${SPOTIFY_API_BASE}/albums/${encodeURIComponent(workId)}`,
+      );
+    } catch {
+      log.error(
+        "SPOTIFY_SEARCH_FAILED",
+        "la resolución del álbum de Spotify no obtuvo respuesta",
+      );
+      return { kind: "failure", failure: "network" };
+    }
 
     if (album === null) {
       return { kind: "failure", failure: "unauthorized" };
@@ -296,7 +331,10 @@ export function createSpotifyCatalog(
       auth.markInvalid();
     }
 
-    log.error("SPOTIFY_SEARCH_FAILED", "la resolución de Spotify falló");
+    log.error(
+      "SPOTIFY_SEARCH_FAILED",
+      `la resolución del álbum de Spotify falló: ${describeFailure(album)}`,
+    );
 
     if (album.failure === "notFound") {
       return { kind: "failure", failure: "notFound" };

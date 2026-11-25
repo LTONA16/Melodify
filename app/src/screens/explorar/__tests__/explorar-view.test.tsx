@@ -7,6 +7,7 @@ import {
   EXPLORAR_CONNECT_BODY,
   EXPLORAR_NOT_CONFIGURED_BODY,
   EXPLORAR_OFFLINE_MESSAGE,
+  EXPLORAR_RATE_LIMITED_MESSAGE,
   EXPLORAR_TOKEN_MESSAGE,
   ExplorarView,
   type ExplorarViewProps,
@@ -252,6 +253,21 @@ describe("ExplorarView — con sesión", () => {
     fireEvent.press(view.getByTestId("banner-action"));
     fireEvent.press(view.getByTestId("error-state-retry"));
     expect(onSearchRetry).toHaveBeenCalledTimes(2);
+  });
+
+  it("la cuota de Spotify se anuncia como límite temporal y deja reintentar", () => {
+    const onSearchRetry = jest.fn();
+    const view = setup({
+      ...connected,
+      query: "bad",
+      searchStatus: "rateLimited",
+      onSearchRetry,
+    });
+
+    expect(view.getByText(EXPLORAR_RATE_LIMITED_MESSAGE)).toBeVisible();
+    expect(view.queryByText(EXPLORAR_TOKEN_MESSAGE)).toBeNull();
+    fireEvent.press(view.getByTestId("error-state-retry"));
+    expect(onSearchRetry).toHaveBeenCalledTimes(1);
   });
 });
 

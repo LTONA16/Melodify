@@ -100,7 +100,7 @@ describe("catálogo de Spotify", () => {
 
     expect(calls).toHaveLength(1);
     expect(calls[0]?.url).toBe(
-      "https://api.spotify.com/v1/search?q=bad%20bunny%20%26%20friends&type=track,album,artist&limit=20",
+      "https://api.spotify.com/v1/search?q=bad%20bunny%20%26%20friends&type=track,album,artist&limit=10",
     );
     expect(calls[0]?.init?.headers).toEqual({
       Authorization: "Bearer token-1",
@@ -161,9 +161,10 @@ describe("catálogo de Spotify", () => {
     expect(auth.markInvalid).toHaveBeenCalledTimes(1);
   });
 
-  it("clasifica 429, timeout, red y 5xx sin filtrar el body", async () => {
+  it("clasifica 429, 403, timeout, red y 5xx sin filtrar el body", async () => {
     const cases: [HttpResponseLike | Error, string][] = [
       [response({ error: "temporal" }, 429), "rateLimited"],
+      [response({ error: "sin acceso" }, 403), "forbidden"],
       [new Error("sin red"), "network"],
       [response({ error: "roto" }, 500), "error"],
     ];
@@ -180,21 +181,53 @@ describe("catálogo de Spotify", () => {
 
       expect(result).toEqual({ kind: "failure", failure });
       expect(JSON.stringify(result)).not.toContain("roto");
+      expect(JSON.stringify(result)).not.toContain("sin acceso");
     }
   });
 
-  it("registra el fallo sin la consulta ni el token", async () => {
-    const { catalog, logger } = catalogWith(() => response({}, 500));
+  it("un 403 no marca el token como inválido", async () => {
+    const auth = authDouble();
+    const { catalog } = catalogWith(() => response({}, 403), auth);
+
+    await expect(catalog.search("algo")).resolves.toEqual({
+      kind: "failure",
+      failure: "forbidden",
+    });
+    expect(auth.markInvalid).not.toHaveBeenCalled();
+  });
+
+  it("registra la clase y el código HTTP sin la consulta ni el token", async () => {
+    const { catalog, logger } = catalogWith(() => response({}, 429));
 
     await catalog.search("consulta secreta");
 
+    // El código HTTP es la única pista que el registro añade: sin él, un 429 y un
+    // 403 se leían igual en el teléfono.
     expect(logger.error).toHaveBeenCalledWith(
       "SPOTIFY_SEARCH_FAILED",
-      expect.any(String),
+      "la búsqueda de Spotify falló: rateLimited, HTTP 429",
     );
     const logged = JSON.stringify(logger.error.mock.calls);
     expect(logged).not.toContain("consulta secreta");
     expect(logged).not.toContain("token-1");
+  });
+
+  it("un fallo al leer el token no rechaza: es falta de red y se registra", async () => {
+    const auth = authDouble({
+      getAccessToken: jest.fn(async () => {
+        throw new Error("llavero roto");
+      }),
+    });
+    const { catalog, logger } = catalogWith(() => response({}), auth);
+
+    await expect(catalog.search("algo")).resolves.toEqual({
+      kind: "failure",
+      failure: "network",
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      "SPOTIFY_SEARCH_FAILED",
+      "la búsqueda de Spotify no obtuvo respuesta",
+    );
   });
 
   it("sin sesión no pide token ni toca la red", async () => {
@@ -269,6 +302,71 @@ describe("catálogo de Spotify", () => {
       kind: "failure",
       failure: "notFound",
     });
+  });
+
+  it("registra el código HTTP al resolver una canción que falla", async () => {
+    const { catalog, logger } = catalogWith(() => response({}, 500));
+
+    await expect(catalog.resolve("track1")).resolves.toEqual({
+      kind: "failure",
+      failure: "error",
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      "SPOTIFY_SEARCH_FAILED",
+      "la resolución de Spotify falló: error, HTTP 500",
+    );
+  });
+
+  it("registra el código HTTP del álbum cuando la canción no existe", async () => {
+    const { catalog, logger } = catalogWith((url) =>
+      url.includes("/tracks/") ? response({}, 404) : response({}, 429),
+    );
+
+    await expect(catalog.resolve("album1")).resolves.toEqual({
+      kind: "failure",
+      failure: "rateLimited",
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      "SPOTIFY_SEARCH_FAILED",
+      "la resolución del álbum de Spotify falló: rateLimited, HTTP 429",
+    );
+  });
+
+  it("un fallo al leer el token no rechaza: es falta de red y se registra", async () => {
+    const auth = authDouble({
+      getAccessToken: jest.fn(async () => {
+        throw new Error("llavero roto");
+      }),
+    });
+    const { catalog, logger } = catalogWith(() => response({}), auth);
+
+    await expect(catalog.resolve("track1")).resolves.toEqual({
+      kind: "failure",
+      failure: "network",
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      "SPOTIFY_SEARCH_FAILED",
+      "la resolución de Spotify no obtuvo respuesta",
+    );
+  });
+
+  it("el fallo del álbum tras un 404 tampoco rechaza si el token no se lee", async () => {
+    const auth = authDouble({
+      getAccessToken: jest
+        .fn()
+        .mockResolvedValueOnce("token-1")
+        .mockRejectedValueOnce(new Error("llavero roto")),
+    });
+    const { catalog, logger } = catalogWith(() => response({}, 404), auth);
+
+    await expect(catalog.resolve("album1")).resolves.toEqual({
+      kind: "failure",
+      failure: "network",
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      "SPOTIFY_SEARCH_FAILED",
+      "la resolución del álbum de Spotify no obtuvo respuesta",
+    );
   });
 
   it("valida el workId antes de armar la ruta", async () => {

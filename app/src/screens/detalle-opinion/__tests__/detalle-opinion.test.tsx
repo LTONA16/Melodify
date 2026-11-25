@@ -41,7 +41,7 @@ import { useDetalleOpinion } from "../useDetalleOpinion";
  */
 const NOW = "2026-11-12T09:00:00.000Z";
 const DEMO = "demo";
-const BOHEMIAN = "4u7EnebtmKWzUH433Rbtpz";
+const BOHEMIAN = "7tFiyTwD0nx5a1eklYtX2J";
 
 const SIGNED_IN: SessionView = {
   status: "signedIn",

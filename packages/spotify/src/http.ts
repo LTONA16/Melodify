@@ -32,9 +32,17 @@ export function isValidWorkId(workId: string): boolean {
   return WORK_ID_PATTERN.test(workId);
 }
 
-/** La clasificación de un fallo; el mensaje de Spotify nunca viaja con ella. */
+/**
+ * La clasificación de un fallo; el mensaje de Spotify nunca viaja con ella.
+ *
+ * `forbidden` separa el `403` del resto de errores porque tiene una causa propia y
+ * accionable: en una app en modo de desarrollo, Spotify lo devuelve cuando la cuenta
+ * no está añadida en el panel o cuando la app no tiene acceso a ese recurso. Sin esta
+ * clase, un `403` y un `500` se registraban igual y no había forma de distinguirlos.
+ */
 export type HttpFailure =
   | "unauthorized"
+  | "forbidden"
   | "notFound"
   | "rateLimited"
   | "timeout"
@@ -68,6 +76,9 @@ export interface RequestOptions {
 function classify(status: number): HttpFailure {
   if (status === 401) {
     return "unauthorized";
+  }
+  if (status === 403) {
+    return "forbidden";
   }
   if (status === 404) {
     return "notFound";

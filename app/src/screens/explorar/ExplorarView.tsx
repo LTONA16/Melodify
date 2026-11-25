@@ -4,10 +4,10 @@
  * C5, a C7 ni a la cáscara.
  *
  * Por qué la lista es un `FlatList` y no un `ScrollView`: los resultados pueden ser
- * sesenta filas —veinte canciones, veinte álbumes y veinte artistas— y la lista solo
- * debe pintar lo que cabe, conservando la posición al volver del detalle. Las
- * sugerencias usan la misma lista, así que el paso de «sin sesión» a «resultados» no
- * cambia de contenedor ni pierde el sitio.
+ * hasta treinta filas —diez canciones, diez álbumes y diez artistas, el tope que
+ * Spotify acepta por tipo— y la lista solo debe pintar lo que cabe, conservando la
+ * posición al volver del detalle. Las sugerencias usan la misma lista, así que el
+ * paso de «sin sesión» a «resultados» no cambia de contenedor ni pierde el sitio.
  *
  * La capa de token caído (BR18.6) no sustituye la búsqueda: se pinta encima y deja
  * vivas la consulta y la lista. El campo sigue editable pero el contenedor no pide
@@ -48,6 +48,14 @@ export const EXPLORAR_NOT_CONFIGURED_BODY =
 /** El aviso de red de Explorar cuando ya hay sesión (BR17.10). */
 export const EXPLORAR_OFFLINE_MESSAGE =
   "Sin conexión. No podemos buscar en Spotify ahora mismo.";
+
+/**
+ * El aviso de cuota (BR17.6): Spotify limita temporalmente las peticiones y la
+ * sesión sigue siendo válida. Decirlo así evita que la persona desconecte y vuelva
+ * a conectar —lo único que sí arregla un token caído— cuando solo hay que esperar.
+ */
+export const EXPLORAR_RATE_LIMITED_MESSAGE =
+  "Spotify está limitando las búsquedas por ahora. Espera un momento y vuelve a intentarlo.";
 
 /** El aviso de token caído con resultados (BR18.6). */
 export const EXPLORAR_TOKEN_MESSAGE =
@@ -224,6 +232,16 @@ export function ExplorarView({
       return (
         <ErrorState
           message="No pudimos buscar en Spotify."
+          retryLabel="Reintentar"
+          onRetry={onSearchRetry}
+        />
+      );
+    }
+
+    if (searchStatus === "rateLimited") {
+      return (
+        <ErrorState
+          message={EXPLORAR_RATE_LIMITED_MESSAGE}
           retryLabel="Reintentar"
           onRetry={onSearchRetry}
         />

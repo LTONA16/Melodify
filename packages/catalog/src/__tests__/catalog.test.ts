@@ -27,7 +27,7 @@ import type {
 import { SAMPLE_WORKS } from "../sample";
 
 const NOW = "2026-11-12T09:00:00.000Z";
-const BOHEMIAN = "4u7EnebtmKWzUH433Rbtpz";
+const BOHEMIAN = "7tFiyTwD0nx5a1eklYtX2J";
 const AS_IT_WAS = "4LRPiXqCikLlN15c3yImP7";
 const BOHEMIAN_COVER = "https://i.scdn.co/image/bohemian.jpg";
 
@@ -458,15 +458,48 @@ describe("searchWorks", () => {
     expect(second.works[0]?.title).toBe("Canción cacheada");
   });
 
-  it("traduce el fallo `network` a `offline` y el resto de fallos a `error`", async () => {
+  it("traduce `network` a `offline`, conserva `rateLimited` y el resto a `error`", async () => {
     const network = searchPortWith({ kind: "failure", failure: "network" });
     const offline = await newCatalog({ search: network.port }).searchWorks("bad guy");
+
+    const quota = searchPortWith({ kind: "failure", failure: "rateLimited" });
+    const limited = await newCatalog({ search: quota.port }).searchWorks("bad guy");
 
     const timeout = searchPortWith({ kind: "failure", failure: "timeout" });
     const failed = await newCatalog({ search: timeout.port }).searchWorks("bad guy");
 
+    const forbidden = searchPortWith({ kind: "failure", failure: "forbidden" });
+    const denied = await newCatalog({ search: forbidden.port }).searchWorks("bad guy");
+
     expect(offline).toEqual({ status: "offline", works: [], artists: [] });
+    expect(limited).toEqual({ status: "rateLimited", works: [], artists: [] });
     expect(failed).toEqual({ status: "error", works: [], artists: [] });
+    expect(denied).toEqual({ status: "error", works: [], artists: [] });
+  });
+
+  it("no cachea la cuota: la siguiente consulta vuelve a llamar al puerto", async () => {
+    let result: SearchPortResult = { kind: "failure", failure: "rateLimited" };
+    const calls: string[] = [];
+    const catalog = newCatalog({
+      search: {
+        async search(query) {
+          calls.push(query);
+          return result;
+        },
+      },
+    });
+
+    expect(await catalog.searchWorks("bad guy")).toEqual({
+      status: "rateLimited",
+      works: [],
+      artists: [],
+    });
+
+    result = { kind: "ok", works: [spotifyWork("spotify-tras-cuota")] };
+    const retried = await catalog.searchWorks("bad guy");
+
+    expect(retried.status).toBe("ok");
+    expect(calls).toHaveLength(2);
   });
 
   it("no cachea un fallo: la siguiente consulta vuelve a llamar al puerto", async () => {

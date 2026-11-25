@@ -42,7 +42,7 @@ describe("createContentStore", () => {
     const store = createContentStore({ now: NOW, seed: {} });
 
     expect(feedOf(store)).toEqual([]);
-    expect(store.countOpinions("4u7EnebtmKWzUH433Rbtpz")).toBe(0);
+    expect(store.countOpinions("7tFiyTwD0nx5a1eklYtX2J")).toBe(0);
   });
 
   it("acepta una siembra mínima de una sola opinión", () => {

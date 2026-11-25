@@ -16,9 +16,14 @@
  *   el texto: `setQuery` y `clear` invalidan en el acto, antes de que el efecto vuelva
  *   a correr, para que una promesa que resuelve en ese hueco tampoco se pinte.
  * - **`offline` y `error` no son lo mismo** (BR17.7, BR17.10): un fallo de red es un
- *   estado previsto y no se registra; un `error` —o una consulta que lanza— es un
- *   defecto interno y se registra con `SEARCH_PORT_UNAVAILABLE` (NFR9.6). El mensaje
- *   del registro es literal: nunca lleva la consulta ni el texto de nadie (NFR4.6).
+ *   estado previsto y no se registra; un `error` es un fallo que el puerto devolvió y
+ *   cuya causa ya registró C7 con `SPOTIFY_SEARCH_FAILED` y su código HTTP. La app
+ *   solo escribe `SEARCH_PORT_UNAVAILABLE` cuando la llamada al puerto lanza, que es
+ *   el único defecto interno que puede ver (NFR9.6); el mensaje es literal y nunca
+ *   lleva la consulta ni el texto de nadie (NFR4.6).
+ * - **`rateLimited` tiene su propio estado**: un `429` de Spotify es temporal y se
+ *   resuelve esperando. Pintarlo como `error` invitaba a reconectar cuando la sesión
+ *   estaba perfectamente viva, y registraba un defecto del puerto que no existía.
  * - **Con `enabled` falso no se monta nada**: ni temporizador ni llamada, y el estado
  *   vuelve a `idle`. Es la rama «sin Spotify» de BR13.5, que ni siquiera pinta el
  *   buscador.
@@ -41,7 +46,8 @@ export type WorkSearchStatus =
   | "results"
   | "empty"
   | "error"
-  | "offline";
+  | "offline"
+  | "rateLimited";
 
 export interface WorkSearchOptions {
   /**
@@ -228,12 +234,25 @@ export function useWorkSearch(
         return;
       }
 
+      if (result.status === "rateLimited") {
+        // La cuota de Spotify es temporal y se resuelve esperando, no reconectando:
+        // se pinta con su propio mensaje y «Reintentar», sin tocar el token
+        // (BR17.6, BR20.7). Tampoco es un defecto del puerto, así que no se registra.
+        setStatus("rateLimited");
+        setResults([]);
+        setArtists([]);
+        return;
+      }
+
       if (result.status === "error") {
-        // Defecto interno del puerto: se registra; el `offline` previsto no.
-        log.warn(
-          "SEARCH_PORT_UNAVAILABLE",
-          "la búsqueda falló por un defecto interno del puerto",
-        );
+        // Un `error` es un fallo que el puerto devolvió —400, 5xx, timeout— y su
+        // causa ya la registró C7 con `SPOTIFY_SEARCH_FAILED` y el código HTTP. La
+        // app solo registra `SEARCH_PORT_UNAVAILABLE` cuando la llamada al puerto
+        // lanza, que es el único defecto interno que puede ver (NFR9.6).
+        setStatus("error");
+        setResults([]);
+        setArtists([]);
+        return;
       }
 
       setStatus("error");

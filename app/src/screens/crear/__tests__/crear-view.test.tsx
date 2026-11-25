@@ -8,6 +8,7 @@ import {
   CREAR_NOT_CONFIGURED_BODY,
   CREAR_OFFLINE_MESSAGE,
   CREAR_SEARCH_OFFLINE_MESSAGE,
+  CREAR_SEARCH_RATE_LIMITED_MESSAGE,
   type CrearViewProps,
 } from "../CrearView";
 
@@ -299,6 +300,23 @@ describe("CrearView — con Spotify (buscador)", () => {
       CREAR_SEARCH_OFFLINE_MESSAGE,
     );
     fireEvent.press(view.getByTestId("crear-search-offline-retry"));
+    expect(onSearchRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("la cuota de Spotify se anuncia como límite temporal y deja reintentar", () => {
+    const onSearchRetry = jest.fn();
+
+    const view = setup({
+      spotifyStatus: "connected",
+      query: "bad",
+      searchStatus: "rateLimited",
+      onSearchRetry,
+    });
+
+    expect(view.getByTestId("crear-search-rate-limited")).toHaveTextContent(
+      CREAR_SEARCH_RATE_LIMITED_MESSAGE,
+    );
+    fireEvent.press(view.getByTestId("crear-search-rate-limited-retry"));
     expect(onSearchRetry).toHaveBeenCalledTimes(1);
   });
 

@@ -294,7 +294,24 @@ describe("useWorkSearch — los dos fallos que se pintan igual", () => {
     expect(logger.warn).not.toHaveBeenCalled();
   });
 
-  it("`error` de C5 se pinta como error y se registra con el código de U3", async () => {
+  it("`rateLimited` de C5 se pinta con su propio estado y NO se registra", async () => {
+    const { result, logger } = renderSearch({
+      handler: async () => ({ status: "rateLimited", works: [] }),
+    });
+
+    act(() => {
+      result.current.setQuery("ba");
+    });
+    await advance();
+
+    // La sesión sigue viva: es un límite temporal de Spotify, no un defecto del
+    // puerto ni un token que haya que renovar.
+    expect(result.current.status).toBe("rateLimited");
+    expect(result.current.results).toEqual([]);
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it("`error` de C5 se pinta como error y NO se registra: C7 ya registró la causa", async () => {
     const { result, logger } = renderSearch({
       handler: async () => ({ status: "error", works: [] }),
     });
@@ -305,10 +322,9 @@ describe("useWorkSearch — los dos fallos que se pintan igual", () => {
     await advance();
 
     expect(result.current.status).toBe("error");
-    expect(logger.warn).toHaveBeenCalledWith(
-      "SEARCH_PORT_UNAVAILABLE",
-      expect.any(String),
-    );
+    // Un 400/5xx de Spotify no es un defecto del puerto: duplicarlo aquí con
+    // `SEARCH_PORT_UNAVAILABLE` mandaba a buscar el problema al sitio equivocado.
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it("un puerto ausente o que lanza se registra y queda en error", async () => {
