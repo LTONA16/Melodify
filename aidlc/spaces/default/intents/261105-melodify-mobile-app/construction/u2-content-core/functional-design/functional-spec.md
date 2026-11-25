@@ -54,7 +54,7 @@ El almacén se construye al arrancar y siembra el contenido de BR4.2. Las edades
 
 | `workId` | Título | Artista |
 |---|---|---|
-| `4u7EnebtmKWzUH433Rbtpz` | Bohemian Rhapsody | Queen |
+| `7tFiyTwD0nx5a1eklYtX2J` | Bohemian Rhapsody | Queen |
 | `0VjIjW4GlUZAMYd2vXMi3b` | Blinding Lights | The Weeknd |
 | `2Fxmhks0bxGSBdJ92vM42m` | bad guy | Billie Eilish |
 | `7qiZfU4dY1lWllzX7mPBI3` | Shape of You | Ed Sheeran |
@@ -64,6 +64,8 @@ El almacén se construye al arrancar y siembra el contenido de BR4.2. Las edades
 | `0yLdNVWF3Srea0uzk55zFn` | Flowers | Miley Cyrus |
 
 La obra 7 (`As It Was`) **no tiene opiniones**: es la variante de obra vacía (BR8.5) con datos reales. `coverUrl` de la siembra es `null` en las ocho: en U2 no hay sesión de Spotify, así que todas las portadas son bloque con la inicial (BR5.3).
+
+**Enmienda del 2026-11-24 — el identificador de «Bohemian Rhapsody»**: la tabla decía `4u7EnebtmKWzUH433Rbtpz`, que Spotify devuelve como `404` tanto en `/tracks/{id}` como en `/albums/{id}`. Con ese valor la portada de la obra no podía resolverse nunca y cada lectura gastaba dos peticiones fallidas. El identificador real de la canción es `7tFiyTwD0nx5a1eklYtX2J` (*Bohemian Rhapsody – Remastered 2011*), ya corregido en `packages/catalog/src/sample.ts` y en las opiniones sembradas de `packages/content-store/src/seed.ts`. La obra, sus opiniones y el catálogo de ejemplo siguen apuntando al mismo `workId`.
 
 ### Opiniones (10)
 

@@ -43,15 +43,17 @@ NFR8 sigue diciendo: «no se fijan objetivos numéricos en esta versión; el cri
 - **Una portada se pide una vez por obra**: `coverFor(workId)` memoiza el resultado y **comparte la promesa en vuelo** de la misma obra, de modo que dos tarjetas que pidan la misma obra a la vez no producen dos peticiones. Una obra buscada ya trae `coverUrl` y no necesita resolución; las obras del catálogo de ejemplo se siembran con `coverUrl: null` y esa es la única petición de portada que existe (BR18.1, `contract-summary.md` § Assumptions).
 - **Sin sesión o sin red no sale ninguna petición.** C5 responde `offline` a `searchWorks` e `initialBlock` a `coverFor` sin tocar la red (BR19.5), y Explorar no monta siquiera el campo de búsqueda sin sesión (BR19.1).
 - **No hay sondeo ni refresco en segundo plano**: nada repite una petición por temporizador. La única repetición es la que pide la persona con «Reintentar» o con una consulta nueva.
-- **La búsqueda pide 20 resultados por clase y no pagina** (`contract-summary.md` § C10, OQ2 cerrada): una pantalla de 60 filas como máximo, sin scroll infinito y sin una segunda petición al llegar al final.
+- **La búsqueda pide 10 resultados por clase y no pagina** (`contract-summary.md` § C10, OQ2 cerrada): una pantalla de 30 filas como máximo —diez canciones, diez álbumes y diez artistas—, sin scroll infinito y sin una segunda petición al llegar al final.
+
+**Enmienda del 2026-11-24 — el tope baja a 10 por clase.** Spotify acotó `limit` de `/search` a 0–10 por tipo; el `20` que fijó esta etapa devolvía `400` y la búsqueda no llegaba a ejecutarse. El tope queda en **10 por clase** y el presupuesto en **30 filas**, con la misma petición única por consulta y sin paginación. Es un ajuste al rango del proveedor, no una rebaja del objetivo de rendimiento.
 
 **Cómo se verifica**: prueba de `Catalog` que busca dos veces la misma consulta y comprueba una sola llamada al puerto; prueba de `coverFor` que pide la misma obra dos veces en el mismo tick y comprueba una sola llamada a `resolve`; prueba con puertos reales y sin sesión que comprueba cero llamadas a `fetch`; prueba de `useWorkSearch` que comprueba que no existe ningún temporizador de refresco tras resolver.
 
 ### NFR8.15 — El resto del recorrido sigue sin número
 
-Escribir una consulta, desplazar 60 resultados, abrir el detalle de una obra, publicar sobre ella, desconectar y ver las portadas caer a bloque se juzgan con NFR8 tal como está aprobado: **no se percibe una congelación** al recorrerlo en el teléfono. No se fija mediana, ni percentil, ni umbral en milisegundos, y ninguna prueba automática falla por tiempo.
+Escribir una consulta, desplazar 30 resultados, abrir el detalle de una obra, publicar sobre ella, desconectar y ver las portadas caer a bloque se juzgan con NFR8 tal como está aprobado: **no se percibe una congelación** al recorrerlo en el teléfono. No se fija mediana, ni percentil, ni umbral en milisegundos, y ninguna prueba automática falla por tiempo.
 
-Los únicos números de esta unidad son los que ya estaban aprobados o los que el contrato fija, y ninguno se negocia aquí: **400 ms** de espera tras la última pulsación, **2 caracteres** de umbral, **10 s** de tiempo límite, **60 s** de margen de renovación, **20** resultados por clase, **5** esqueletos, **2 s** de arranque en frío y **4 s** de snackbar.
+Los únicos números de esta unidad son los que ya estaban aprobados o los que el contrato fija, y ninguno se negocia aquí: **400 ms** de espera tras la última pulsación, **2 caracteres** de umbral, **10 s** de tiempo límite, **60 s** de margen de renovación, **10** resultados por clase, **5** esqueletos, **2 s** de arranque en frío y **4 s** de snackbar.
 
 ## NFR2 — Usabilidad
 
@@ -159,7 +161,7 @@ U4 introduce cuatro fronteras asíncronas que antes no existían —almacén seg
 | Resolución de portada | Sin número; **una** petición por obra y ninguna con `coverUrl`, sin sesión o sin red | Prueba de `coverFor` con dos lecturas en el mismo tick. |
 | Arranque en frío | Se mantiene el **≤ 2 s** de NFR8.1; la lectura del token no lo bloquea | Cronómetro, si se vuelve a medir al cerrar la unidad. |
 | Renovación del token | **60 s** antes de caducar, una sola a la vez, invisible | Prueba con reloj falso y con dos llamadas concurrentes. |
-| Buscar, desplazar 60 filas, abrir el detalle, conectar y desconectar | Sin número; sin congelación perceptible | Recorrido en el teléfono. |
+| Buscar, desplazar 30 filas, abrir el detalle, conectar y desconectar | Sin número; sin congelación perceptible | Recorrido en el teléfono. |
 
 ## Assumptions & Open Questions
 

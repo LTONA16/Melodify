@@ -124,17 +124,19 @@ Mientras `connecting`, el botón de la tarjeta y el chip quedan deshabilitados c
 | Obra que ya trae `coverUrl`: ninguna petición | C5 devuelve `url` sin tocar `SpotifyResolvePort` (BR18.1) | Resolver lo que ya se sabe |
 | Sin sesión o sin red: ninguna petición | C5 responde `offline`/`initialBlock` sin llamar al puerto (BR19.5); y `catalog` no llama a `fetch` si `getAccessToken()` devuelve `null` | Una petición con un token que no existe |
 | Sin sondeo ni refresco en segundo plano | No hay ningún temporizador que repita una petición: ni en el paquete, ni en el hook, ni en la pantalla | Peticiones que la persona no puede explicar |
-| Sin paginación | `limit=20` por clase y ninguna segunda petición al llegar al final (C10, OQ2) | Scroll infinito y presupuesto sin techo |
+| Sin paginación | `limit=10` por clase y ninguna segunda petición al llegar al final (C10, OQ2) | Scroll infinito y presupuesto sin techo |
 
 **La segunda fila es la que se prueba de verdad.** La memoización sola no basta: dos tarjetas montadas en el mismo tick piden `coverFor` antes de que la primera respuesta llegue, así que lo que evita la segunda petición es **compartir la promesa en vuelo**, no leer el resultado ya resuelto. La prueba pide la misma obra dos veces sin resolver la primera y comprueba una sola llamada a `resolve`.
 
 **La cuarta fila es defensa en profundidad, no la primera puerta.** Quien decide no llamar es C5; `catalog` añade la comprobación porque una llamada a `fetch` sin token gastaría cuota y devolvería `401`, y porque así la regla se puede afirmar con puertos reales y sin red.
 
+**Enmienda del 2026-11-24 — el presupuesto baja a 30 filas.** Spotify acotó `limit` de `/search` a 0–10 por tipo; el `20` de este diseño devolvía `400` y la búsqueda no llegaba a ejecutarse. El presupuesto de la tabla y de NFR8.15 queda en **10 por clase** —hasta treinta filas: diez canciones, diez álbumes y diez artistas—, sin paginación y con la misma petición única por consulta. La lista sigue siendo `FlatList`; solo cambia cuántas filas puede llegar a haber.
+
 ## NFR8.15, NFR8.11 y NFR8.1 — Lo que sigue sin número
 
-- **Escribir una consulta, desplazar 60 resultados, abrir el detalle, publicar, desconectar y ver las portadas caer a bloque** se juzgan con NFR8 tal como está aprobado: no se percibe una congelación al recorrerlo en el teléfono. No se fija mediana, ni percentil, ni umbral en milisegundos, y ninguna prueba automática falla por tiempo (NFR8.15).
-- **Los únicos números de la unidad son los ya aprobados o los del contrato**, y ninguno se negocia aquí: 400 ms de espera tras la última pulsación, 2 caracteres de umbral, 10 s de tiempo límite, 60 s de margen de renovación, 20 resultados por clase, 5 esqueletos, 2 s de arranque en frío y 4 s de snackbar.
-- **La lista de resultados usa `FlatList`** (TS-22, heredado de U2): 60 filas no se montan de golpe. El desplazamiento conserva su posición al volver del detalle porque la lista no se desmonta: el detalle se apila encima (BR20.1).
+- **Escribir una consulta, desplazar 30 resultados, abrir el detalle, publicar, desconectar y ver las portadas caer a bloque** se juzgan con NFR8 tal como está aprobado: no se percibe una congelación al recorrerlo en el teléfono. No se fija mediana, ni percentil, ni umbral en milisegundos, y ninguna prueba automática falla por tiempo (NFR8.15).
+- **Los únicos números de la unidad son los ya aprobados o los del contrato**, y ninguno se negocia aquí: 400 ms de espera tras la última pulsación, 2 caracteres de umbral, 10 s de tiempo límite, 60 s de margen de renovación, 10 resultados por clase, 5 esqueletos, 2 s de arranque en frío y 4 s de snackbar.
+- **La lista de resultados usa `FlatList`** (TS-22, heredado de U2): 30 filas no se montan de golpe. El desplazamiento conserva su posición al volver del detalle porque la lista no se desmonta: el detalle se apila encima (BR20.1).
 - **El arranque en frío se mantiene en ≤ 2 s (NFR8.1)**: U4 añade la lectura del almacén seguro, que es la misma que C3 ya hacía, y ninguna lectura bloqueante nueva. Si la lectura del almacén tardara de forma perceptible en el teléfono, se documenta y **se mantiene asíncrona**: nunca se convierte en bloqueante para cumplir el arranque.
 
 ## NFR2.10 — Las acciones de esta unidad, en dos toques o menos
