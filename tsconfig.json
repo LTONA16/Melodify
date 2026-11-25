@@ -9,6 +9,8 @@
     { "path": "./packages/catalog" },
     { "path": "./packages/app-shell" },
     { "path": "./packages/spotify" },
-    { "path": "./app" }
+    { "path": "./packages/contracts" },
+    { "path": "./app" },
+    { "path": "./apps/api" }
   ]
 }

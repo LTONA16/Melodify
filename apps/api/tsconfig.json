@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // El servicio corre en Node, no pasa por Metro ni por Babel: se compila a
+    // CommonJS y resuelve como Node 16 o posterior, que es lo que entiende el
+    // `exports` de los paquetes (contratos incluidos).
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "rootDir": ".",
+    "outDir": "./dist",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": ["src/**/*", "test/**/*", "vitest.config.ts"],
+  "references": [{ "path": "../../packages/contracts" }]
+}

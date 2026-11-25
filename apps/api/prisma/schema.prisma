@@ -1,0 +1,146 @@
+// Modelo de datos del API de Melodify (intento 261125-melodify-api-backend).
+//
+// Reglas que el esquema hace cumplir y no se pueden dejar al código:
+// - Una persona opina **una vez por obra**: `@@unique([authorId, workId])`.
+// - Un «me gusta» no se duplica: la clave primaria es el par (opinión, persona).
+// - Nadie se sigue a sí mismo: la restricción CHECK vive en la migración
+//   inicial (`follows_no_self`), porque Prisma no modela CHECK.
+// - La valoración es un entero de 1 a 5: CHECK `opinions_rating_range`, también
+//   en la migración.
+//
+// Lo que NO hay aquí, y es deliberado:
+// - Tabla de actividad: se deriva de opiniones, likes y comentarios.
+// - `email` ni recuperación de contraseña: minimización de datos en esta versión.
+// - `deletedAt`: en esta versión no se borra contenido.
+// - Nada de Spotify: ni tokens, ni portadas, ni scopes. La app sigue siendo
+//   dueña de su PKCE y el servidor no ve un token de Spotify jamás.
+//
+// El `handle` se guarda en minúsculas y el servicio lo normaliza antes de
+// escribir: así `Demo` y `demo` no pueden coexistir sin depender de una
+// extensión (citext) que complicaría las migraciones.
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id           String   @id
+    handle       String   @unique @db.VarChar(24)
+    displayName  String   @db.VarChar(40)
+    passwordHash String
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    opinions      Opinion[]
+    comments      Comment[]
+    likes         Like[]
+    following     Follow[]       @relation("Follower")
+    followers     Follow[]       @relation("Followee")
+    refreshTokens RefreshToken[]
+
+    @@map("users")
+}
+
+// Metadatos de la obra tal como los envía el cliente al publicar la primera
+// opinión. Es una caché de presentación, no una fuente de verdad: el catálogo
+// real sigue siendo Spotify y lo consulta la app. Una discrepancia posterior no
+// reescribe la fila; se ignora y se registra.
+model Work {
+    workId    String   @id @db.VarChar(128)
+    title     String   @db.VarChar(300)
+    artist    String   @db.VarChar(200)
+    createdAt DateTime @default(now())
+
+    opinions Opinion[]
+
+    @@map("works")
+}
+
+model Opinion {
+    id        String   @id
+    authorId  String
+    workId    String
+    text      String   @db.VarChar(500)
+    rating    Int      @db.SmallInt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    author   User      @relation(fields: [authorId], references: [id], onDelete: Restrict)
+    work     Work      @relation(fields: [workId], references: [workId], onDelete: Restrict)
+    likes    Like[]
+    comments Comment[]
+
+    // Los tres índices son los tres recorridos reales: las opiniones de una
+    // obra, las de un autor y el feed global. Todos desempatan por `id` para
+    // que el cursor por keyset no repita ni salte filas.
+    @@unique([authorId, workId])
+    @@index([workId, createdAt(sort: Desc), id(sort: Desc)])
+    @@index([authorId, createdAt(sort: Desc), id(sort: Desc)])
+    @@index([createdAt(sort: Desc), id(sort: Desc)])
+    @@map("opinions")
+}
+
+model Like {
+    opinionId String
+    userId    String
+    createdAt DateTime @default(now())
+
+    opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // La clave compuesta hace el «me gusta» idempotente por construcción: dos
+    // peticiones seguidas no pueden dejar dos filas.
+    @@id([opinionId, userId])
+    @@map("likes")
+}
+
+model Comment {
+    id        String   @id
+    opinionId String
+    authorId  String
+    text      String   @db.VarChar(300)
+    createdAt DateTime @default(now())
+
+    opinion Opinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+    author  User    @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+    @@index([opinionId, createdAt, id])
+    @@map("comments")
+}
+
+model Follow {
+    followerId String
+    followeeId String
+    createdAt  DateTime @default(now())
+
+    follower User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+    followee User @relation("Followee", fields: [followeeId], references: [id], onDelete: Cascade)
+
+    @@id([followerId, followeeId])
+    @@index([followeeId])
+    @@map("follows")
+}
+
+// El refresh token se guarda **hasheado**: quien lea la base de datos no puede
+// usarlo. `familyId` agrupa la cadena de rotaciones para poder revocarla entera
+// en cuanto se detecta que alguien reutilizó un token ya rotado.
+model RefreshToken {
+    id        String    @id
+    userId    String
+    tokenHash String    @unique @db.VarChar(64)
+    familyId  String    @db.VarChar(64)
+    expiresAt DateTime
+    revokedAt DateTime?
+    createdAt DateTime  @default(now())
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([familyId])
+    @@index([userId])
+    @@map("refresh_tokens")
+}

@@ -1,0 +1,32 @@
+# Postgres del API (solo desarrollo y pruebas).
+#
+# Por qué el puerto 55432: 5432 y 5433 suelen estar ocupados por Postgres
+# instalados en la máquina (en este equipo hay servicios locales de Postgres 17
+# y 18 en ambos). Un puerto alto y poco común evita que el contenedor del
+# proyecto compita con ellos o con otro contenedor. Si 55432 también estuviera
+# ocupado, cambia el mapeo y ajusta DATABASE_URL y TEST_DATABASE_URL en `.env`.
+#
+# Comprueba cuál manda antes de depurar: `docker compose ps` y
+# `Get-NetTCPConnection -LocalPort 55432`.
+services:
+    postgres:
+        image: postgres:16-alpine
+        container_name: melodify-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: melodify
+            POSTGRES_PASSWORD: melodify
+            POSTGRES_DB: melodify
+        ports:
+            - "55432:5432"
+        volumes:
+            - melodify-pgdata:/var/lib/postgresql/data
+            - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/10-test-db.sql:ro
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U melodify -d melodify"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+volumes:
+    melodify-pgdata:

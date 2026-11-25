@@ -28,6 +28,7 @@ module.exports = {
     "^@melodify/spotify$": "<rootDir>/packages/spotify/src",
     "^@melodify/spotify/auth$": "<rootDir>/packages/spotify/src/auth",
     "^@melodify/spotify/catalog$": "<rootDir>/packages/spotify/src/catalog",
+    "^@melodify/contracts$": "<rootDir>/packages/contracts/src",
   },
   testMatch: [
     "<rootDir>/app/src/**/*.test.{ts,tsx}",
@@ -41,6 +42,9 @@ module.exports = {
     "!**/*.test.{ts,tsx}",
     "!**/jest.setup.*",
     "!app/index.ts",
+    // Los contratos compartidos se prueban con Vitest junto al API: aquí solo
+    // viajan sus tipos, que no ejecutan nada (y ensuciarían el informe con 0 %).
+    "!packages/contracts/**",
   ],
   // Las pruebas de pantalla montan el árbol completo con `findBy*`, y con la
   // instrumentación de cobertura el arranque de la app pasa de los 5 s por defecto.

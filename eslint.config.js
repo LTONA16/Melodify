@@ -49,6 +49,13 @@ const EXPO_NETWORK_RESTRICTION = {
     "Solo el adaptador de @melodify/connectivity lee la red del sistema (NFR4.5).",
 };
 
+const SERVER_TO_APP_MESSAGE =
+  "El servidor no depende del móvil: el API solo importa @melodify/contracts (frontera apps/api ↔ app; C1–C3).";
+
+const CONTRACTS_IS_TYPES_MESSAGE =
+  "Los contratos compartidos no pintan ni importan paquetes de la app: son tipos y esquemas (frontera de packages/contracts).";
+
+
 module.exports = [
   ...expoConfig,
   {
@@ -255,6 +262,76 @@ module.exports = [
         "error",
         {
           ...CACHE_FIRST_RESTRICTIONS,
+        },
+      ],
+    },
+  },
+  {
+    // El servicio corre en Node, no en React Native: sus globals son otros y no
+    // necesita ninguno de los módulos nativos de la app. La frontera importa en
+    // los dos sentidos: el servidor no puede importar paquetes del móvil.
+    files: ["apps/api/**/*.ts"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        __dirname: "readonly",
+        Buffer: "readonly",
+        console: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        URL: "readonly",
+      },
+    },
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            { name: "@melodify/app", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/app-shell", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/app-session", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/activity", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/catalog", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/connectivity", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/content-store", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/design-system", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/spotify", message: SERVER_TO_APP_MESSAGE },
+            { name: "@melodify/data-access", message: SERVER_TO_APP_MESSAGE },
+          ],
+          patterns: [
+            {
+              group: ["**/app/**"],
+              message: SERVER_TO_APP_MESSAGE,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Los contratos son la única pieza compartida entre el móvil y el servidor:
+    // no pueden arrastrar React, React Native, Expo ni ningún paquete de la app.
+    files: ["packages/contracts/src/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            { name: "react", message: CONTRACTS_IS_TYPES_MESSAGE, allowTypeImports: false },
+            {
+              name: "react-native",
+              message: CONTRACTS_IS_TYPES_MESSAGE,
+              allowTypeImports: false,
+            },
+            { name: "expo", message: CONTRACTS_IS_TYPES_MESSAGE, allowTypeImports: false },
+          ],
+          patterns: [
+            {
+              group: ["@melodify/*"],
+              message: CONTRACTS_IS_TYPES_MESSAGE,
+              allowTypeImports: false,
+            },
+          ],
         },
       ],
     },
