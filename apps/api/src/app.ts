@@ -11,7 +11,10 @@ import {
 
 import type { Env } from "./config/env";
 import { loggerOptions } from "./lib/logger";
+import { authRoutes } from "./modules/auth/routes";
 import { healthRoutes } from "./modules/health/routes";
+import { meRoutes } from "./modules/me/routes";
+import { registerAuth } from "./plugins/auth";
 import { registerErrorHandling } from "./plugins/errors";
 import { registerOpenApi } from "./plugins/openapi";
 import { registerPrisma } from "./plugins/prisma";
@@ -54,6 +57,7 @@ export function buildApp(options: BuildAppOptions) {
 
   registerErrorHandling(app);
   registerPrisma(app, { client: options.prisma });
+  registerAuth(app, env);
 
   if (docs) {
     registerOpenApi(app, API_VERSION);
@@ -72,6 +76,8 @@ export function buildApp(options: BuildAppOptions) {
   });
 
   app.register(healthRoutes, { prefix: "/api/v1" });
+  app.register(authRoutes, { prefix: "/api/v1" });
+  app.register(meRoutes, { prefix: "/api/v1" });
 
   return app;
 }

@@ -51,3 +51,54 @@ export const paginationQuerySchema = z.object({
 
 export type PaginationQueryInput = z.input<typeof paginationQuerySchema>;
 export type PaginationQueryOutput = z.output<typeof paginationQuerySchema>;
+
+/**
+ * El `handle` es la identidad pública y la clave con la que se entra. Se admite
+ * en mayúsculas al escribirlo, pero el servicio lo normaliza a minúsculas antes
+ * de guardarlo o buscarlo: `Demo` y `demo` son la misma cuenta.
+ */
+export const handleSchema = z
+  .string()
+  .min(3, "debe tener al menos 3 caracteres")
+  .max(24, "no puede tener más de 24 caracteres")
+  .regex(/^[A-Za-z0-9_]+$/, "solo admite letras, números y guion bajo");
+
+export const displayNameSchema = z
+  .string()
+  .min(1, "es obligatorio")
+  .max(40, "no puede tener más de 40 caracteres");
+
+/** Argon2id no tiene el límite de 72 de bcrypt, pero 128 evita abusos. */
+export const passwordSchema = z
+  .string()
+  .min(8, "debe tener al menos 8 caracteres")
+  .max(128, "no puede tener más de 128 caracteres");
+
+export const registerBodySchema = z.object({
+  handle: handleSchema,
+  displayName: displayNameSchema,
+  password: passwordSchema,
+});
+
+export const loginBodySchema = z.object({
+  handle: handleSchema,
+  password: z.string().min(1, "es obligatoria").max(128),
+});
+
+export const refreshBodySchema = z.object({
+  refreshToken: z.string().min(20, "no es un refresh token válido").max(512),
+});
+
+export const userViewSchema = z.object({
+  userId: z.string().min(1),
+  handle: z.string().min(1),
+  displayName: z.string().min(1),
+  createdAt: isoTimestampSchema,
+});
+
+export const sessionViewSchema = z.object({
+  user: userViewSchema,
+  accessToken: z.string().min(1),
+  refreshToken: z.string().min(1),
+  expiresIn: z.number().int().positive(),
+});

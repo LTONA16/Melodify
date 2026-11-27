@@ -14,8 +14,12 @@ La base del servicio está terminada: arranque, configuración validada,
 manejadores de error, sonda de salud, documentación OpenAPI, esquema de datos
 con sus migraciones y la suite de pruebas contra Postgres real.
 
-Lo siguiente es la autenticación y las sesiones (registro, inicio de sesión,
-JWT de acceso corto y refresh rotatorio) y, después, los recursos sociales.
+La **autenticación y las sesiones** también están hechas: registro, inicio de
+sesión, `GET /me`, refresh rotatorio y cierre de sesión, con Argon2id para las
+contraseñas y JWT de acceso corto.
+
+Lo siguiente son los recursos sociales: perfiles, opiniones, me gusta,
+comentarios, seguimientos, feed y actividad.
 
 ## Requisitos
 
@@ -110,19 +114,47 @@ Desde la raíz, con el filtro del workspace:
 | `npm run -w @melodify/api db:deploy`     | Aplica las migraciones existentes                     |
 
 Las compuertas del repositorio se lanzan desde la raíz: `npm test` (la suite de
-la app móvil), `npm run typecheck` y `npm run lint`. Las tres tienen que estar en
-verde antes de un pull request.
+la app móvil), `npm run -w @melodify/api test` (la del API), `npm run typecheck`
+y `npm run lint`. Todas tienen que estar en verde antes de un pull request.
 
 ## Endpoints
 
-| Método | Ruta                 | Qué devuelve                                                    |
-| ------ | -------------------- | --------------------------------------------------------------- |
-| `GET`  | `/api/v1/health`     | `200` con `{ status, version, database }`, o `503` si la base no responde |
-| `GET`  | `/api/v1/docs`       | Swagger UI (fuera de producción)                                |
-| `GET`  | `/api/v1/docs/json`  | La especificación OpenAPI 3.0.3                                 |
+| Método | Ruta                     | Qué devuelve                                                    |
+| ------ | ------------------------ | --------------------------------------------------------------- |
+| `GET`  | `/api/v1/health`         | `200` con `{ status, version, database }`, o `503` si la base no responde |
+| `POST` | `/api/v1/auth/register`  | `201` con la cuenta y la sesión (`accessToken`, `refreshToken`, `expiresIn`) |
+| `POST` | `/api/v1/auth/login`     | `200` con la sesión                                             |
+| `POST` | `/api/v1/auth/refresh`   | `200` con un par nuevo; rota el refresh token                   |
+| `POST` | `/api/v1/auth/logout`    | `204`; revoca la cadena de refresh de esa sesión                |
+| `GET`  | `/api/v1/me`             | `200` con la cuenta dueña del access token                      |
+| `GET`  | `/api/v1/docs`           | Swagger UI (fuera de producción)                                |
+| `GET`  | `/api/v1/docs/json`      | La especificación OpenAPI 3.0.3                                 |
 
 Los esquemas de petición y respuesta son los mismos Zod que validan en tiempo de
 ejecución: la documentación no se escribe dos veces.
+
+## Autenticación y sesiones
+
+- **Contraseñas con Argon2id** (`@node-rs/argon2`, 19 MiB y dos pasadas). El
+  hash incluye su sal; la contraseña nunca se guarda ni se registra en claro.
+- **Access token**: JWT firmado con `JWT_ACCESS_SECRET`, con la vida de
+  `ACCESS_TOKEN_TTL`. Solo lleva `sub` (el id de la cuenta) y `handle`. Viaja en
+  `Authorization: Bearer <token>`.
+- **Refresh token**: 32 bytes aleatorios en base64url. En la base solo se guarda
+  su SHA-256 (`refresh_tokens.tokenHash`). **Rota en cada uso**: el token
+  presentado se revoca y se emite uno nuevo de la misma familia.
+- **Detección de reutilización**: si llega un refresh token ya revocado, se
+  revoca la familia entera y se responde `401 refresh_reused`. Es la respuesta
+  correcta tanto si alguien copió el token como si dos clientes comparten la
+  misma cadena.
+- **Cierre de sesión**: revoca la familia del refresh token. Es idempotente.
+- **Límite de peticiones**: registrar e iniciar sesión comparten un límite más
+  estricto (20 por minuto y por IP) que el resto de rutas de sesión (60).
+- **Handles**: se admiten mayúsculas al escribirlos, pero se normalizan a
+  minúsculas antes de guardar o buscar. `Demo` y `demo` son la misma cuenta.
+- **Errores**: `handle_taken` (409), `invalid_credentials` (401),
+  `token_expired` (401), `refresh_reused` (401) y `rate_limited` (429), siempre
+  con el mismo sobre `{ error: { code, message } }` y un mensaje en español.
 
 ## Modelo de datos
 
@@ -171,9 +203,11 @@ apps/api/
 │   ├── app.ts                 # composición del servidor, sin abrir puerto
 │   ├── server.ts              # arranque: carga el entorno y hace listen
 │   ├── config/env.ts          # validación de la configuración
-│   ├── lib/                   # errores y logger
-│   ├── modules/               # una carpeta por recurso (hoy: health)
-│   ├── plugins/               # errores, OpenAPI y Prisma
+│   ├── lib/                   # errores, logger, contraseñas y tokens
+│   ├── modules/               # una carpeta por recurso (health, auth, me)
+│   │   ├── auth/              # registro, login, refresh, logout
+│   │   └── me/                # GET /me
+│   ├── plugins/               # errores, OpenAPI, Prisma y auth (JWT)
 │   └── version.ts             # versión leída de package.json
 ├── test/                      # pruebas y helpers (base de pruebas, app de prueba)
 ├── docker/init-test-db.sql    # crea melodify_test al inicializar el volumen

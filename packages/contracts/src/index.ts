@@ -8,6 +8,7 @@
  * - **Los esquemas viven aparte** (`@melodify/contracts/schemas`), para que la
  *   app pueda importar los tipos sin arrastrar Zod al bundle del móvil.
  */
+export * from "./auth";
 export * from "./errors";
 export * from "./health";
 export * from "./pagination";
