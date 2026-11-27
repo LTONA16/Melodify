@@ -10,6 +10,6 @@
     "outDir": "./dist",
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
-  "include": ["src/**/*", "test/**/*", "vitest.config.ts"],
+  "include": ["src/**/*", "test/**/*", "vitest.config.mts"],
   "references": [{ "path": "../../packages/contracts" }]
 }

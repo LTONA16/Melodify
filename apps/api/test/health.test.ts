@@ -6,7 +6,7 @@ import { buildTestApp, prismaStub } from "./helpers/build-test-app";
  * La sonda de salud: lo primero que existe del servicio y lo que el despliegue
  * local usa para saber si puede empezar a hablarle.
  */
-const apps: Array<ReturnType<typeof buildTestApp>> = [];
+const apps: ReturnType<typeof buildTestApp>[] = [];
 
 function appWith(prisma = prismaStub()) {
   const app = buildTestApp({ prisma });

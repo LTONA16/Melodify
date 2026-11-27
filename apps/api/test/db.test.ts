@@ -16,12 +16,12 @@ afterAll(async () => {
 
 describe("esquema de la base de datos", () => {
   it("acepta una consulta trivial", async () => {
-    const rows = await prisma.$queryRaw<Array<{ ok: number }>>`SELECT 1 AS ok`;
+    const rows = await prisma.$queryRaw<{ ok: number }[]>`SELECT 1 AS ok`;
     expect(rows[0]?.ok).toBe(1);
   });
 
   it("tiene las siete tablas del modelo", async () => {
-    const rows = await prisma.$queryRaw<Array<{ table_name: string }>>`
+    const rows = await prisma.$queryRaw<{ table_name: string }[]>`
       SELECT table_name
       FROM information_schema.tables
       WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
@@ -43,7 +43,7 @@ describe("esquema de la base de datos", () => {
   });
 
   it("aplica las dos reglas que Prisma no modela", async () => {
-    const rows = await prisma.$queryRaw<Array<{ conname: string }>>`
+    const rows = await prisma.$queryRaw<{ conname: string }[]>`
       SELECT conname
       FROM pg_constraint
       WHERE contype = 'c'

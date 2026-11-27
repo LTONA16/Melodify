@@ -131,3 +131,15 @@ ALTER TABLE "follows" ADD CONSTRAINT "follows_followeeId_fkey" FOREIGN KEY ("fol
 
 -- AddForeignKey
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddCheck
+-- La valoración es un entero de 1 a 5. Prisma no modela CHECK, así que vive en
+-- la migración: una opinión con rating 0 o 6 es un error del servidor, no un
+-- dato aceptable.
+ALTER TABLE "opinions" ADD CONSTRAINT "opinions_rating_range" CHECK ("rating" >= 1 AND "rating" <= 5);
+
+-- AddCheck
+-- Nadie se sigue a sí mismo. Tampoco lo modela Prisma; sin este CHECK, un
+-- `POST /users/:handle/follow` mal escrito crearía una arista que no significa
+-- nada.
+ALTER TABLE "follows" ADD CONSTRAINT "follows_no_self" CHECK ("followerId" <> "followeeId");

@@ -62,7 +62,10 @@ module.exports = [
     ignores: [
       "**/node_modules/**",
       "**/dist/**",
-      "coverage/**",
+      "**/coverage/**",
+      // Estado local del motor de AI-DLC dentro de cada intento: no es código
+      // del proyecto y lo regenera la herramienta.
+      "aidlc/spaces/*/intents/*/.aidlc-engine/**",
       "**/.expo/**",
       // Árboles del arnés de AI-DLC y del harness: no son código de la app y el
       // CI no los mantiene.

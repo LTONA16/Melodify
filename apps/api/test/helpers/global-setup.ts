@@ -11,11 +11,11 @@ import { TEST_DATABASE_URL } from "./test-env";
  * migración rota se ve aquí y no en producción.
  */
 export default function setup(): void {
-  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
   const schema = resolveSchemaPath();
+  const [command, args] = prismaMigrateDeploy(schema);
 
   try {
-    execFileSync(npx, ["prisma", "migrate", "deploy", "--schema", schema], {
+    execFileSync(command, args, {
       cwd: resolve(schema, "..", ".."),
       env: { ...process.env, DATABASE_URL: TEST_DATABASE_URL },
       stdio: "pipe",
@@ -28,6 +28,23 @@ export default function setup(): void {
         `Detalle: ${detail}`,
     );
   }
+}
+
+/**
+ * En Windows `npx` es un `.cmd` y Node ya no lo ejecuta directamente
+ * (`spawnSync EINVAL`), así que se pasa por `cmd.exe`. No se usa `shell: true`
+ * porque Node lo desaconseja al combinar shell y argumentos; aquí el comando y
+ * los argumentos son constantes y la ruta la calcula el propio helper.
+ */
+function prismaMigrateDeploy(schema: string): [string, string[]] {
+  const args = ["prisma", "migrate", "deploy", "--schema", schema];
+
+  if (process.platform === "win32") {
+    const cmd = process.env.ComSpec ?? "cmd.exe";
+    return [cmd, ["/d", "/s", "/c", "npx", ...args]];
+  }
+
+  return ["npx", args];
 }
 
 /** Acepta que la suite se lance desde `apps/api` o desde la raíz del monorepo. */
