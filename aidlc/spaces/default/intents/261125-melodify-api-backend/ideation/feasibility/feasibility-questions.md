@@ -46,4 +46,4 @@ D. No hay contenido real que conservar (es de ejemplo), así que da igual.
 E. Not yet defined.
 X. Other (please specify)
 
-[Answer]:
+[Answer]: A
